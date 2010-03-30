@@ -1,20 +1,22 @@
 from IPy import IP
 
 from django.core.exceptions import ValidationError
+from django.utils.translation import ugettext_lazy
 from django.db import models, connection
 from django.db.models import sql, query
 
+# FIXME decide if we should use custom lookup names instead of overrides.
 NET_TERMS = {
-    'net_lt': '<',
-    'net_lte': '<=',
-    'net_exact': '=',
-    'net_gte': '>=',
-    'net_gt': '>',
-    'net_not': '<>',
-    'net_is_contained': '<<',
-    'net_is_contained_or_equal': '<<=',
-    'net_contains': '>>',
-    'net_contains_or_equals': '>>=',
+    'lt': '<',
+    'lte': '<=',
+    'exact': '=',
+    'gte': '>=',
+    'gt': '>',
+    'not': '<>',
+    'contained': '<<',
+    'contained_or_equal': '<<=',
+    'contains': '>>',
+    'contains_or_equals': '>>=',
 }
 
 class NetQuery(sql.Query):
@@ -43,10 +45,17 @@ class NetManger(models.Manager):
         q = NetQuery(self.model, connection, NetWhere)
         return query.QuerySet(self.model, q)
 
+# FIXME formfields etc?
+
 class _NetAddressField(models.Field):
+    # FIXME null and blank handling needs to be done right.
     def to_python(self, value):
-        if not value:
-            return None
+        if value is None:
+            if self.null:
+                return value
+            else:
+                raise ValidationError(
+                    ugettext_lazy("This field cannot be null."))
 
         try:
             return IP(value)
@@ -54,12 +63,18 @@ class _NetAddressField(models.Field):
             raise ValidationError(e)
 
     def get_db_prep_value(self, value):
+        # FIXME does this need to respect null and blank?
+        if value is None:
+            return value
         return unicode(self.to_python(value))
 
     def get_db_prep_lookup(self, lookup_type, value):
+        if value is None:
+            return value
+
         value = unicode(value)
 
-        if lookup_type in INET_TERMS:
+        if lookup_type in NET_TERMS:
             return [value]
 
         return super(_NetAddressField, self).get_db_prep_lookup(lookup_type, value)
@@ -85,12 +100,15 @@ class MACAddressField(models.Field):
         kwargs['max_length'] = 17
         super(MACAddressField, self).__init__(*args, **kwargs)
 
+    # FIXME does this need proper validation?
+
     def db_type(self):
         return 'macaddr'
 
 class Foo(models.Model):
-    inet = InetAddressField()
-    test = CidrAddressField()
-    mac = MACAddressField()
+    inet = InetAddressField(null=True)
+    test = CidrAddressField(null=True)
+    mac = MACAddressField(null=True)
+    text = models.CharField(max_length=10, blank=True, null=True)
 
     objects = NetManger()
