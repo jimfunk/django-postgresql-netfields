@@ -6,6 +6,10 @@ from django.db import models, connection
 from django.db.models import sql, query
 
 # FIXME decide if we should use custom lookup names instead of overrides.
+# FIXME decide if other "standard" lookups should be disabled
+# FIXME test "standard" lookups
+# FIXME decide if HOST() cast should be ignored
+
 NET_TERMS = {
     'lt': '<',
     'lte': '<=',
