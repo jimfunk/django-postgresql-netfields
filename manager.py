@@ -22,7 +22,7 @@ class IPWhere(sql.where.WhereNode):
     def make_atom(self, child, qn):
         table_alias, name, db_type, lookup_type, value_annot, params = child
 
-        if lookup_type in INET_TERMS:
+        if db_type == 'inet' and lookup_type in INET_TERMS:
             return ('%s.%s %s inet %%s' % (table_alias, name, INET_TERMS[lookup_type]), params)
 
         return super(IPWhere, self).make_atom(child, qn)
