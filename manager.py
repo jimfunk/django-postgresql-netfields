@@ -5,16 +5,16 @@ from django.db import models, connection
 from django.db.models import sql, query
 
 NET_TERMS = {
-    'inet_lt': '<',
-    'inet_lte': '<=',
-    'inet_exact': '=',
-    'inet_gte': '>=',
-    'inet_gt': '>',
-    'inet_not': '<>',
-    'inet_is_contained': '<<',
-    'inet_is_contained_or_equal': '<<=',
-    'inet_contains': '>>',
-    'inet_contains': '>>=',
+    'net_lt': '<',
+    'net_lte': '<=',
+    'net_exact': '=',
+    'net_gte': '>=',
+    'net_gt': '>',
+    'net_not': '<>',
+    'net_is_contained': '<<',
+    'net_is_contained_or_equal': '<<=',
+    'net_contains': '>>',
+    'net_contains_or_equals': '>>=',
 }
 
 class NetQuery(sql.Query):
