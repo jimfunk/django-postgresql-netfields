@@ -36,6 +36,8 @@ class NetWhere(sql.where.WhereNode):
         return super(NetWhere, self).make_atom(child, qn)
 
 class NetManger(models.Manager):
+    use_for_related_fields = True
+
     def get_query_set(self):
         q = NetQuery(self.model, connection, NetWhere)
         return query.QuerySet(self.model, q)
