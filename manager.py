@@ -28,6 +28,8 @@ class IPWhere(sql.where.WhereNode):
         return super(IPWhere, self).make_atom(child, qn)
 
 class IPManger(models.Manager):
+    use_for_related_fields = True
+
     def get_query_set(self):
         q = IPQuery(self.model, connection, IPWhere)
         return query.QuerySet(self.model, q)
