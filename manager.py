@@ -21,6 +21,11 @@ class IPQuery(sql.Query):
     query_terms = sql.Query.query_terms.copy()
     query_terms.update(INET_TERMS)
 
+    def add_filter(self, (filter_string, value), *args, **kwargs):
+        if isinstance(value, IP):
+            value = unicode(value)
+        return super(IPQuery, self).add_filter((filter_string, value), *args, **kwargs)
+
 class IPWhere(sql.where.WhereNode):
     def make_atom(self, child, qn):
         table_alias, name, db_type, lookup_type, value_annot, params = child
