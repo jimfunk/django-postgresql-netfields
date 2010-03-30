@@ -12,7 +12,6 @@ NET_TERMS = {
     'exact': '=',
     'gte': '>=',
     'gt': '>',
-    'not': '<>',
     'contained': '<<',
     'contained_or_equal': '<<=',
     'contains': '>>',
