@@ -19,8 +19,6 @@ NET_TERMS = {
     'contains_or_equals': '>>=',
 }
 
-# FIXME test UPDATE and DELETE
-
 class NetQuery(sql.Query):
     query_terms = sql.Query.query_terms.copy()
     query_terms.update(NET_TERMS)
@@ -48,6 +46,8 @@ class NetManger(models.Manager):
         return query.QuerySet(self.model, q)
 
 # FIXME formfields etc?
+# - regexp field for mac
+# - IP try catch for ip and cidr
 
 class _NetAddressField(models.Field):
     # FIXME null and blank handling needs to be done right.
@@ -109,7 +109,7 @@ class MACAddressField(models.Field):
 
 class Foo(models.Model):
     inet = InetAddressField(null=True)
-    test = CidrAddressField(null=True)
+    cidr = CidrAddressField(null=True)
     mac = MACAddressField(null=True)
     text = models.CharField(max_length=10, blank=True, null=True)
 
