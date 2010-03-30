@@ -22,6 +22,7 @@ class NetQuery(sql.Query):
     query_terms.update(NET_TERMS)
 
     def add_filter(self, (filter_string, value), *args, **kwargs):
+        # IP(...) == '' fails so make sure to force to string while we can
         if isinstance(value, IP):
             value = unicode(value)
         return super(NetQuery, self).add_filter((filter_string, value), *args, **kwargs)
@@ -64,21 +65,21 @@ class _NetAddressField(models.Field):
         return super(_NetAddressField, self).get_db_prep_lookup(lookup_type, value)
 
 class InetAddressField(_NetAddressField):
-    description = "Postgresql inet field"
+    description = "PostgreSQL INET field"
     __metaclass__ = models.SubfieldBase
 
     def db_type(self):
         return 'inet'
 
 class CidrAddressField(_NetAddressField):
-    description = "Postgresql cidr field"
+    description = "PostgreSQL CIDR field"
     __metaclass__ = models.SubfieldBase
 
     def db_type(self):
         return 'cidr'
 
 class MACAddressField(models.Field):
-    description = "Postgresql macaddr field"
+    description = "PostgreSQL MACADDR field"
 
     def __init__(self, *args, **kwargs):
         kwargs['max_length'] = 17
