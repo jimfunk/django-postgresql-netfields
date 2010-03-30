@@ -19,6 +19,8 @@ NET_TERMS = {
     'contains_or_equals': '>>=',
 }
 
+# FIXME test UPDATE and DELETE
+
 class NetQuery(sql.Query):
     query_terms = sql.Query.query_terms.copy()
     query_terms.update(NET_TERMS)
