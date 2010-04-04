@@ -8,7 +8,7 @@ from django.db.models import sql, query
 # FIXME decide if we should use custom lookup names instead of overrides.
 # FIXME decide if other "standard" lookups should be disabled
 # FIXME test "standard" lookups
-# FIXME decide if HOST() cast should be ignored
+# FIXME decide if HOST() cast should be ignored (done by backend)
 
 NET_TERMS = {
     'lt': '<',
@@ -20,6 +20,14 @@ NET_TERMS = {
     'contained_or_equal': '<<=',
     'contains': '>>',
     'contains_or_equals': '>>=',
+}
+
+NET_MAPPING = {
+    'iexact': 'exact',
+    'icontains': 'contains',
+    'istartswith': 'startswith',
+    'iendswith': 'endswith',
+    'iregex': 'regexp',
 }
 
 class NetQuery(sql.Query):
@@ -37,8 +45,12 @@ class NetWhere(sql.where.WhereNode):
     def make_atom(self, child, qn):
         table_alias, name, db_type, lookup_type, value_annot, params = child
 
+        if lookup_type in NET_MAPPING:
+            return self.make_atom((table_alias, name, db_type,
+                NET_MAPPING[lookup_type], value_annot, params), qn)
+
         if db_type in ['cidr', 'inet'] and lookup_type in NET_TERMS:
-            lookup = '%s.%s %s inet %%s' % (table_alias, name, NET_TERMS[lookup_type])
+            lookup = '%s.%s %s %%s' % (table_alias, name, NET_TERMS[lookup_type])
             return (lookup, params)
 
         return super(NetWhere, self).make_atom(child, qn)
@@ -55,6 +67,7 @@ class NetManger(models.Manager):
 # - IP try catch for ip and cidr
 
 class _NetAddressField(models.Field):
+    # FIXME init empty object
     # FIXME null and blank handling needs to be done right.
     def to_python(self, value):
         if value is None:
@@ -67,13 +80,19 @@ class _NetAddressField(models.Field):
 
     def get_db_prep_value(self, value):
         # FIXME does this need to respect null and blank?
+        # FIXME does not handle __in
         if value is None:
             return value
+
         return unicode(self.to_python(value))
 
     def get_db_prep_lookup(self, lookup_type, value):
         if value is None:
             return value
+
+        if lookup_type in NET_MAPPING:
+            return self.get_db_prep_lookup(
+                NET_MAPPING[lookup_type], value)
 
         if lookup_type in NET_TERMS:
             return [unicode(value)]
@@ -106,9 +125,83 @@ class MACAddressField(models.Field):
     def db_type(self):
         return 'macaddr'
 
-class Foo(models.Model):
-    inet = InetAddressField(null=True)
-    cidr = CidrAddressField(null=True)
-    mac = MACAddressField(null=True)
+class InetTestModel(models.Model):
+    '''
+    >>> InetTestModel.objects.filter(inet='10.0.0.1').query.as_sql()
+    ('SELECT "foo_inettestmodel"."id", "foo_inettestmodel"."inet" FROM "foo_inettestmodel" WHERE foo_inettestmodel.inet = %s', (u'10.0.0.1',))
 
+    >>> InetTestModel.objects.filter(inet__exact='10.0.0.1').query.as_sql()
+    ('SELECT "foo_inettestmodel"."id", "foo_inettestmodel"."inet" FROM "foo_inettestmodel" WHERE foo_inettestmodel.inet = %s', (u'10.0.0.1',))
+
+    >>> InetTestModel.objects.filter(inet__iexact='10.0.0.1').query.as_sql()
+    ('SELECT "foo_inettestmodel"."id", "foo_inettestmodel"."inet" FROM "foo_inettestmodel" WHERE foo_inettestmodel.inet = %s', (u'10.0.0.1',))
+
+    >>> InetTestModel.objects.filter(inet__contains='10.0.0.1').query.as_sql()
+    ('SELECT "foo_inettestmodel"."id", "foo_inettestmodel"."inet" FROM "foo_inettestmodel" WHERE foo_inettestmodel.inet >> %s', (u'10.0.0.1',))
+
+    >>> InetTestModel.objects.filter(inet__icontains='10.0.0.1').query.as_sql()
+    ('SELECT "foo_inettestmodel"."id", "foo_inettestmodel"."inet" FROM "foo_inettestmodel" WHERE foo_inettestmodel.inet >> %s', (u'10.0.0.1',))
+
+    in
+
+    >>> InetTestModel.objects.filter(inet__gt='10.0.0.1').query.as_sql()
+    ('SELECT "foo_inettestmodel"."id", "foo_inettestmodel"."inet" FROM "foo_inettestmodel" WHERE foo_inettestmodel.inet > %s', (u'10.0.0.1',))
+
+    >>> InetTestModel.objects.filter(inet__gte='10.0.0.1').query.as_sql()
+    ('SELECT "foo_inettestmodel"."id", "foo_inettestmodel"."inet" FROM "foo_inettestmodel" WHERE foo_inettestmodel.inet >= %s', (u'10.0.0.1',))
+
+    >>> InetTestModel.objects.filter(inet__lt='10.0.0.1').query.as_sql()
+    ('SELECT "foo_inettestmodel"."id", "foo_inettestmodel"."inet" FROM "foo_inettestmodel" WHERE foo_inettestmodel.inet < %s', (u'10.0.0.1',))
+
+    >>> InetTestModel.objects.filter(inet__lte='10.0.0.1').query.as_sql()
+    ('SELECT "foo_inettestmodel"."id", "foo_inettestmodel"."inet" FROM "foo_inettestmodel" WHERE foo_inettestmodel.inet <= %s', (u'10.0.0.1',))
+
+    startswith
+
+    istartswith
+
+    endswith
+
+    iendswith
+
+    range
+
+    year
+
+    month
+
+    day
+
+    isnull
+
+    search
+
+    regex
+
+    iregex
+
+    >>> InetTestModel.objects.filter(inet__contains_or_equals='10.0.0.1').query.as_sql()
+    ('SELECT "foo_inettestmodel"."id", "foo_inettestmodel"."inet" FROM "foo_inettestmodel" WHERE foo_inettestmodel.inet >>= %s', (u'10.0.0.1',))
+
+    >>> InetTestModel.objects.filter(inet__contained='10.0.0.1').query.as_sql()
+    ('SELECT "foo_inettestmodel"."id", "foo_inettestmodel"."inet" FROM "foo_inettestmodel" WHERE foo_inettestmodel.inet << %s', (u'10.0.0.1',))
+
+    >>> InetTestModel.objects.filter(inet__contained_or_equal='10.0.0.1').query.as_sql()
+    ('SELECT "foo_inettestmodel"."id", "foo_inettestmodel"."inet" FROM "foo_inettestmodel" WHERE foo_inettestmodel.inet <<= %s', (u'10.0.0.1',))
+    '''
+
+    inet = InetAddressField()
+    objects = NetManger()
+
+class CidrTestModel(models.Model):
+    '''
+    >>> CidrTestModel.objects.filter(cidr='10.0.0.1').query.as_sql()
+    ('SELECT "foo_cidrtestmodel"."id", "foo_cidrtestmodel"."cidr" FROM "foo_cidrtestmodel" WHERE foo_cidrtestmodel.cidr = %s', (u'10.0.0.1',))
+    '''
+
+    cidr = CidrAddressField()
+    objects = NetManger()
+
+class MACTestModel(models.Model):
+    mac = MACAddressField(null=True)
     objects = NetManger()
