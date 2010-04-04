@@ -77,12 +77,11 @@ class _NetAddressField(models.Field):
         if value is None:
             return value
 
-        value = unicode(value)
-
         if lookup_type in NET_TERMS:
-            return [value]
+            return [unicode(value)]
 
-        return super(_NetAddressField, self).get_db_prep_lookup(lookup_type, value)
+        return super(_NetAddressField, self).get_db_prep_lookup(
+            lookup_type, unicode(value))
 
 class InetAddressField(_NetAddressField):
     description = "PostgreSQL INET field"
@@ -114,6 +113,5 @@ class Foo(models.Model):
     inet = InetAddressField(null=True)
     cidr = CidrAddressField(null=True)
     mac = MACAddressField(null=True)
-    text = models.CharField(max_length=10, blank=True, null=True)
 
     objects = NetManger()
