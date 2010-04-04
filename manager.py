@@ -30,14 +30,16 @@ class NetQuery(sql.Query):
         # IP(...) == '' fails so make sure to force to string while we can
         if isinstance(value, IP):
             value = unicode(value)
-        return super(NetQuery, self).add_filter((filter_string, value), *args, **kwargs)
+        return super(NetQuery, self).add_filter(
+            (filter_string, value), *args, **kwargs)
 
 class NetWhere(sql.where.WhereNode):
     def make_atom(self, child, qn):
         table_alias, name, db_type, lookup_type, value_annot, params = child
 
         if db_type in ['cidr', 'inet'] and lookup_type in NET_TERMS:
-            return ('%s.%s %s inet %%s' % (table_alias, name, NET_TERMS[lookup_type]), params)
+            lookup = '%s.%s %s inet %%s' % (table_alias, name, NET_TERMS[lookup_type])
+            return (lookup, params)
 
         return super(NetWhere, self).make_atom(child, qn)
 
@@ -56,11 +58,7 @@ class _NetAddressField(models.Field):
     # FIXME null and blank handling needs to be done right.
     def to_python(self, value):
         if value is None:
-            if self.null:
-                return value
-            else:
-                raise ValidationError(
-                    ugettext_lazy("This field cannot be null."))
+            return value
 
         try:
             return IP(value)
@@ -98,13 +96,12 @@ class CidrAddressField(_NetAddressField):
         return 'cidr'
 
 class MACAddressField(models.Field):
+    # FIXME does this need proper validation?
     description = "PostgreSQL MACADDR field"
 
     def __init__(self, *args, **kwargs):
         kwargs['max_length'] = 17
         super(MACAddressField, self).__init__(*args, **kwargs)
-
-    # FIXME does this need proper validation?
 
     def db_type(self):
         return 'macaddr'
