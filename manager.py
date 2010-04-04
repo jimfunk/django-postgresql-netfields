@@ -91,6 +91,9 @@ class _NetAddressField(models.Field):
         if value is None:
             return value
 
+        if lookup_type in ['year', 'month', 'day']:
+            raise ValueError('Invalid lookup type "%s"' % lookup_type)
+
         if lookup_type in NET_MAPPING:
             return self.get_db_prep_lookup(
                 NET_MAPPING[lookup_type], value)
