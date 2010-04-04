@@ -22,12 +22,13 @@ NET_TERMS = {
     'contains_or_equals': '>>=',
 }
 
+# FIXME rethink caps with respect to IPV6, all should be insensitive...
 NET_MAPPING = {
     'iexact': 'exact',
     'icontains': 'contains',
     'istartswith': 'startswith',
     'iendswith': 'endswith',
-    'iregex': 'regexp',
+    'iregex': 'regex',
 }
 
 class NetQuery(sql.Query):
