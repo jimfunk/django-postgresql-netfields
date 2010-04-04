@@ -146,7 +146,8 @@ class InetTestModel(models.Model):
     >>> InetTestModel.objects.filter(inet__icontains='10.0.0.1').query.as_sql()
     ('SELECT "foo_inettestmodel"."id", "foo_inettestmodel"."inet" FROM "foo_inettestmodel" WHERE foo_inettestmodel.inet >> %s', (u'10.0.0.1',))
 
-    in
+    >>> InetTestModel.objects.filter(inet__in=['10.0.0.1', '10.0.0.2']).query.as_sql()
+    ('SELECT "foo_inettestmodel"."id", "foo_inettestmodel"."inet" FROM "foo_inettestmodel" WHERE "foo_inettestmodel"."inet" IN (%s, %s)', (u'10.0.0.1', u'10.0.0.2'))
 
     >>> InetTestModel.objects.filter(inet__gt='10.0.0.1').query.as_sql()
     ('SELECT "foo_inettestmodel"."id", "foo_inettestmodel"."inet" FROM "foo_inettestmodel" WHERE foo_inettestmodel.inet > %s', (u'10.0.0.1',))
@@ -160,29 +161,44 @@ class InetTestModel(models.Model):
     >>> InetTestModel.objects.filter(inet__lte='10.0.0.1').query.as_sql()
     ('SELECT "foo_inettestmodel"."id", "foo_inettestmodel"."inet" FROM "foo_inettestmodel" WHERE foo_inettestmodel.inet <= %s', (u'10.0.0.1',))
 
-    startswith
+    >>> InetTestModel.objects.filter(inet__startswith='10.').query.as_sql()
+    ('SELECT "foo_inettestmodel"."id", "foo_inettestmodel"."inet" FROM "foo_inettestmodel" WHERE HOST("foo_inettestmodel"."inet")::text LIKE %s ', (u'10.%',))
 
-    istartswith
+    >>> InetTestModel.objects.filter(inet__istartswith='10.').query.as_sql()
+    ('SELECT "foo_inettestmodel"."id", "foo_inettestmodel"."inet" FROM "foo_inettestmodel" WHERE HOST("foo_inettestmodel"."inet")::text LIKE %s ', (u'10.%',))
 
-    endswith
+    >>> InetTestModel.objects.filter(inet__endswith='.1').query.as_sql()
+    ('SELECT "foo_inettestmodel"."id", "foo_inettestmodel"."inet" FROM "foo_inettestmodel" WHERE HOST("foo_inettestmodel"."inet")::text LIKE %s ', (u'%.1',))
 
-    iendswith
+    >>> InetTestModel.objects.filter(inet__iendswith='.1').query.as_sql()
+    ('SELECT "foo_inettestmodel"."id", "foo_inettestmodel"."inet" FROM "foo_inettestmodel" WHERE HOST("foo_inettestmodel"."inet")::text LIKE %s ', (u'%.1',))
 
-    range
+    >>> InetTestModel.objects.filter(inet__range=('10.0.0.1', '10.0.0.10')).query.as_sql()
+    ('SELECT "foo_inettestmodel"."id", "foo_inettestmodel"."inet" FROM "foo_inettestmodel" WHERE "foo_inettestmodel"."inet" BETWEEN %s AND %s', (u'10.0.0.1', u'10.0.0.10'))
 
-    year
+    >>> InetTestModel.objects.filter(inet__year=1).query.as_sql()
+    ValueError: Invalid lookup type "year"
 
-    month
+    >>> InetTestModel.objects.filter(inet__month=1).query.as_sql()
+    ValueError: Invalid lookup type "month"
 
-    day
+    >>> InetTestModel.objects.filter(inet__day=1).query.as_sql()
+    ValueError: Invalid lookup type "day"
 
-    isnull
+    >>> InetTestModel.objects.filter(inet__isnull=True).query.as_sql()
+    ('SELECT "foo_inettestmodel"."id", "foo_inettestmodel"."inet" FROM "foo_inettestmodel" WHERE "foo_inettestmodel"."inet) IS NULL', ())
 
-    search
+    >>> InetTestModel.objects.filter(inet__isnull=False).query.as_sql()
+    ('SELECT "foo_inettestmodel"."id", "foo_inettestmodel"."inet" FROM "foo_inettestmodel" WHERE "foo_inettestmodel"."inet" IS NOT NULL', ())
 
-    regex
+    >>> InetTestModel.objects.filter(inet__search='10').query.as_sql()
+    NotImplementedError: Full-text search is not implemented for this database backend
 
-    iregex
+    >>> InetTestModel.objects.filter(inet__regex='10').query.as_sql()
+    ('SELECT "foo_inettestmodel"."id", "foo_inettestmodel"."inet" FROM "foo_inettestmodel" WHERE HOST("foo_inettestmodel"."inet") ~ %s ', (u'10',))
+
+    >>> InetTestModel.objects.filter(inet__iregex='10').query.as_sql()
+    ('SELECT "foo_inettestmodel"."id", "foo_inettestmodel"."inet" FROM "foo_inettestmodel" WHERE HOST("foo_inettestmodel"."inet") ~ %s ', (u'10',))
 
     >>> InetTestModel.objects.filter(inet__contains_or_equals='10.0.0.1').query.as_sql()
     ('SELECT "foo_inettestmodel"."id", "foo_inettestmodel"."inet" FROM "foo_inettestmodel" WHERE foo_inettestmodel.inet >>= %s', (u'10.0.0.1',))
