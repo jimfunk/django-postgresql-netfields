@@ -50,19 +50,20 @@ class NetQuery(sql.Query):
 class NetWhere(sql.where.WhereNode):
     def make_atom(self, child, qn):
         table_alias, name, db_type, lookup_type, value_annot, params = child
+        field_sql = '%s.%s' % (qn(table_alias), qn(name))
 
         if lookup_type in NET_MAPPING:
             return self.make_atom((table_alias, name, db_type,
                 NET_MAPPING[lookup_type], value_annot, params), qn)
 
         if db_type in ['cidr', 'inet'] and lookup_type in NET_TERMS:
-            lookup = '%s.%s %s %%s' % (table_alias, name, NET_TERMS[lookup_type])
+            lookup = '%s %s %%s' % (field_sql, NET_TERMS[lookup_type])
             return (lookup, params)
         elif db_type in ['cidr', 'inet'] and lookup_type in NET_TERMS_SPECIAL:
             if lookup_type == 'in':
-                return ('%s.%s IN (%s)' % (qn(table_alias), qn(name), ', '.join(['%s'] * len(params))), params)
+                return ('%s IN (%s)' % (field_sql, ', '.join(['%s'] * len(params))), params)
             if lookup_type == 'range':
-                return ('%s.%s BETWEEN %%s and %%s' % (qn(table_alias), qn(name)), params)
+                return ('%s BETWEEN %%s and %%s' % (field_sql), params)
 
         return super(NetWhere, self).make_atom(child, qn)
 
@@ -142,34 +143,34 @@ class MACAddressField(models.Field):
 class InetTestModel(models.Model):
     '''
     >>> InetTestModel.objects.filter(inet='10.0.0.1').query.as_sql()
-    ('SELECT "foo_inettestmodel"."id", "foo_inettestmodel"."inet" FROM "foo_inettestmodel" WHERE foo_inettestmodel.inet = %s', (u'10.0.0.1',))
+    ('SELECT "foo_inettestmodel"."id", "foo_inettestmodel"."inet" FROM "foo_inettestmodel" WHERE "foo_inettestmodel"."inet" = %s', (u'10.0.0.1',))
 
     >>> InetTestModel.objects.filter(inet__exact='10.0.0.1').query.as_sql()
-    ('SELECT "foo_inettestmodel"."id", "foo_inettestmodel"."inet" FROM "foo_inettestmodel" WHERE foo_inettestmodel.inet = %s', (u'10.0.0.1',))
+    ('SELECT "foo_inettestmodel"."id", "foo_inettestmodel"."inet" FROM "foo_inettestmodel" WHERE "foo_inettestmodel"."inet" = %s', (u'10.0.0.1',))
 
     >>> InetTestModel.objects.filter(inet__iexact='10.0.0.1').query.as_sql()
-    ('SELECT "foo_inettestmodel"."id", "foo_inettestmodel"."inet" FROM "foo_inettestmodel" WHERE foo_inettestmodel.inet = %s', (u'10.0.0.1',))
+    ('SELECT "foo_inettestmodel"."id", "foo_inettestmodel"."inet" FROM "foo_inettestmodel" WHERE "foo_inettestmodel"."inet" = %s', (u'10.0.0.1',))
 
     >>> InetTestModel.objects.filter(inet__contains='10.0.0.1').query.as_sql()
-    ('SELECT "foo_inettestmodel"."id", "foo_inettestmodel"."inet" FROM "foo_inettestmodel" WHERE foo_inettestmodel.inet >> %s', (u'10.0.0.1',))
+    ('SELECT "foo_inettestmodel"."id", "foo_inettestmodel"."inet" FROM "foo_inettestmodel" WHERE "foo_inettestmodel"."inet" >> %s', (u'10.0.0.1',))
 
     >>> InetTestModel.objects.filter(inet__icontains='10.0.0.1').query.as_sql()
-    ('SELECT "foo_inettestmodel"."id", "foo_inettestmodel"."inet" FROM "foo_inettestmodel" WHERE foo_inettestmodel.inet >> %s', (u'10.0.0.1',))
+    ('SELECT "foo_inettestmodel"."id", "foo_inettestmodel"."inet" FROM "foo_inettestmodel" WHERE "foo_inettestmodel"."inet" >> %s', (u'10.0.0.1',))
 
     >>> InetTestModel.objects.filter(inet__in=['10.0.0.1', '10.0.0.2']).query.as_sql()
     ('SELECT "foo_inettestmodel"."id", "foo_inettestmodel"."inet" FROM "foo_inettestmodel" WHERE "foo_inettestmodel"."inet" IN (%s, %s)', (u'10.0.0.1', u'10.0.0.2'))
 
     >>> InetTestModel.objects.filter(inet__gt='10.0.0.1').query.as_sql()
-    ('SELECT "foo_inettestmodel"."id", "foo_inettestmodel"."inet" FROM "foo_inettestmodel" WHERE foo_inettestmodel.inet > %s', (u'10.0.0.1',))
+    ('SELECT "foo_inettestmodel"."id", "foo_inettestmodel"."inet" FROM "foo_inettestmodel" WHERE "foo_inettestmodel"."inet" > %s', (u'10.0.0.1',))
 
     >>> InetTestModel.objects.filter(inet__gte='10.0.0.1').query.as_sql()
-    ('SELECT "foo_inettestmodel"."id", "foo_inettestmodel"."inet" FROM "foo_inettestmodel" WHERE foo_inettestmodel.inet >= %s', (u'10.0.0.1',))
+    ('SELECT "foo_inettestmodel"."id", "foo_inettestmodel"."inet" FROM "foo_inettestmodel" WHERE "foo_inettestmodel"."inet" >= %s', (u'10.0.0.1',))
 
     >>> InetTestModel.objects.filter(inet__lt='10.0.0.1').query.as_sql()
-    ('SELECT "foo_inettestmodel"."id", "foo_inettestmodel"."inet" FROM "foo_inettestmodel" WHERE foo_inettestmodel.inet < %s', (u'10.0.0.1',))
+    ('SELECT "foo_inettestmodel"."id", "foo_inettestmodel"."inet" FROM "foo_inettestmodel" WHERE "foo_inettestmodel"."inet" < %s', (u'10.0.0.1',))
 
     >>> InetTestModel.objects.filter(inet__lte='10.0.0.1').query.as_sql()
-    ('SELECT "foo_inettestmodel"."id", "foo_inettestmodel"."inet" FROM "foo_inettestmodel" WHERE foo_inettestmodel.inet <= %s', (u'10.0.0.1',))
+    ('SELECT "foo_inettestmodel"."id", "foo_inettestmodel"."inet" FROM "foo_inettestmodel" WHERE "foo_inettestmodel"."inet" <= %s', (u'10.0.0.1',))
 
     >>> InetTestModel.objects.filter(inet__startswith='10.').query.as_sql()
     ('SELECT "foo_inettestmodel"."id", "foo_inettestmodel"."inet" FROM "foo_inettestmodel" WHERE HOST("foo_inettestmodel"."inet")::text LIKE %s ', (u'10.%',))
@@ -219,13 +220,13 @@ class InetTestModel(models.Model):
     ('SELECT "foo_inettestmodel"."id", "foo_inettestmodel"."inet" FROM "foo_inettestmodel" WHERE HOST("foo_inettestmodel"."inet") ~ %s ', (u'10',))
 
     >>> InetTestModel.objects.filter(inet__contains_or_equals='10.0.0.1').query.as_sql()
-    ('SELECT "foo_inettestmodel"."id", "foo_inettestmodel"."inet" FROM "foo_inettestmodel" WHERE foo_inettestmodel.inet >>= %s', (u'10.0.0.1',))
+    ('SELECT "foo_inettestmodel"."id", "foo_inettestmodel"."inet" FROM "foo_inettestmodel" WHERE "foo_inettestmodel"."inet" >>= %s', (u'10.0.0.1',))
 
     >>> InetTestModel.objects.filter(inet__contained='10.0.0.1').query.as_sql()
-    ('SELECT "foo_inettestmodel"."id", "foo_inettestmodel"."inet" FROM "foo_inettestmodel" WHERE foo_inettestmodel.inet << %s', (u'10.0.0.1',))
+    ('SELECT "foo_inettestmodel"."id", "foo_inettestmodel"."inet" FROM "foo_inettestmodel" WHERE "foo_inettestmodel"."inet" << %s', (u'10.0.0.1',))
 
     >>> InetTestModel.objects.filter(inet__contained_or_equal='10.0.0.1').query.as_sql()
-    ('SELECT "foo_inettestmodel"."id", "foo_inettestmodel"."inet" FROM "foo_inettestmodel" WHERE foo_inettestmodel.inet <<= %s', (u'10.0.0.1',))
+    ('SELECT "foo_inettestmodel"."id", "foo_inettestmodel"."inet" FROM "foo_inettestmodel" WHERE "foo_inettestmodel"."inet" <<= %s', (u'10.0.0.1',))
     '''
 
     inet = InetAddressField()
@@ -234,7 +235,7 @@ class InetTestModel(models.Model):
 class CidrTestModel(models.Model):
     '''
     >>> CidrTestModel.objects.filter(cidr='10.0.0.1').query.as_sql()
-    ('SELECT "foo_cidrtestmodel"."id", "foo_cidrtestmodel"."cidr" FROM "foo_cidrtestmodel" WHERE foo_cidrtestmodel.cidr = %s', (u'10.0.0.1',))
+    ('SELECT "foo_cidrtestmodel"."id", "foo_cidrtestmodel"."cidr" FROM "foo_cidrtestmodel" WHERE "foo_cidrtestmodel"."cidr" = %s', (u'10.0.0.1',))
     '''
 
     cidr = CidrAddressField()
