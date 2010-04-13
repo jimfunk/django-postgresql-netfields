@@ -213,10 +213,10 @@ class InetTestModel(models.Model):
         ...
     NotImplementedError: Full-text search is not implemented for this database backend
 
-    >>> InetTestModel.objects.filter(inet__regex='10').query.as_sql()
+    >>> InetTestModel.objects.filter(inet__regex=u'10').query.as_sql()
     ('SELECT "foo_inettestmodel"."id", "foo_inettestmodel"."inet" FROM "foo_inettestmodel" WHERE HOST("foo_inettestmodel"."inet") ~ %s ', (u'10',))
 
-    >>> InetTestModel.objects.filter(inet__iregex='10').query.as_sql()
+    >>> InetTestModel.objects.filter(inet__iregex=u'10').query.as_sql()
     ('SELECT "foo_inettestmodel"."id", "foo_inettestmodel"."inet" FROM "foo_inettestmodel" WHERE HOST("foo_inettestmodel"."inet") ~ %s ', (u'10',))
 
     >>> InetTestModel.objects.filter(inet__net_contains_or_equals='10.0.0.1').query.as_sql()
