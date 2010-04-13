@@ -57,18 +57,20 @@ class NetWhere(sql.where.WhereNode):
             return self.make_atom((table_alias, name, db_type,
                 NET_TERMS_MAPPING[lookup_type], value_annot, params), qn)
 
-        if db_type in ['cidr', 'inet'] and lookup_type in NET_TERMS:
+        elif db_type not in ['inet', 'cidr']:
+            return super(NetWhere, self).make_atom(child, qn)
+        elif lookup_type in NET_TERMS:
             lookup = '%s %s %%s' % (field_sql, NET_TERMS[lookup_type])
             return (lookup, params)
-        elif db_type in ['cidr', 'inet'] and lookup_type in NET_TERMS_SPECIAL:
+        elif lookup_type in NET_TERMS_SPECIAL:
             if lookup_type == 'in':
                 return ('%s IN (%s)' % (field_sql, ', '.join(['%s'] * len(params))), params)
             elif lookup_type == 'range':
                 return ('%s BETWEEN %%s and %%s' % (field_sql), params)
             elif lookup_type == 'isnull':
                 return ('%s IS %sNULL' % (field_sql, (not value_annot and 'NOT ' or '')), params)
-
-        return super(NetWhere, self).make_atom(child, qn)
+        else:
+            return super(NetWhere, self).make_atom(child, qn)
 
 class NetManger(models.Manager):
     use_for_related_fields = True
