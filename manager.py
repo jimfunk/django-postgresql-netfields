@@ -29,7 +29,7 @@ NET_TERMS_SPECIAL = {
 }
 
 # FIXME rethink caps with respect to IPV6, all should be insensitive...
-NET_MAPPING = {
+NET_TERMS_MAPPING = {
     'iexact': 'exact',
     'icontains': 'contains',
     'istartswith': 'startswith',
@@ -53,9 +53,9 @@ class NetWhere(sql.where.WhereNode):
         table_alias, name, db_type, lookup_type, value_annot, params = child
         field_sql = '%s.%s' % (qn(table_alias), qn(name))
 
-        if lookup_type in NET_MAPPING:
+        if lookup_type in NET_TERMS_MAPPING:
             return self.make_atom((table_alias, name, db_type,
-                NET_MAPPING[lookup_type], value_annot, params), qn)
+                NET_TERMS_MAPPING[lookup_type], value_annot, params), qn)
 
         if db_type in ['cidr', 'inet'] and lookup_type in NET_TERMS:
             lookup = '%s %s %%s' % (field_sql, NET_TERMS[lookup_type])
@@ -108,9 +108,9 @@ class _NetAddressField(models.Field):
         if lookup_type in ['year', 'month', 'day']:
             raise ValueError('Invalid lookup type "%s"' % lookup_type)
 
-        if lookup_type in NET_MAPPING:
+        if lookup_type in NET_TERMS_MAPPING:
             return self.get_db_prep_lookup(
-                NET_MAPPING[lookup_type], value)
+                NET_TERMS_MAPPING[lookup_type], value)
 
         if lookup_type in NET_TERMS:
             return [self.get_db_prep_value(value)]
