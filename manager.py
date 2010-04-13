@@ -22,6 +22,11 @@ NET_TERMS = {
     'contains_or_equals': '>>=',
 }
 
+NET_TERMS_SPECIAL = {
+    'in': None,
+    'range': None,
+}
+
 # FIXME rethink caps with respect to IPV6, all should be insensitive...
 NET_MAPPING = {
     'iexact': 'exact',
@@ -53,6 +58,11 @@ class NetWhere(sql.where.WhereNode):
         if db_type in ['cidr', 'inet'] and lookup_type in NET_TERMS:
             lookup = '%s.%s %s %%s' % (table_alias, name, NET_TERMS[lookup_type])
             return (lookup, params)
+        elif db_type in ['cidr', 'inet'] and lookup_type in NET_TERMS_SPECIAL:
+            if lookup_type == 'in':
+                return ('%s.%s IN (%s)' % (qn(table_alias), qn(name), ', '.join(['%s'] * len(params))), params)
+            if lookup_type == 'range':
+                return ('%s.%s BETWEEN %%s and %%s' % (qn(table_alias), qn(name)), params)
 
         return super(NetWhere, self).make_atom(child, qn)
 
@@ -99,10 +109,10 @@ class _NetAddressField(models.Field):
                 NET_MAPPING[lookup_type], value)
 
         if lookup_type in NET_TERMS:
-            return [unicode(value)]
+            return [self.get_db_prep_value(value)]
 
         return super(_NetAddressField, self).get_db_prep_lookup(
-            lookup_type, unicode(value))
+            lookup_type, value)
 
 class InetAddressField(_NetAddressField):
     description = "PostgreSQL INET field"
@@ -174,7 +184,7 @@ class InetTestModel(models.Model):
     ('SELECT "foo_inettestmodel"."id", "foo_inettestmodel"."inet" FROM "foo_inettestmodel" WHERE HOST("foo_inettestmodel"."inet")::text LIKE %s ', (u'%.1',))
 
     >>> InetTestModel.objects.filter(inet__range=('10.0.0.1', '10.0.0.10')).query.as_sql()
-    ('SELECT "foo_inettestmodel"."id", "foo_inettestmodel"."inet" FROM "foo_inettestmodel" WHERE "foo_inettestmodel"."inet" BETWEEN %s AND %s', (u'10.0.0.1', u'10.0.0.10'))
+    ('SELECT "foo_inettestmodel"."id", "foo_inettestmodel"."inet" FROM "foo_inettestmodel" WHERE "foo_inettestmodel"."inet" BETWEEN %s and %s', (u'10.0.0.1', u'10.0.0.10'))
 
     >>> InetTestModel.objects.filter(inet__year=1).query.as_sql()
     ValueError: Invalid lookup type "year"
