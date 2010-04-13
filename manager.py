@@ -187,12 +187,18 @@ class InetTestModel(models.Model):
     ('SELECT "foo_inettestmodel"."id", "foo_inettestmodel"."inet" FROM "foo_inettestmodel" WHERE "foo_inettestmodel"."inet" BETWEEN %s and %s', (u'10.0.0.1', u'10.0.0.10'))
 
     >>> InetTestModel.objects.filter(inet__year=1).query.as_sql()
+    Traceback (most recent call last):
+        ...
     ValueError: Invalid lookup type "year"
 
     >>> InetTestModel.objects.filter(inet__month=1).query.as_sql()
+    Traceback (most recent call last):
+        ...
     ValueError: Invalid lookup type "month"
 
     >>> InetTestModel.objects.filter(inet__day=1).query.as_sql()
+    Traceback (most recent call last):
+        ...
     ValueError: Invalid lookup type "day"
 
     >>> InetTestModel.objects.filter(inet__isnull=True).query.as_sql()
@@ -202,6 +208,8 @@ class InetTestModel(models.Model):
     ('SELECT "foo_inettestmodel"."id", "foo_inettestmodel"."inet" FROM "foo_inettestmodel" WHERE "foo_inettestmodel"."inet" IS NOT NULL', ())
 
     >>> InetTestModel.objects.filter(inet__search='10').query.as_sql()
+    Traceback (most recent call last):
+        ...
     NotImplementedError: Full-text search is not implemented for this database backend
 
     >>> InetTestModel.objects.filter(inet__regex='10').query.as_sql()
