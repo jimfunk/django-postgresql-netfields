@@ -16,15 +16,16 @@ NET_TERMS = {
     'exact': '=',
     'gte': '>=',
     'gt': '>',
-    'contained': '<<',
-    'contained_or_equal': '<<=',
-    'contains': '>>',
-    'contains_or_equals': '>>=',
+    'net_contained': '<<',
+    'net_contained_or_equal': '<<=',
+    'net_contains': '>>',
+    'net_contains_or_equals': '>>=',
 }
 
 NET_TERMS_SPECIAL = {
     'in': None,
     'range': None,
+    'isnull': None,
 }
 
 # FIXME rethink caps with respect to IPV6, all should be insensitive...
@@ -62,8 +63,10 @@ class NetWhere(sql.where.WhereNode):
         elif db_type in ['cidr', 'inet'] and lookup_type in NET_TERMS_SPECIAL:
             if lookup_type == 'in':
                 return ('%s IN (%s)' % (field_sql, ', '.join(['%s'] * len(params))), params)
-            if lookup_type == 'range':
+            elif lookup_type == 'range':
                 return ('%s BETWEEN %%s and %%s' % (field_sql), params)
+            elif lookup_type == 'isnull':
+                return ('%s IS %sNULL' % (field_sql, (not value_annot and 'NOT ' or '')), params)
 
         return super(NetWhere, self).make_atom(child, qn)
 
@@ -151,10 +154,7 @@ class InetTestModel(models.Model):
     >>> InetTestModel.objects.filter(inet__iexact='10.0.0.1').query.as_sql()
     ('SELECT "foo_inettestmodel"."id", "foo_inettestmodel"."inet" FROM "foo_inettestmodel" WHERE "foo_inettestmodel"."inet" = %s', (u'10.0.0.1',))
 
-    >>> InetTestModel.objects.filter(inet__contains='10.0.0.1').query.as_sql()
-    ('SELECT "foo_inettestmodel"."id", "foo_inettestmodel"."inet" FROM "foo_inettestmodel" WHERE "foo_inettestmodel"."inet" >> %s', (u'10.0.0.1',))
-
-    >>> InetTestModel.objects.filter(inet__icontains='10.0.0.1').query.as_sql()
+    >>> InetTestModel.objects.filter(inet__net_contains='10.0.0.1').query.as_sql()
     ('SELECT "foo_inettestmodel"."id", "foo_inettestmodel"."inet" FROM "foo_inettestmodel" WHERE "foo_inettestmodel"."inet" >> %s', (u'10.0.0.1',))
 
     >>> InetTestModel.objects.filter(inet__in=['10.0.0.1', '10.0.0.2']).query.as_sql()
@@ -203,7 +203,7 @@ class InetTestModel(models.Model):
     ValueError: Invalid lookup type "day"
 
     >>> InetTestModel.objects.filter(inet__isnull=True).query.as_sql()
-    ('SELECT "foo_inettestmodel"."id", "foo_inettestmodel"."inet" FROM "foo_inettestmodel" WHERE "foo_inettestmodel"."inet) IS NULL', ())
+    ('SELECT "foo_inettestmodel"."id", "foo_inettestmodel"."inet" FROM "foo_inettestmodel" WHERE "foo_inettestmodel"."inet" IS NULL', ())
 
     >>> InetTestModel.objects.filter(inet__isnull=False).query.as_sql()
     ('SELECT "foo_inettestmodel"."id", "foo_inettestmodel"."inet" FROM "foo_inettestmodel" WHERE "foo_inettestmodel"."inet" IS NOT NULL', ())
@@ -219,13 +219,13 @@ class InetTestModel(models.Model):
     >>> InetTestModel.objects.filter(inet__iregex='10').query.as_sql()
     ('SELECT "foo_inettestmodel"."id", "foo_inettestmodel"."inet" FROM "foo_inettestmodel" WHERE HOST("foo_inettestmodel"."inet") ~ %s ', (u'10',))
 
-    >>> InetTestModel.objects.filter(inet__contains_or_equals='10.0.0.1').query.as_sql()
+    >>> InetTestModel.objects.filter(inet__net_contains_or_equals='10.0.0.1').query.as_sql()
     ('SELECT "foo_inettestmodel"."id", "foo_inettestmodel"."inet" FROM "foo_inettestmodel" WHERE "foo_inettestmodel"."inet" >>= %s', (u'10.0.0.1',))
 
-    >>> InetTestModel.objects.filter(inet__contained='10.0.0.1').query.as_sql()
+    >>> InetTestModel.objects.filter(inet__net_contained='10.0.0.1').query.as_sql()
     ('SELECT "foo_inettestmodel"."id", "foo_inettestmodel"."inet" FROM "foo_inettestmodel" WHERE "foo_inettestmodel"."inet" << %s', (u'10.0.0.1',))
 
-    >>> InetTestModel.objects.filter(inet__contained_or_equal='10.0.0.1').query.as_sql()
+    >>> InetTestModel.objects.filter(inet__net_contained_or_equal='10.0.0.1').query.as_sql()
     ('SELECT "foo_inettestmodel"."id", "foo_inettestmodel"."inet" FROM "foo_inettestmodel" WHERE "foo_inettestmodel"."inet" <<= %s', (u'10.0.0.1',))
     '''
 
