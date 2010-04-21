@@ -41,11 +41,12 @@ class NetWhere(sql.where.WhereNode):
         table_alias, name, db_type, lookup_type, value_annot, params = child
         field_sql = '%s.%s' % (qn(table_alias), qn(name))
 
-        if lookup_type in NET_TERMS_MAPPING:
-            return self.make_atom((table_alias, name, db_type,
-                NET_TERMS_MAPPING[lookup_type], value_annot, params), qn)
-        elif db_type not in ['inet', 'cidr']:
+        if db_type not in ['inet', 'cidr']:
             return super(NetWhere, self).make_atom(child, qn)
+        elif lookup_type in NET_TERMS_MAPPING:
+            lookup_type = NET_TERMS_MAPPING[lookup_type]
+            child = (table_alias, name, db_type, lookup_type, value_annot, params)
+            return self.make_atom(child, qn)
         elif lookup_type in NET_TERMS:
             return (NET_TERMS[lookup_type] % field_sql, params)
         elif lookup_type == 'in':
