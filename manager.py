@@ -8,28 +8,21 @@ from django.db.models.query_utils import QueryWrapper
 from django.utils.encoding import force_unicode
 from django.utils.safestring import mark_safe
 
-NET_OPERATORS = {
-    'lt': '<',
-    'lte': '<=',
-    'exact': '=',
-    'iexact': '=',
-    'gte': '>=',
-    'gt': '>',
-    'contains': "ILIKE",
-    'startswith': "ILIKE",
-    'endswith': "ILIKE",
-    'regex': '~*',
-    'icontains': "ILIKE",
-    'istartswith': "ILIKE",
-    'iendswith': "ILIKE",
-    'iregex': '~*',
-    'net_contained': '<<',
-    'net_contained_or_equal': '<<=',
-    'net_contains': '>>',
-    'net_contains_or_equals': '>>=',
-}
+NET_OPERATORS = connection.operators.copy()
 
-NET_TEXT_OPERATORS = ['ILIKE', '~*']
+for operator in ['contains', 'startswith', 'endswith']:
+    NET_OPERATORS[operator] = 'ILIKE %s'
+    NET_OPERATORS['i%s' % operator] = 'ILIKE %s'
+
+NET_OPERATORS['iexact'] = NET_OPERATORS['exact']
+NET_OPERATORS['regex'] = NET_OPERATORS['iregex']
+NET_OPERATORS['net_contained'] = '<< %s'
+NET_OPERATORS['net_contained_or_equal'] = '<<= %s'
+NET_OPERATORS['net_contains'] = '>> %s'
+NET_OPERATORS['net_contains_or_equals'] = '>>= %s'
+
+NET_TEXT_OPERATORS = ['ILIKE %s', '~* %s']
+
 
 class NetQuery(sql.Query):
     query_terms = sql.Query.query_terms.copy()
@@ -67,7 +60,7 @@ class NetWhere(sql.where.WhereNode):
             extra = ''
 
         if lookup_type in NET_OPERATORS:
-            return ('%s %s %%s %s' % (field_sql, NET_OPERATORS[lookup_type], extra), params)
+            return (' '.join([field_sql, NET_OPERATORS[lookup_type], extra]), params)
         elif lookup_type == 'in':
             if not value_annot:
                 raise sql.datastructures.EmptyResultSet
