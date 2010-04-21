@@ -1,3 +1,9 @@
+from IPy import IP
+
+from django.db import models, connection
+
+from netfields import *
+
 class InetTestModel(models.Model):
     '''
     >>> cursor = connection.cursor()
