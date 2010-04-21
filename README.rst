@@ -1,5 +1,5 @@
-Django PostgreSQL Netfilters
-============================
+Django PostgreSQL Netfields
+===========================
 
 This project is an attempt at making proper Django net related fields for Django
 Currently the built in IPAddressField does not support IPv6 and uses an inefficient
@@ -19,13 +19,13 @@ version used by the related project that initiated this effort.
 Getting started
 ---------------
 
-Make sure netfields is in your PYTHONPATH, then simply use the following:
+Make sure netfields is in your PYTHONPATH, then simply use the following::
 
  from netfields import InetAddressField, NetManager
 
  class Example(models.Model):
      inet = InetAddressField()
-     ...
+     # ...
 
      objects = NetManager()
 
@@ -36,10 +36,10 @@ All lookups are case-insensitive and text based lookups are avoided whenever
 possible. In addition to Django's default lookup types the following have been
 added.
 
- __net_contained
- __net_contained_or_equal
- __net_contains
- __net_contains_or_equals
+* __net_contained
+* __net_contained_or_equal
+* __net_contains
+* __net_contains_or_equals
 
 These correspond with the operators from
 http://www.postgresql.org/docs/8.3/interactive/functions-net.html
