@@ -235,6 +235,86 @@ class CidrTestModel(models.Model):
     '''
     >>> CidrTestModel.objects.filter(cidr='10.0.0.1').query.as_sql()
     ('SELECT "foo_cidrtestmodel"."id", "foo_cidrtestmodel"."cidr" FROM "foo_cidrtestmodel" WHERE "foo_cidrtestmodel"."cidr" = %s ', (u'10.0.0.1',))
+
+    >>> CidrTestModel.objects.filter(cidr__exact='10.0.0.1').query.as_sql()
+    ('SELECT "foo_cidrtestmodel"."id", "foo_cidrtestmodel"."cidr" FROM "foo_cidrtestmodel" WHERE "foo_cidrtestmodel"."cidr" = %s ', (u'10.0.0.1',))
+
+    >>> CidrTestModel.objects.filter(cidr__iexact='10.0.0.1').query.as_sql()
+    ('SELECT "foo_cidrtestmodel"."id", "foo_cidrtestmodel"."cidr" FROM "foo_cidrtestmodel" WHERE "foo_cidrtestmodel"."cidr" = %s ', (u'10.0.0.1',))
+
+    >>> CidrTestModel.objects.filter(cidr__net_contains='10.0.0.1').query.as_sql()
+    ('SELECT "foo_cidrtestmodel"."id", "foo_cidrtestmodel"."cidr" FROM "foo_cidrtestmodel" WHERE "foo_cidrtestmodel"."cidr" >> %s ', (u'10.0.0.1',))
+
+    >>> CidrTestModel.objects.filter(cidr__in=['10.0.0.1', '10.0.0.2']).query.as_sql()
+    ('SELECT "foo_cidrtestmodel"."id", "foo_cidrtestmodel"."cidr" FROM "foo_cidrtestmodel" WHERE "foo_cidrtestmodel"."cidr" IN (%s, %s)', (u'10.0.0.1', u'10.0.0.2'))
+
+    >>> CidrTestModel.objects.filter(cidr__gt='10.0.0.1').query.as_sql()
+    ('SELECT "foo_cidrtestmodel"."id", "foo_cidrtestmodel"."cidr" FROM "foo_cidrtestmodel" WHERE "foo_cidrtestmodel"."cidr" > %s ', (u'10.0.0.1',))
+
+    >>> CidrTestModel.objects.filter(cidr__gte='10.0.0.1').query.as_sql()
+    ('SELECT "foo_cidrtestmodel"."id", "foo_cidrtestmodel"."cidr" FROM "foo_cidrtestmodel" WHERE "foo_cidrtestmodel"."cidr" >= %s ', (u'10.0.0.1',))
+
+    >>> CidrTestModel.objects.filter(cidr__lt='10.0.0.1').query.as_sql()
+    ('SELECT "foo_cidrtestmodel"."id", "foo_cidrtestmodel"."cidr" FROM "foo_cidrtestmodel" WHERE "foo_cidrtestmodel"."cidr" < %s ', (u'10.0.0.1',))
+
+    >>> CidrTestModel.objects.filter(cidr__lte='10.0.0.1').query.as_sql()
+    ('SELECT "foo_cidrtestmodel"."id", "foo_cidrtestmodel"."cidr" FROM "foo_cidrtestmodel" WHERE "foo_cidrtestmodel"."cidr" <= %s ', (u'10.0.0.1',))
+
+    >>> CidrTestModel.objects.filter(cidr__startswith='10.').query.as_sql()
+    ('SELECT "foo_cidrtestmodel"."id", "foo_cidrtestmodel"."cidr" FROM "foo_cidrtestmodel" WHERE TEXT("foo_cidrtestmodel"."cidr") ILIKE %s ', (u'10.%',))
+
+    >>> CidrTestModel.objects.filter(cidr__istartswith='10.').query.as_sql()
+    ('SELECT "foo_cidrtestmodel"."id", "foo_cidrtestmodel"."cidr" FROM "foo_cidrtestmodel" WHERE TEXT("foo_cidrtestmodel"."cidr") ILIKE %s ', (u'10.%',))
+
+    >>> CidrTestModel.objects.filter(cidr__endswith='.1').query.as_sql()
+    ('SELECT "foo_cidrtestmodel"."id", "foo_cidrtestmodel"."cidr" FROM "foo_cidrtestmodel" WHERE TEXT("foo_cidrtestmodel"."cidr") ILIKE %s ', (u'%.1',))
+
+    >>> CidrTestModel.objects.filter(cidr__iendswith='.1').query.as_sql()
+    ('SELECT "foo_cidrtestmodel"."id", "foo_cidrtestmodel"."cidr" FROM "foo_cidrtestmodel" WHERE TEXT("foo_cidrtestmodel"."cidr") ILIKE %s ', (u'%.1',))
+
+    >>> CidrTestModel.objects.filter(cidr__range=('10.0.0.1', '10.0.0.10')).query.as_sql()
+    ('SELECT "foo_cidrtestmodel"."id", "foo_cidrtestmodel"."cidr" FROM "foo_cidrtestmodel" WHERE "foo_cidrtestmodel"."cidr" BETWEEN %s and %s', (u'10.0.0.1', u'10.0.0.10'))
+
+    >>> CidrTestModel.objects.filter(cidr__year=1).query.as_sql()
+    Traceback (most recent call last):
+        ...
+    ValueError: Invalid lookup type "year"
+
+    >>> CidrTestModel.objects.filter(cidr__month=1).query.as_sql()
+    Traceback (most recent call last):
+        ...
+    ValueError: Invalid lookup type "month"
+
+    >>> CidrTestModel.objects.filter(cidr__day=1).query.as_sql()
+    Traceback (most recent call last):
+        ...
+    ValueError: Invalid lookup type "day"
+
+    >>> CidrTestModel.objects.filter(cidr__isnull=True).query.as_sql()
+    ('SELECT "foo_cidrtestmodel"."id", "foo_cidrtestmodel"."cidr" FROM "foo_cidrtestmodel" WHERE "foo_cidrtestmodel"."cidr" IS NULL', ())
+
+    >>> CidrTestModel.objects.filter(cidr__isnull=False).query.as_sql()
+    ('SELECT "foo_cidrtestmodel"."id", "foo_cidrtestmodel"."cidr" FROM "foo_cidrtestmodel" WHERE "foo_cidrtestmodel"."cidr" IS NOT NULL', ())
+
+    >>> CidrTestModel.objects.filter(cidr__search='10').query.as_sql()
+    Traceback (most recent call last):
+        ...
+    ValueError: Invalid lookup type "search"
+
+    >>> CidrTestModel.objects.filter(cidr__regex=u'10').query.as_sql()
+    ('SELECT "foo_cidrtestmodel"."id", "foo_cidrtestmodel"."cidr" FROM "foo_cidrtestmodel" WHERE TEXT("foo_cidrtestmodel"."cidr") ~* %s ', (u'10',))
+
+    >>> CidrTestModel.objects.filter(cidr__iregex=u'10').query.as_sql()
+    ('SELECT "foo_cidrtestmodel"."id", "foo_cidrtestmodel"."cidr" FROM "foo_cidrtestmodel" WHERE TEXT("foo_cidrtestmodel"."cidr") ~* %s ', (u'10',))
+
+    >>> CidrTestModel.objects.filter(cidr__net_contains_or_equals='10.0.0.1').query.as_sql()
+    ('SELECT "foo_cidrtestmodel"."id", "foo_cidrtestmodel"."cidr" FROM "foo_cidrtestmodel" WHERE "foo_cidrtestmodel"."cidr" >>= %s ', (u'10.0.0.1',))
+
+    >>> CidrTestModel.objects.filter(cidr__net_contained='10.0.0.1').query.as_sql()
+    ('SELECT "foo_cidrtestmodel"."id", "foo_cidrtestmodel"."cidr" FROM "foo_cidrtestmodel" WHERE "foo_cidrtestmodel"."cidr" << %s ', (u'10.0.0.1',))
+
+    >>> CidrTestModel.objects.filter(cidr__net_contained_or_equal='10.0.0.1').query.as_sql()
+    ('SELECT "foo_cidrtestmodel"."id", "foo_cidrtestmodel"."cidr" FROM "foo_cidrtestmodel" WHERE "foo_cidrtestmodel"."cidr" <<= %s ', (u'10.0.0.1',))
     '''
 
     cidr = CidrAddressField()
