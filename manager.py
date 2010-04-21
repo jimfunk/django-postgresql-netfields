@@ -1,12 +1,10 @@
 import re
-from IPy import IP
+from ipaddr import IPAddress, IPNetwork
 
 from django import forms
 from django.db import models, connection
 from django.db.models import sql, query
 from django.db.models.query_utils import QueryWrapper
-from django.utils.encoding import force_unicode
-from django.utils.safestring import mark_safe
 
 NET_OPERATORS = connection.operators.copy()
 
@@ -27,14 +25,6 @@ NET_TEXT_OPERATORS = ['ILIKE %s', '~* %s']
 class NetQuery(sql.Query):
     query_terms = sql.Query.query_terms.copy()
     query_terms.update(NET_OPERATORS)
-
-    def add_filter(self, (filter_string, value), *args, **kwargs):
-        # IP(...) == '' fails so make sure to force to string while we can
-        if isinstance(value, IP):
-            value = unicode(value)
-        return super(NetQuery, self).add_filter(
-            (filter_string, value), *args, **kwargs)
-
 
 class NetWhere(sql.where.WhereNode):
     def make_atom(self, child, qn):
@@ -83,20 +73,7 @@ class NetManger(models.Manager):
         return query.QuerySet(self.model, q)
 
 
-class NetInput(forms.Widget):
-    input_type = 'text'
-
-    def render(self, name, value, attrs=None):
-        # Default forms.Widget compares value != '' which breaks IP...
-        if value is None: value = ''
-        final_attrs = self.build_attrs(attrs, type=self.input_type, name=name)
-        if value:
-            final_attrs['value'] = force_unicode(value)
-        return mark_safe(u'<input%s />' % forms.util.flatatt(final_attrs))
-
-
-class NetAddressFormField(forms.Field):
-    widget = NetInput
+class _NetAddressFormField(forms.Field):
     default_error_messages = {
         'invalid': u'Enter a valid IP Address.',
     }
@@ -112,9 +89,17 @@ class NetAddressFormField(forms.Field):
         if isinstance(value, IP):
             return value
         try:
-            return IP(value)
+            return self.python_type(value)
         except ValueError, e:
             raise forms.ValidationError(e)
+
+
+class InetAddressFormField(_NetAddressFormField):
+    python_type = staticmethod(IPAddress)
+
+
+class CidrAddressFormField(_NetAddressFormField):
+    python_type = staticmethod(IPNetwork)
 
 
 mac_re = re.compile(r'^(([A-F0-9]{2}:){5}[A-F0-9]{2})$')
@@ -138,11 +123,9 @@ class _NetAddressField(models.Field):
     def to_python(self, value):
         if not value:
             value = None
-
         if value is None:
             return value
-
-        return IP(value)
+        return self.python_type(value)
 
     def get_db_prep_value(self, value):
         if value is None:
@@ -162,13 +145,15 @@ class _NetAddressField(models.Field):
             lookup_type, value)
 
     def formfield(self, **kwargs):
-        defaults = {'form_class': NetAddressFormField}
+        defaults = {'form_class': self.form_class}
         defaults.update(kwargs)
         return super(_NetAddressField, self).formfield(**defaults)
 
 
 class InetAddressField(_NetAddressField):
     description = "PostgreSQL INET field"
+    python_type = staticmethod(IPAddress)
+    form_class = InetAddressFormField
     max_length = 39
     __metaclass__ = models.SubfieldBase
 
@@ -178,6 +163,8 @@ class InetAddressField(_NetAddressField):
 
 class CidrAddressField(_NetAddressField):
     description = "PostgreSQL CIDR field"
+    python_type = staticmethod(IPNetwork)
+    form_class = CidrAddressFormField
     max_length = 43
     __metaclass__ = models.SubfieldBase
 
@@ -208,7 +195,7 @@ class InetTestModel(models.Model):
 
     >>> InetTestModel(inet='10.0.0.1').save()
 
-    >>> InetTestModel(inet=IP('10.0.0.1')).save()
+    >>> InetTestModel(inet=IPAddress('10.0.0.1')).save()
 
     >>> InetTestModel(inet='').save()
     Traceback (most recent call last):
@@ -221,7 +208,7 @@ class InetTestModel(models.Model):
     >>> InetTestModel(inet='az').save()
     Traceback (most recent call last):
         ...
-    ValueError: invalid literal for int() with base 10: 'az'
+    ValueError: 'az' does not appear to be an IPv4 or IPv6 address
 
     >>> InetTestModel(inet=None).save()
     Traceback (most recent call last):
@@ -333,7 +320,7 @@ class NullInetTestModel(models.Model):
     '''
     >>> NullInetTestModel(inet='10.0.0.1').save()
 
-    >>> NullInetTestModel(inet=IP('10.0.0.1')).save()
+    >>> NullInetTestModel(inet=IPAddress('10.0.0.1')).save()
 
     >>> NullInetTestModel(inet='').save()
 
@@ -351,31 +338,31 @@ class NullInetTestModel(models.Model):
 class CidrTestModel(models.Model):
     '''
     >>> CidrTestModel.objects.filter(cidr='10.0.0.1').query.as_sql()
-    ('SELECT "cidr"."id", "cidr"."cidr" FROM "cidr" WHERE "cidr"."cidr" = %s ', (u'10.0.0.1',))
+    ('SELECT "cidr"."id", "cidr"."cidr" FROM "cidr" WHERE "cidr"."cidr" = %s ', (u'10.0.0.1/32',))
 
     >>> CidrTestModel.objects.filter(cidr__exact='10.0.0.1').query.as_sql()
-    ('SELECT "cidr"."id", "cidr"."cidr" FROM "cidr" WHERE "cidr"."cidr" = %s ', (u'10.0.0.1',))
+    ('SELECT "cidr"."id", "cidr"."cidr" FROM "cidr" WHERE "cidr"."cidr" = %s ', (u'10.0.0.1/32',))
 
     >>> CidrTestModel.objects.filter(cidr__iexact='10.0.0.1').query.as_sql()
-    ('SELECT "cidr"."id", "cidr"."cidr" FROM "cidr" WHERE "cidr"."cidr" = %s ', (u'10.0.0.1',))
+    ('SELECT "cidr"."id", "cidr"."cidr" FROM "cidr" WHERE "cidr"."cidr" = %s ', (u'10.0.0.1/32',))
 
     >>> CidrTestModel.objects.filter(cidr__net_contains='10.0.0.1').query.as_sql()
-    ('SELECT "cidr"."id", "cidr"."cidr" FROM "cidr" WHERE "cidr"."cidr" >> %s ', (u'10.0.0.1',))
+    ('SELECT "cidr"."id", "cidr"."cidr" FROM "cidr" WHERE "cidr"."cidr" >> %s ', (u'10.0.0.1/32',))
 
     >>> CidrTestModel.objects.filter(cidr__in=['10.0.0.1', '10.0.0.2']).query.as_sql()
-    ('SELECT "cidr"."id", "cidr"."cidr" FROM "cidr" WHERE "cidr"."cidr" IN (%s, %s)', (u'10.0.0.1', u'10.0.0.2'))
+    ('SELECT "cidr"."id", "cidr"."cidr" FROM "cidr" WHERE "cidr"."cidr" IN (%s, %s)', (u'10.0.0.1/32', u'10.0.0.2/32'))
 
     >>> CidrTestModel.objects.filter(cidr__gt='10.0.0.1').query.as_sql()
-    ('SELECT "cidr"."id", "cidr"."cidr" FROM "cidr" WHERE "cidr"."cidr" > %s ', (u'10.0.0.1',))
+    ('SELECT "cidr"."id", "cidr"."cidr" FROM "cidr" WHERE "cidr"."cidr" > %s ', (u'10.0.0.1/32',))
 
     >>> CidrTestModel.objects.filter(cidr__gte='10.0.0.1').query.as_sql()
-    ('SELECT "cidr"."id", "cidr"."cidr" FROM "cidr" WHERE "cidr"."cidr" >= %s ', (u'10.0.0.1',))
+    ('SELECT "cidr"."id", "cidr"."cidr" FROM "cidr" WHERE "cidr"."cidr" >= %s ', (u'10.0.0.1/32',))
 
     >>> CidrTestModel.objects.filter(cidr__lt='10.0.0.1').query.as_sql()
-    ('SELECT "cidr"."id", "cidr"."cidr" FROM "cidr" WHERE "cidr"."cidr" < %s ', (u'10.0.0.1',))
+    ('SELECT "cidr"."id", "cidr"."cidr" FROM "cidr" WHERE "cidr"."cidr" < %s ', (u'10.0.0.1/32',))
 
     >>> CidrTestModel.objects.filter(cidr__lte='10.0.0.1').query.as_sql()
-    ('SELECT "cidr"."id", "cidr"."cidr" FROM "cidr" WHERE "cidr"."cidr" <= %s ', (u'10.0.0.1',))
+    ('SELECT "cidr"."id", "cidr"."cidr" FROM "cidr" WHERE "cidr"."cidr" <= %s ', (u'10.0.0.1/32',))
 
     >>> CidrTestModel.objects.filter(cidr__startswith='10.').query.as_sql()
     ('SELECT "cidr"."id", "cidr"."cidr" FROM "cidr" WHERE TEXT("cidr"."cidr") ILIKE %s ', (u'10.%',))
@@ -390,7 +377,7 @@ class CidrTestModel(models.Model):
     ('SELECT "cidr"."id", "cidr"."cidr" FROM "cidr" WHERE TEXT("cidr"."cidr") ILIKE %s ', (u'%.1',))
 
     >>> CidrTestModel.objects.filter(cidr__range=('10.0.0.1', '10.0.0.10')).query.as_sql()
-    ('SELECT "cidr"."id", "cidr"."cidr" FROM "cidr" WHERE "cidr"."cidr" BETWEEN %s and %s', (u'10.0.0.1', u'10.0.0.10'))
+    ('SELECT "cidr"."id", "cidr"."cidr" FROM "cidr" WHERE "cidr"."cidr" BETWEEN %s and %s', (u'10.0.0.1/32', u'10.0.0.10/32'))
 
     >>> CidrTestModel.objects.filter(cidr__year=1).query.as_sql()
     Traceback (most recent call last):
@@ -425,13 +412,13 @@ class CidrTestModel(models.Model):
     ('SELECT "cidr"."id", "cidr"."cidr" FROM "cidr" WHERE TEXT("cidr"."cidr") ~* %s ', (u'10',))
 
     >>> CidrTestModel.objects.filter(cidr__net_contains_or_equals='10.0.0.1').query.as_sql()
-    ('SELECT "cidr"."id", "cidr"."cidr" FROM "cidr" WHERE "cidr"."cidr" >>= %s ', (u'10.0.0.1',))
+    ('SELECT "cidr"."id", "cidr"."cidr" FROM "cidr" WHERE "cidr"."cidr" >>= %s ', (u'10.0.0.1/32',))
 
     >>> CidrTestModel.objects.filter(cidr__net_contained='10.0.0.1').query.as_sql()
-    ('SELECT "cidr"."id", "cidr"."cidr" FROM "cidr" WHERE "cidr"."cidr" << %s ', (u'10.0.0.1',))
+    ('SELECT "cidr"."id", "cidr"."cidr" FROM "cidr" WHERE "cidr"."cidr" << %s ', (u'10.0.0.1/32',))
 
     >>> CidrTestModel.objects.filter(cidr__net_contained_or_equal='10.0.0.1').query.as_sql()
-    ('SELECT "cidr"."id", "cidr"."cidr" FROM "cidr" WHERE "cidr"."cidr" <<= %s ', (u'10.0.0.1',))
+    ('SELECT "cidr"."id", "cidr"."cidr" FROM "cidr" WHERE "cidr"."cidr" <<= %s ', (u'10.0.0.1/32',))
     '''
 
     cidr = CidrAddressField()
