@@ -5,7 +5,7 @@ from django.utils.translation import ugettext_lazy
 from django.db import models, connection
 from django.db.models import sql, query
 
-NET_TERMS = {
+NET_OPERATORS = {
     'lt': '%s < %s',
     'lte': '%s <= %s',
     'exact': '%s = %s',
@@ -22,14 +22,14 @@ NET_TERMS = {
     'regex': '%s ~* %s',
 }
 
-NET_TERMS_TEXT_LOOKUPS = set([
+NET_TEXT_LOOKUPS = set([
     'contains',
     'startswith',
     'endswith',
     'regex',
 ])
 
-NET_TERMS_MAPPING = {
+NET_MAPPING = {
     'iexact': 'exact',
     'icontains': 'contains',
     'istartswith': 'startswith',
@@ -41,7 +41,7 @@ NET_TERMS_MAPPING = {
 
 class NetQuery(sql.Query):
     query_terms = sql.Query.query_terms.copy()
-    query_terms.update(NET_TERMS)
+    query_terms.update(NET_OPERATORS)
 
     def add_filter(self, (filter_string, value), *args, **kwargs):
         # IP(...) == '' fails so make sure to force to string while we can
@@ -64,19 +64,19 @@ class NetWhere(sql.where.WhereNode):
         if lookup_type == 'regex':
             lhs = 'HOST(%s)' % field_sql
             rhs = '%s'
-        elif lookup_type in NET_TERMS_TEXT_LOOKUPS:
+        elif lookup_type in NET_TEXT_LOOKUPS:
             lhs = 'UPPER(HOST(%s))' % field_sql
             rhs = 'UPPER(%s)'
         else:
             lhs = field_sql
             rhs = '%s'
 
-        if lookup_type in NET_TERMS_MAPPING:
-            lookup_type = NET_TERMS_MAPPING[lookup_type]
+        if lookup_type in NET_MAPPING:
+            lookup_type = NET_MAPPING[lookup_type]
             child = (table_alias, name, db_type, lookup_type, value_annot, params)
             return self.make_atom(child, qn)
-        elif lookup_type in NET_TERMS:
-            return (NET_TERMS[lookup_type] % (lhs, rhs), params)
+        elif lookup_type in NET_OPERATORS:
+            return (NET_OPERATORS[lookup_type] % (lhs, rhs), params)
         elif lookup_type == 'in':
             return ('%s IN (%s)' % (lhs, ', '.join([rhs] * len(params))), params)
         elif lookup_type == 'range':
@@ -121,11 +121,11 @@ class _NetAddressField(models.Field):
         if value is None:
             return value
 
-        if lookup_type in NET_TERMS_MAPPING:
+        if lookup_type in NET_MAPPING:
             return self.get_db_prep_lookup(
-                NET_TERMS_MAPPING[lookup_type], value)
+                NET_MAPPING[lookup_type], value)
 
-        if lookup_type in NET_TERMS and lookup_type not in NET_TERMS_TEXT_LOOKUPS:
+        if lookup_type in NET_OPERATORS and lookup_type not in NET_TEXT_LOOKUPS:
             return [self.get_db_prep_value(value)]
 
         return super(_NetAddressField, self).get_db_prep_lookup(
