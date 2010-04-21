@@ -1,8 +1,10 @@
+import re
 from IPy import IP
 
 from django.db import models, connection
 from django.db.models import sql, query
 from django.db.models.query_utils import QueryWrapper
+from django import forms
 
 NET_OPERATORS = {
     'lt': '<',
@@ -83,6 +85,36 @@ class NetManger(models.Manager):
         q = NetQuery(self.model, connection, NetWhere)
         return query.QuerySet(self.model, q)
 
+class NetAddressFormField(forms.Field):
+    default_error_messages = {
+        'invalid': u'Enter a valid IP Address.',
+    }
+
+    def __init__(self, *args, **kwargs):
+        super(DateTimeField, self).__init__(*args, **kwargs)
+
+    def clean(self, value):
+        super(NetAddressFormField, self).clean(value)
+
+        if value in (None, ''):
+            return None
+        if isinstance(value, IP):
+            return value
+        try:
+            return IP(value)
+        except ValueError:
+            raise forms.ValidationError(self.error_messages['invalid'])
+
+mac_re = re.compile(r'^(([A-F0-9]:){5}[A-F0-9])$')
+
+class MACAddressFormField(forms.RegexField):
+    default_error_messages = {
+        'invalid': u'Enter a valid MAC address.',
+    }
+
+    def __init__(self, *args, **kwargs):
+        super(IPAddressField, self).__init__(mac_re, *args, **kwargs)
+
 class _NetAddressField(models.Field):
     empty_strings_allowed = False
 
@@ -116,6 +148,11 @@ class _NetAddressField(models.Field):
         return super(_NetAddressField, self).get_db_prep_lookup(
             lookup_type, value)
 
+    def formfield(self, **kwargs):
+        defaults = {'form_class': NetAddressFormField}
+        defaults.update(kwargs)
+        return super(_NetAddressField, self).formfield(**defaults)
+
 class InetAddressField(_NetAddressField):
     description = "PostgreSQL INET field"
     max_length = 39
@@ -133,7 +170,6 @@ class CidrAddressField(_NetAddressField):
         return 'cidr'
 
 class MACAddressField(models.Field):
-    # FIXME does this need proper validation?
     description = "PostgreSQL MACADDR field"
 
     def __init__(self, *args, **kwargs):
@@ -142,6 +178,11 @@ class MACAddressField(models.Field):
 
     def db_type(self):
         return 'macaddr'
+
+    def formfield(self, **kwargs):
+        defaults = {'form_class': MACAddressFormField}
+        defaults.update(kwargs)
+        return super(MACAddressField, self).formfield(**defaults)
 
 class InetTestModel(models.Model):
     '''
