@@ -6,15 +6,15 @@ from django.db import models, connection
 from django.db.models import sql, query
 
 NET_TERMS = {
-    'lt': '<',
-    'lte': '<=',
-    'exact': '=',
-    'gte': '>=',
-    'gt': '>',
-    'net_contained': '<<',
-    'net_contained_or_equal': '<<=',
-    'net_contains': '>>',
-    'net_contains_or_equals': '>>=',
+    'lt': '%s < %%s',
+    'lte': '%s <= %%s',
+    'exact': '%s = %%s',
+    'gte': '%s >= %%s',
+    'gt': '%s > %%s',
+    'net_contained': '%s << %%s',
+    'net_contained_or_equal': '%s <<= %%s',
+    'net_contains': '%s >> %%s',
+    'net_contains_or_equals': '%s >>= %%s',
 }
 
 NET_TERMS_MAPPING = {
@@ -47,8 +47,7 @@ class NetWhere(sql.where.WhereNode):
         elif db_type not in ['inet', 'cidr']:
             return super(NetWhere, self).make_atom(child, qn)
         elif lookup_type in NET_TERMS:
-            lookup = '%s %s %%s' % (field_sql, NET_TERMS[lookup_type])
-            return (lookup, params)
+            return (NET_TERMS[lookup_type] % field_sql, params)
         elif lookup_type == 'in':
             return ('%s IN (%s)' % (field_sql, ', '.join(['%s'] * len(params))), params)
         elif lookup_type == 'range':
