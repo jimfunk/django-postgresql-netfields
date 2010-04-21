@@ -143,6 +143,8 @@ class InetTestModel(models.Model):
     '''
     >>> InetTestModel(inet='10.0.0.1').save()
 
+    >>> InetTestModel(inet=IP('10.0.0.1')).save()
+
     >>> InetTestModel(inet='').save()
 
     >>> InetTestModel(inet=None).save()
@@ -243,6 +245,8 @@ class BlankInetTestModel(models.Model):
     '''
     >>> BlankInetTestModel(inet='10.0.0.1').save()
 
+    >>> BlankInetTestModel(inet=IP('10.0.0.1')).save()
+
     >>> BlankInetTestModel(inet='').save()
 
     >>> BlankInetTestModel(inet=None).save()
@@ -260,6 +264,8 @@ class NullInetTestModel(models.Model):
     '''
     >>> NullInetTestModel(inet='10.0.0.1').save()
 
+    >>> NullInetTestModel(inet=IP('10.0.0.1')).save()
+
     >>> NullInetTestModel(inet='').save()
 
     >>> NullInetTestModel(inet=None).save()
@@ -276,6 +282,8 @@ class NullInetTestModel(models.Model):
 class BlankNullInetTestModel(models.Model):
     '''
     >>> BlankNullInetTestModel(inet='10.0.0.1').save()
+
+    >>> BlankNullInetTestModel(inet=IP('10.0.0.1')).save()
 
     >>> BlankNullInetTestModel(inet='').save()
 
