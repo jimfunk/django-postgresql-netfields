@@ -9,12 +9,17 @@ NET_OPERATORS = {
     'lt': '<',
     'lte': '<=',
     'exact': '=',
+    'iexact': '=',
     'gte': '>=',
     'gt': '>',
     'contains': "ILIKE",
     'startswith': "ILIKE",
     'endswith': "ILIKE",
     'regex': '~*',
+    'icontains': "ILIKE",
+    'istartswith': "ILIKE",
+    'iendswith': "ILIKE",
+    'iregex': '~*',
     'net_contained': '<<',
     'net_contained_or_equal': '<<=',
     'net_contains': '>>',
@@ -26,15 +31,11 @@ NET_TEXT_LOOKUPS = set([
     'startswith',
     'endswith',
     'regex',
+    'icontains',
+    'istartswith',
+    'iendswith',
+    'iregex',
 ])
-
-NET_MAPPING = {
-    'iexact': 'exact',
-    'icontains': 'contains',
-    'istartswith': 'startswith',
-    'iendswith': 'endswith',
-    'iregex': 'regex',
-}
 
 # FIXME test with .extra() and QueryWrapper
 
@@ -63,11 +64,7 @@ class NetWhere(sql.where.WhereNode):
         if lookup_type in NET_TEXT_LOOKUPS:
             field_sql  = 'HOST(%s)' % field_sql
 
-        if lookup_type in NET_MAPPING:
-            lookup_type = NET_MAPPING[lookup_type]
-            child = (table_alias, name, db_type, lookup_type, value_annot, params)
-            return self.make_atom(child, qn)
-        elif lookup_type in NET_OPERATORS:
+        if lookup_type in NET_OPERATORS:
             return ('%s %s %%s' % (field_sql, NET_OPERATORS[lookup_type]), params)
         elif lookup_type == 'in':
             return ('%s IN (%s)' % (field_sql, ', '.join(['%s'] * len(params))), params)
@@ -112,10 +109,6 @@ class _NetAddressField(models.Field):
     def get_db_prep_lookup(self, lookup_type, value):
         if value is None:
             return value
-
-        if lookup_type in NET_MAPPING:
-            return self.get_db_prep_lookup(
-                NET_MAPPING[lookup_type], value)
 
         if lookup_type in NET_OPERATORS and lookup_type not in NET_TEXT_LOOKUPS:
             return [self.get_db_prep_value(value)]
