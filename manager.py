@@ -85,10 +85,6 @@ class NetManger(models.Manager):
         q = NetQuery(self.model, connection, NetWhere)
         return query.QuerySet(self.model, q)
 
-# FIXME formfields etc?
-# - regexp field for mac
-# - IP try catch for ip and cidr
-
 class _NetAddressField(models.Field):
     # FIXME init empty object
     # FIXME null and blank handling needs to be done right.
@@ -102,8 +98,6 @@ class _NetAddressField(models.Field):
             raise ValidationError(e)
 
     def get_db_prep_value(self, value):
-        # FIXME does this need to respect null and blank?
-        # FIXME does not handle __in
         if value is None:
             return value
 
