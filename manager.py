@@ -53,7 +53,10 @@ class NetWhere(sql.where.WhereNode):
             field_sql = qn(name)
 
         if NET_OPERATORS.get(lookup_type, '') in NET_TEXT_OPERATORS:
-            field_sql  = 'HOST(%s)' % field_sql
+            if db_type == 'inet':
+                field_sql  = 'HOST(%s)' % field_sql
+            else:
+                field_sql  = 'TEXT(%s)' % field_sql
 
         if isinstance(params, QueryWrapper):
             extra, params = params.data
