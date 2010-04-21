@@ -61,24 +61,20 @@ class NetWhere(sql.where.WhereNode):
             return super(NetWhere, self).make_atom(child, qn)
 
         if lookup_type in NET_TEXT_LOOKUPS:
-            lhs = 'HOST(%s)' % field_sql
-            rhs = '%s'
-        else:
-            lhs = field_sql
-            rhs = '%s'
+            field_sql  = 'HOST(%s)' % field_sql
 
         if lookup_type in NET_MAPPING:
             lookup_type = NET_MAPPING[lookup_type]
             child = (table_alias, name, db_type, lookup_type, value_annot, params)
             return self.make_atom(child, qn)
         elif lookup_type in NET_OPERATORS:
-            return ('%s %s %s' % (lhs, NET_OPERATORS[lookup_type], rhs), params)
+            return ('%s %s %%s' % (field_sql, NET_OPERATORS[lookup_type]), params)
         elif lookup_type == 'in':
-            return ('%s IN (%s)' % (lhs, ', '.join([rhs] * len(params))), params)
+            return ('%s IN (%s)' % (field_sql, ', '.join(['%s'] * len(params))), params)
         elif lookup_type == 'range':
-            return ('%s BETWEEN %s and %s' % (lhs, rhs, rhs), params)
+            return ('%s BETWEEN %%s and %%s' % field_sql, params)
         elif lookup_type == 'isnull':
-            return ('%s IS %sNULL' % (lhs, (not value_annot and 'NOT ' or '')), params)
+            return ('%s IS %sNULL' % (field_sql, (not value_annot and 'NOT ' or '')), params)
 
         raise ValueError('Invalid lookup type "%s"' % lookup_type)
 
