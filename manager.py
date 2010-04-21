@@ -26,16 +26,7 @@ NET_OPERATORS = {
     'net_contains_or_equals': '>>=',
 }
 
-NET_TEXT_LOOKUPS = set([
-    'contains',
-    'startswith',
-    'endswith',
-    'regex',
-    'icontains',
-    'istartswith',
-    'iendswith',
-    'iregex',
-])
+NET_TEXT_OPERATORS = ['ILIKE', '~*']
 
 # FIXME test with .extra() and QueryWrapper
 
@@ -61,7 +52,7 @@ class NetWhere(sql.where.WhereNode):
         if db_type not in ['inet', 'cidr']:
             return super(NetWhere, self).make_atom(child, qn)
 
-        if lookup_type in NET_TEXT_LOOKUPS:
+        if NET_OPERATORS.get(lookup_type, '') in NET_TEXT_OPERATORS:
             field_sql  = 'HOST(%s)' % field_sql
 
         if lookup_type in NET_OPERATORS:
@@ -110,7 +101,8 @@ class _NetAddressField(models.Field):
         if value is None:
             return value
 
-        if lookup_type in NET_OPERATORS and lookup_type not in NET_TEXT_LOOKUPS:
+        if (lookup_type in NET_OPERATORS and
+                NET_OPERATORS[lookup_type] not in NET_TEXT_OPERATORS):
             return [self.get_db_prep_value(value)]
 
         return super(_NetAddressField, self).get_db_prep_lookup(
