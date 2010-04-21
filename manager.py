@@ -11,9 +11,9 @@ NET_OPERATORS = {
     'exact': '=',
     'gte': '>=',
     'gt': '>',
-    'contains': "LIKE",
-    'startswith': "LIKE",
-    'endswith': "LIKE",
+    'contains': "ILIKE",
+    'startswith': "ILIKE",
+    'endswith': "ILIKE",
     'regex': '~*',
     'net_contained': '<<',
     'net_contained_or_equal': '<<=',
@@ -60,12 +60,9 @@ class NetWhere(sql.where.WhereNode):
         if db_type not in ['inet', 'cidr']:
             return super(NetWhere, self).make_atom(child, qn)
 
-        if lookup_type == 'regex':
+        if lookup_type in NET_TEXT_LOOKUPS:
             lhs = 'HOST(%s)' % field_sql
             rhs = '%s'
-        elif lookup_type in NET_TEXT_LOOKUPS:
-            lhs = 'UPPER(HOST(%s))' % field_sql
-            rhs = 'UPPER(%s)'
         else:
             lhs = field_sql
             rhs = '%s'
@@ -185,16 +182,16 @@ class InetTestModel(models.Model):
     ('SELECT "foo_inettestmodel"."id", "foo_inettestmodel"."inet" FROM "foo_inettestmodel" WHERE "foo_inettestmodel"."inet" <= %s', (u'10.0.0.1',))
 
     >>> InetTestModel.objects.filter(inet__startswith='10.').query.as_sql()
-    ('SELECT "foo_inettestmodel"."id", "foo_inettestmodel"."inet" FROM "foo_inettestmodel" WHERE UPPER(HOST("foo_inettestmodel"."inet")) LIKE UPPER(%s)', (u'10.%',))
+    ('SELECT "foo_inettestmodel"."id", "foo_inettestmodel"."inet" FROM "foo_inettestmodel" WHERE HOST("foo_inettestmodel"."inet") ILIKE %s', (u'10.%',))
 
     >>> InetTestModel.objects.filter(inet__istartswith='10.').query.as_sql()
-    ('SELECT "foo_inettestmodel"."id", "foo_inettestmodel"."inet" FROM "foo_inettestmodel" WHERE UPPER(HOST("foo_inettestmodel"."inet")) LIKE UPPER(%s)', (u'10.%',))
+    ('SELECT "foo_inettestmodel"."id", "foo_inettestmodel"."inet" FROM "foo_inettestmodel" WHERE HOST("foo_inettestmodel"."inet") ILIKE %s', (u'10.%',))
 
     >>> InetTestModel.objects.filter(inet__endswith='.1').query.as_sql()
-    ('SELECT "foo_inettestmodel"."id", "foo_inettestmodel"."inet" FROM "foo_inettestmodel" WHERE UPPER(HOST("foo_inettestmodel"."inet")) LIKE UPPER(%s)', (u'%.1',))
+    ('SELECT "foo_inettestmodel"."id", "foo_inettestmodel"."inet" FROM "foo_inettestmodel" WHERE HOST("foo_inettestmodel"."inet") ILIKE %s', (u'%.1',))
 
     >>> InetTestModel.objects.filter(inet__iendswith='.1').query.as_sql()
-    ('SELECT "foo_inettestmodel"."id", "foo_inettestmodel"."inet" FROM "foo_inettestmodel" WHERE UPPER(HOST("foo_inettestmodel"."inet")) LIKE UPPER(%s)', (u'%.1',))
+    ('SELECT "foo_inettestmodel"."id", "foo_inettestmodel"."inet" FROM "foo_inettestmodel" WHERE HOST("foo_inettestmodel"."inet") ILIKE %s', (u'%.1',))
 
     >>> InetTestModel.objects.filter(inet__range=('10.0.0.1', '10.0.0.10')).query.as_sql()
     ('SELECT "foo_inettestmodel"."id", "foo_inettestmodel"."inet" FROM "foo_inettestmodel" WHERE "foo_inettestmodel"."inet" BETWEEN %s and %s', (u'10.0.0.1', u'10.0.0.10'))
