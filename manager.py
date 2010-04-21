@@ -141,6 +141,14 @@ class MACAddressField(models.Field):
 
 class InetTestModel(models.Model):
     '''
+    >>> InetTestModel(inet='10.0.0.1').save()
+
+    >>> InetTestModel(inet='').save()
+
+    >>> InetTestModel(inet=None).save()
+
+    >>> InetTestModel().save()
+
     >>> InetTestModel.objects.filter(inet='10.0.0.1').query.as_sql()
     ('SELECT "inet"."id", "inet"."inet" FROM "inet" WHERE "inet"."inet" = %s ', (u'10.0.0.1',))
 
@@ -232,6 +240,16 @@ class InetTestModel(models.Model):
         db_table = 'inet'
 
 class BlankInetTestModel(models.Model):
+    '''
+    >>> BlankInetTestModel(inet='10.0.0.1').save()
+
+    >>> BlankInetTestModel(inet='').save()
+
+    >>> BlankInetTestModel(inet=None).save()
+
+    >>> BlankInetTestModel().save()
+    '''
+
     inet = InetAddressField(blank=True)
     objects = NetManger()
 
@@ -239,6 +257,16 @@ class BlankInetTestModel(models.Model):
         db_table = 'blankinet'
 
 class NullInetTestModel(models.Model):
+    '''
+    >>> NullInetTestModel(inet='10.0.0.1').save()
+
+    >>> NullInetTestModel(inet='').save()
+
+    >>> NullInetTestModel(inet=None).save()
+
+    >>> NullInetTestModel().save()
+    '''
+
     inet = InetAddressField(null=True)
     objects = NetManger()
 
@@ -246,6 +274,16 @@ class NullInetTestModel(models.Model):
         db_table = 'nullinet'
 
 class BlankNullInetTestModel(models.Model):
+    '''
+    >>> BlankNullInetTestModel(inet='10.0.0.1').save()
+
+    >>> BlankNullInetTestModel(inet='').save()
+
+    >>> BlankNullInetTestModel(inet=None).save()
+
+    >>> BlankNullInetTestModel().save()
+    '''
+
     inet = InetAddressField(blank=True, null=True)
     objects = NetManger()
 
