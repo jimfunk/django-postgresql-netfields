@@ -2,7 +2,7 @@ from IPy import IP
 
 from django.db import models
 
-from netfilters.forms import NetAddressFormField, MACAddressFormField
+from netfields.forms import NetAddressFormField, MACAddressFormField
 
 class _NetAddressField(models.Field):
     empty_strings_allowed = False
