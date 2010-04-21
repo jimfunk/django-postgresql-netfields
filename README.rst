@@ -1,14 +1,14 @@
 Django PostgreSQL Netfields
 ===========================
 
-This project is an attempt at making proper Django net related fields for Django
-Currently the built in IPAddressField does not support IPv6 and uses an inefficient
-HOST() cast in all lookups. Hopefully there experience from this project can lead
-to a resolution of these issues upstream.
+This project is an attempt at making proper Django net related fields for
+Django Currently the built in ``IPAddressField`` does not support IPv6 and uses
+an inefficient ``HOST()`` cast in all lookups. Hopefully there experience from
+this project can lead to a resolution of these issues upstream.
 
-In addition to the basic IPAddressField replacement a CIDR and MAC field have
-been added. Furthermore a customer Manager allows for access to all of PostgreSQL's
-INET operators.
+In addition to the basic ``IPAddressField`` replacement a ``CIDR`` and
+``MACADDR`` field have been added. Furthermore a customer Manager allows for
+access to all of PostgreSQL's INET operators.
 
 Django version
 --------------
@@ -19,7 +19,7 @@ version used by the related project that initiated this effort.
 Getting started
 ---------------
 
-Make sure netfields is in your PYTHONPATH, then simply use the following::
+Make sure netfields is in your ``PYTHONPATH``, then simply use the following::
 
  from netfields import InetAddressField, NetManager
 
@@ -29,19 +29,19 @@ Make sure netfields is in your PYTHONPATH, then simply use the following::
 
      objects = NetManager()
 
-The page also provides CidrAddressField and a MACAddressField. NetManger is
-required for the extra lookups to be available. Lookups for INET and CIDR
-database types will be handled differently than when running vanilla Django.
-All lookups are case-insensitive and text based lookups are avoided whenever
-possible. In addition to Django's default lookup types the following have been
-added.
+The page also provides ``CidrAddressField`` and a ``MACAddressField``.
+``NetManager`` is required for the extra lookups to be available. Lookups for
+``INET`` and ``CIDR`` database types will be handled differently than when
+running vanilla Django.  All lookups are case-insensitive and text based
+lookups are avoided whenever possible. In addition to Django's default lookup
+types the following have been added.
 
-* __net_contained
-* __net_contained_or_equal
-* __net_contains
-* __net_contains_or_equals
+* ``__net_contained``
+* ``__net_contained_or_equal``
+* ``__net_contains``
+* ``__net_contains_or_equals``
 
 These correspond with the operators from
 http://www.postgresql.org/docs/8.3/interactive/functions-net.html
 
-netfields does not have to be in INSTALLED_APPS.
+netfields does not have to be in ``INSTALLED_APPS``.
