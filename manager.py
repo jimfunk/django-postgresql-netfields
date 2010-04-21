@@ -5,11 +5,6 @@ from django.utils.translation import ugettext_lazy
 from django.db import models, connection
 from django.db.models import sql, query
 
-# FIXME decide if we should use custom lookup names instead of overrides.
-# FIXME decide if other "standard" lookups should be disabled
-# FIXME test "standard" lookups
-# FIXME decide if HOST() cast should be ignored (done by backend)
-
 NET_TERMS = {
     'lt': '<',
     'lte': '<=',
@@ -22,13 +17,6 @@ NET_TERMS = {
     'net_contains_or_equals': '>>=',
 }
 
-NET_TERMS_SPECIAL = {
-    'in': None,
-    'range': None,
-    'isnull': None,
-}
-
-# FIXME rethink caps with respect to IPV6, all should be insensitive...
 NET_TERMS_MAPPING = {
     'iexact': 'exact',
     'icontains': 'contains',
@@ -56,23 +44,19 @@ class NetWhere(sql.where.WhereNode):
         if lookup_type in NET_TERMS_MAPPING:
             return self.make_atom((table_alias, name, db_type,
                 NET_TERMS_MAPPING[lookup_type], value_annot, params), qn)
-
-        if db_type not in ['inet', 'cidr']:
+        elif db_type not in ['inet', 'cidr']:
             return super(NetWhere, self).make_atom(child, qn)
-
-        if lookup_type in NET_TERMS:
+        elif lookup_type in NET_TERMS:
             lookup = '%s %s %%s' % (field_sql, NET_TERMS[lookup_type])
             return (lookup, params)
-
-        if lookup_type in NET_TERMS_SPECIAL:
-            if lookup_type == 'in':
-                return ('%s IN (%s)' % (field_sql, ', '.join(['%s'] * len(params))), params)
-            elif lookup_type == 'range':
-                return ('%s BETWEEN %%s and %%s' % (field_sql), params)
-            elif lookup_type == 'isnull':
-                return ('%s IS %sNULL' % (field_sql, (not value_annot and 'NOT ' or '')), params)
-
-        return super(NetWhere, self).make_atom(child, qn)
+        elif lookup_type == 'in':
+            return ('%s IN (%s)' % (field_sql, ', '.join(['%s'] * len(params))), params)
+        elif lookup_type == 'range':
+            return ('%s BETWEEN %%s and %%s' % (field_sql), params)
+        elif lookup_type == 'isnull':
+            return ('%s IS %sNULL' % (field_sql, (not value_annot and 'NOT ' or '')), params)
+        else:
+            return super(NetWhere, self).make_atom(child, qn)
 
 class NetManger(models.Manager):
     use_for_related_fields = True
