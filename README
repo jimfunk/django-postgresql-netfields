@@ -10,6 +10,12 @@ In addition to the basic IPAddressField replacement a CIDR and MAC field have
 been added. Furthermore a customer Manager allows for access to all of PostgreSQL's
 INET operators.
 
+Django version
+--------------
+
+Currently this code has only been tested against 1.0.x due to the Django
+version used by the related project that initiated this effort.
+
 Getting started
 ---------------
 
