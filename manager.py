@@ -1,10 +1,8 @@
 from IPy import IP
 
-from django.core.exceptions import ValidationError
 from django.db import models, connection
 from django.db.models import sql, query
 from django.db.models.query_utils import QueryWrapper
-from django.utils.translation import ugettext_lazy
 
 NET_OPERATORS = {
     'lt': '<',
@@ -86,16 +84,20 @@ class NetManger(models.Manager):
         return query.QuerySet(self.model, q)
 
 class _NetAddressField(models.Field):
-    # FIXME init empty object
-    # FIXME null and blank handling needs to be done right.
+    empty_strings_allowed = False
+
+    def __init__(self, *args, **kwargs):
+        kwargs['max_length'] = self.max_length
+        super(_NetAddressField, self).__init__(*args, **kwargs)
+
     def to_python(self, value):
+        if not value:
+            value = None
+
         if value is None:
             return value
 
-        try:
-            return IP(value)
-        except ValueError, e:
-            raise ValidationError(e)
+        return IP(value)
 
     def get_db_prep_value(self, value):
         if value is None:
@@ -116,6 +118,7 @@ class _NetAddressField(models.Field):
 
 class InetAddressField(_NetAddressField):
     description = "PostgreSQL INET field"
+    max_length = 39
     __metaclass__ = models.SubfieldBase
 
     def db_type(self):
@@ -123,6 +126,7 @@ class InetAddressField(_NetAddressField):
 
 class CidrAddressField(_NetAddressField):
     description = "PostgreSQL CIDR field"
+    max_length = 43
     __metaclass__ = models.SubfieldBase
 
     def db_type(self):
@@ -141,15 +145,40 @@ class MACAddressField(models.Field):
 
 class InetTestModel(models.Model):
     '''
+    >>> cursor = connection.cursor()
+
     >>> InetTestModel(inet='10.0.0.1').save()
 
     >>> InetTestModel(inet=IP('10.0.0.1')).save()
 
     >>> InetTestModel(inet='').save()
+    Traceback (most recent call last):
+        ...
+    IntegrityError: null value in column "inet" violates not-null constraint
+    <BLANKLINE>
+
+    >>> cursor.execute('ROLLBACK')
+
+    >>> InetTestModel(inet='az').save()
+    Traceback (most recent call last):
+        ...
+    ValueError: invalid literal for int() with base 10: 'az'
 
     >>> InetTestModel(inet=None).save()
+    Traceback (most recent call last):
+        ...
+    IntegrityError: null value in column "inet" violates not-null constraint
+    <BLANKLINE>
+
+    >>> cursor.execute('ROLLBACK')
 
     >>> InetTestModel().save()
+    Traceback (most recent call last):
+        ...
+    IntegrityError: null value in column "inet" violates not-null constraint
+    <BLANKLINE>
+
+    >>> cursor.execute('ROLLBACK')
 
     >>> InetTestModel.objects.filter(inet='10.0.0.1').query.as_sql()
     ('SELECT "inet"."id", "inet"."inet" FROM "inet" WHERE "inet"."inet" = %s ', (u'10.0.0.1',))
@@ -241,25 +270,6 @@ class InetTestModel(models.Model):
     class Meta:
         db_table = 'inet'
 
-class BlankInetTestModel(models.Model):
-    '''
-    >>> BlankInetTestModel(inet='10.0.0.1').save()
-
-    >>> BlankInetTestModel(inet=IP('10.0.0.1')).save()
-
-    >>> BlankInetTestModel(inet='').save()
-
-    >>> BlankInetTestModel(inet=None).save()
-
-    >>> BlankInetTestModel().save()
-    '''
-
-    inet = InetAddressField(blank=True)
-    objects = NetManger()
-
-    class Meta:
-        db_table = 'blankinet'
-
 class NullInetTestModel(models.Model):
     '''
     >>> NullInetTestModel(inet='10.0.0.1').save()
@@ -278,25 +288,6 @@ class NullInetTestModel(models.Model):
 
     class Meta:
         db_table = 'nullinet'
-
-class BlankNullInetTestModel(models.Model):
-    '''
-    >>> BlankNullInetTestModel(inet='10.0.0.1').save()
-
-    >>> BlankNullInetTestModel(inet=IP('10.0.0.1')).save()
-
-    >>> BlankNullInetTestModel(inet='').save()
-
-    >>> BlankNullInetTestModel(inet=None).save()
-
-    >>> BlankNullInetTestModel().save()
-    '''
-
-    inet = InetAddressField(blank=True, null=True)
-    objects = NetManger()
-
-    class Meta:
-        db_table = 'blanknullinet'
 
 class CidrTestModel(models.Model):
     '''
