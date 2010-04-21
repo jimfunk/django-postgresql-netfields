@@ -6,20 +6,19 @@ from django.db import models, connection
 from django.db.models import sql, query
 
 NET_OPERATORS = {
-    'lt': '%s < %s',
-    'lte': '%s <= %s',
-    'exact': '%s = %s',
-    'gte': '%s >= %s',
-    'gt': '%s > %s',
-    'net_contained': '%s << %s',
-    'net_contained_or_equal': '%s <<= %s',
-    'net_contains': '%s >> %s',
-    'net_contains_or_equals': '%s >>= %s',
-
-    'contains': "%s LIKE %s",
-    'startswith': "%s LIKE %s",
-    'endswith': "%s LIKE %s",
-    'regex': '%s ~* %s',
+    'lt': '<',
+    'lte': '<=',
+    'exact': '=',
+    'gte': '>=',
+    'gt': '>',
+    'contains': "LIKE",
+    'startswith': "LIKE",
+    'endswith': "LIKE",
+    'regex': '~*',
+    'net_contained': '<<',
+    'net_contained_or_equal': '<<=',
+    'net_contains': '>>',
+    'net_contains_or_equals': '>>=',
 }
 
 NET_TEXT_LOOKUPS = set([
@@ -76,7 +75,7 @@ class NetWhere(sql.where.WhereNode):
             child = (table_alias, name, db_type, lookup_type, value_annot, params)
             return self.make_atom(child, qn)
         elif lookup_type in NET_OPERATORS:
-            return (NET_OPERATORS[lookup_type] % (lhs, rhs), params)
+            return ('%s %s %s' % (lhs, NET_OPERATORS[lookup_type], rhs), params)
         elif lookup_type == 'in':
             return ('%s IN (%s)' % (lhs, ', '.join([rhs] * len(params))), params)
         elif lookup_type == 'range':
