@@ -1,0 +1,11 @@
+Django PostgreSQL Netfilters
+============================
+
+This project is an attempt at making proper Django net related fields for Django
+Currently the built in IPAddressField does not support IPv6 and uses an inefficient
+HOST() cast in all lookups. Hopefully there experience from this project can lead
+to a resolution of these issues upstream.
+
+In addition to the basic IPAddressField replacement a CIDR and MAC field have
+been added. Furthermore a customer Manager allows for access to all of PostgreSQL's
+INET operators.
