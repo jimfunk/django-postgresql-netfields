@@ -10,11 +10,13 @@ In addition to the basic ``IPAddressField`` replacement a ``CIDR`` and
 ``MACADDR`` field have been added. Furthermore a customer Manager allows for
 access to all of PostgreSQL's INET operators.
 
-Django version
---------------
+Dependencies
+------------
 
 Currently this code has only been tested against 1.0.x due to the Django
-version used by the related project that initiated this effort.
+version used by the related project that initiated this effort. ``IPy`` is used
+for the same reasons. ``ipaddr`` is being considered, but the conversion
+hinges on the related projects conversion to ``ipaddr``.
 
 Getting started
 ---------------
