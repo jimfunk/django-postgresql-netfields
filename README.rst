@@ -21,7 +21,8 @@ hinges on the related projects conversion to ``ipaddr``.
 Getting started
 ---------------
 
-Make sure netfields is in your ``PYTHONPATH``, then simply use the following::
+Make sure ``netfields`` is in your ``PYTHONPATH``, then simply use the
+following::
 
  from netfields import InetAddressField, NetManager
 
@@ -46,4 +47,4 @@ types the following have been added.
 These correspond with the operators from
 http://www.postgresql.org/docs/8.3/interactive/functions-net.html
 
-netfields does not have to be in ``INSTALLED_APPS``.
+``netfields`` does not have to be in ``INSTALLED_APPS``.
