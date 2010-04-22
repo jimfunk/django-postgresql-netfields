@@ -48,3 +48,12 @@ These correspond with the operators from
 http://www.postgresql.org/docs/8.3/interactive/functions-net.html
 
 ``netfields`` does not have to be in ``INSTALLED_APPS``.
+
+Related Django bugs
+-------------------
+
+* 11442_ - Postgresql backend casts inet types to text, breaks IP operations and IPv6 lookups.
+* 811_ - IPv6 address field support.
+
+.. _11442: http://code.djangoproject.com/ticket/11442
+.. _811: http://code.djangoproject.com/ticket/811
