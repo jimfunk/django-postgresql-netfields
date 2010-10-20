@@ -71,7 +71,7 @@ class NetWhere(sql.where.WhereNode):
         raise ValueError('Invalid lookup type "%s"' % lookup_type)
 
 
-class NetManger(models.Manager):
+class NetManager(models.Manager):
     use_for_related_fields = True
 
     def get_query_set(self):
