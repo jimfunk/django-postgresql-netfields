@@ -126,7 +126,7 @@ class InetTestModel(models.Model):
     '''
 
     inet = InetAddressField()
-    objects = NetManger()
+    objects = NetManager()
 
     class Meta:
         db_table = 'inet'
@@ -145,7 +145,7 @@ class NullInetTestModel(models.Model):
     '''
 
     inet = InetAddressField(null=True)
-    objects = NetManger()
+    objects = NetManager()
 
     class Meta:
         db_table = 'nullinet'
@@ -237,14 +237,14 @@ class CidrTestModel(models.Model):
     '''
 
     cidr = CidrAddressField()
-    objects = NetManger()
+    objects = NetManager()
 
     class Meta:
         db_table = 'cidr'
 
 class MACTestModel(models.Model):
     mac = MACAddressField(null=True)
-    objects = NetManger()
+    objects = NetManager()
 
     class Meta:
         db_table = 'mac'
