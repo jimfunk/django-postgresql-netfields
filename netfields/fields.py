@@ -21,6 +21,18 @@ class _NetAddressField(models.Field):
 
         return IP(value)
 
+    def get_prep_lookup(self, lookup_type, value):
+        if value is None:
+            return value
+
+        if (lookup_type in NET_OPERATORS and
+                NET_OPERATORS[lookup_type] not in NET_TEXT_OPERATORS):
+            return self.get_db_prep_value(value)
+
+        return super(_NetAddressField, self).get_prep_lookup(
+            lookup_type, value)
+
+
     def get_db_prep_value(self, value):
         if value is None:
             return value
