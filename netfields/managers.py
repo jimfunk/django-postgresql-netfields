@@ -33,18 +33,18 @@ class NetQuery(sql.Query):
 
 
 class NetWhere(sql.where.WhereNode):
-    def make_atom(self, child, qn , conn):
-        if isinstance(child[0] , sql.where.Constraint):
+    def make_atom(self, child, qn, conn):
+        if isinstance(child[0], sql.where.Constraint):
             c = child[0]
             table_alias = c.alias
             name = c.col
             field = c.field
-            lookup_type , value_annot , params = child[1:]
+            lookup_type, value_annot, params = child[1:]
         else:
             table_alias, name, db_type, lookup_type, value_annot, params = child
 
         if field.db_type() not in ['inet', 'cidr']:
-            return super(NetWhere, self).make_atom(child, qn , conn)
+            return super(NetWhere, self).make_atom(child, qn, conn)
 
         if table_alias:
             field_sql = '%s.%s' % (qn(table_alias), qn(name))
