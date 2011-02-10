@@ -63,7 +63,7 @@ class NetWhere(sql.where.WhereNode):
             extra = ''
 
         if isinstance(params, basestring):
-            params = tuple(params)
+            params = (params,)
 
         if lookup_type in NET_OPERATORS:
             return (' '.join([field_sql, NET_OPERATORS[lookup_type], extra]), params)
