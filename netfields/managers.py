@@ -34,16 +34,19 @@ class NetQuery(sql.Query):
 
 class NetWhere(sql.where.WhereNode):
     def make_atom(self, child, qn, conn):
-        if isinstance(child[0], sql.where.Constraint):
-            c = child[0]
-            table_alias = c.alias
-            name = c.col
-            field = c.field
-            lookup_type, value_annot, params = child[1:]
-        else:
-            table_alias, name, db_type, lookup_type, value_annot, params = child
+        lvalue, lookup_type, value_annot, params_or_value = child
 
-        if field.db_type() not in ['inet', 'cidr']:
+        if hasattr(lvalue, 'process'):
+            try:
+                lvalue, params = lvalue.process(lookup_type, params_or_value, connection)
+            except EmptyShortCircuit:
+                raise EmptyResultSet
+        else:
+            return super(NetWhere, self).make_atom(child, qn, conn)
+
+        table_alias, name, db_type = lvalue
+
+        if db_type not in ['inet', 'cidr']:
             return super(NetWhere, self).make_atom(child, qn, conn)
 
         if table_alias:
@@ -52,7 +55,7 @@ class NetWhere(sql.where.WhereNode):
             field_sql = qn(name)
 
         if NET_OPERATORS.get(lookup_type, '') in NET_TEXT_OPERATORS:
-            if field.db_type() == 'inet':
+            if db_type == 'inet':
                 field_sql  = 'HOST(%s)' % field_sql
             else:
                 field_sql  = 'TEXT(%s)' % field_sql
