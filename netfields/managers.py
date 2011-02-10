@@ -1,6 +1,5 @@
 from IPy import IP
 
-from types import StringTypes
 from django.db import models, connection
 from django.db.models import sql, query
 from django.db.models.query_utils import QueryWrapper
@@ -63,8 +62,8 @@ class NetWhere(sql.where.WhereNode):
         else:
             extra = ''
 
-        if type(params) in StringTypes:
-            params = (params,)
+        if isinstance(params, basestring):
+            params = tuple(params)
 
         if lookup_type in NET_OPERATORS:
             return (' '.join([field_sql, NET_OPERATORS[lookup_type], extra]), params)
