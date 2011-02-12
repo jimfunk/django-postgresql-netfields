@@ -13,9 +13,9 @@ access to all of PostgreSQL's INET operators.
 Dependencies
 ------------
 
-Currently this code has only been tested against 1.0.x due to the Django
-version used by the related project that initiated this effort. ``IPy`` is used
-for the same reasons. ``ipaddr`` is being considered, but the conversion
+Current version of code is targeting Django 1.2 support, as this relies heavily
+on ORM internals supporting multiple versions is especially tricky. ``IPy`` is
+used for the same reasons. ``ipaddr`` is being considered, but the conversion
 hinges on the related projects conversion to ``ipaddr``.
 
 Getting started
