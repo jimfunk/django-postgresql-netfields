@@ -1,10 +1,11 @@
 from IPy import IP
 
 from django.db import models, connection
+from django.db.backends.postgresql_psycopg2.base import DatabaseWrapper
 from django.db.models import sql, query
 from django.db.models.query_utils import QueryWrapper
 
-NET_OPERATORS = connection.operators.copy()
+NET_OPERATORS = DatabaseWrapper.operators.copy()
 
 for operator in ['contains', 'startswith', 'endswith']:
     NET_OPERATORS[operator] = 'ILIKE %s'
