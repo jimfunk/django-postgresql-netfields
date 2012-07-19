@@ -14,16 +14,13 @@ class _NetAddressField(models.Field):
 
     def to_python(self, value):
         if not value:
-            value = None
-
-        if value is None:
             return value
 
         return IP(value)
 
     def get_prep_lookup(self, lookup_type, value):
-        if value is None:
-            return value
+        if not value:
+            return None
 
         if (lookup_type in NET_OPERATORS and
                 NET_OPERATORS[lookup_type] not in NET_TEXT_OPERATORS):
