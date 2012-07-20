@@ -3,7 +3,7 @@ from IPy import IP
 
 from django.db import IntegrityError
 
-from models import *
+from .models import *
 
 class BaseTestCase(object):
     select = 'SELECT "table"."id", "table"."field" FROM "table" '
