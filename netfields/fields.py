@@ -27,28 +27,29 @@ class _NetAddressField(models.Field):
 
         if (lookup_type in NET_OPERATORS and
                 NET_OPERATORS[lookup_type] not in NET_TEXT_OPERATORS):
-            return self.get_db_prep_value(value)
+            return self.get_prep_value(value)
 
         return super(_NetAddressField, self).get_prep_lookup(
             lookup_type, value)
 
 
-    def get_db_prep_value(self, value):
-        if value is None:
-            return value
+    def get_prep_value(self, value):
+        if not value:
+            return None
 
         return unicode(self.to_python(value))
 
-    def get_db_prep_lookup(self, lookup_type, value):
-        if value is None:
-            return value
+    def get_db_prep_lookup(self, lookup_type, value, connection,
+            prepared=False):
+        if not value:
+            return []
 
         if (lookup_type in NET_OPERATORS and
                 NET_OPERATORS[lookup_type] not in NET_TEXT_OPERATORS):
-            return [self.get_db_prep_value(value)]
+            return [value] if prepared else [self.get_prep_value(value)]
 
         return super(_NetAddressField, self).get_db_prep_lookup(
-            lookup_type, value)
+            lookup_type, value, connection=connection, prepared=prepared)
 
     def formfield(self, **kwargs):
         defaults = {'form_class': NetAddressFormField}
@@ -61,7 +62,7 @@ class InetAddressField(_NetAddressField):
     max_length = 39
     __metaclass__ = models.SubfieldBase
 
-    def db_type(self):
+    def db_type(self, connection):
         return 'inet'
 
 
@@ -70,7 +71,7 @@ class CidrAddressField(_NetAddressField):
     max_length = 43
     __metaclass__ = models.SubfieldBase
 
-    def db_type(self):
+    def db_type(self, connection):
         return 'cidr'
 
 
@@ -81,7 +82,7 @@ class MACAddressField(models.Field):
         kwargs['max_length'] = 17
         super(MACAddressField, self).__init__(*args, **kwargs)
 
-    def db_type(self):
+    def db_type(self, connection):
         return 'macaddr'
 
     def formfield(self, **kwargs):
