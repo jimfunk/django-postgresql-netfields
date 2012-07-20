@@ -40,8 +40,8 @@ class NetWhere(sql.where.WhereNode):
         if hasattr(lvalue, 'process'):
             try:
                 lvalue, params = lvalue.process(lookup_type, params_or_value, connection)
-            except EmptyShortCircuit:
-                raise EmptyResultSet
+            except sql.where.EmptyShortCircuit:
+                raise query.EmptyResultSet
         else:
             return super(NetWhere, self).make_atom(child, qn, conn)
 
