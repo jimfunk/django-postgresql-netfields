@@ -26,17 +26,14 @@ class NetAddressFormField(forms.Field):
     def __init__(self, *args, **kwargs):
         super(NetAddressFormField, self).__init__(*args, **kwargs)
 
-    def clean(self, value):
-        super(NetAddressFormField, self).clean(value)
-
-        if value in (None, ''):
+    def to_python(self, value):
+        if not value:
             return None
+
         if isinstance(value, IP):
             return value
-        try:
-            return IP(value)
-        except ValueError, e:
-            raise forms.ValidationError(e)
+
+        return self.python_type(value)
 
 
 mac_re = re.compile(r'^(([A-F0-9]{2}:){5}[A-F0-9]{2})$')
