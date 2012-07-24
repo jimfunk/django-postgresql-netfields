@@ -38,7 +38,7 @@ class NetAddressFormField(forms.Field):
         return self.python_type(value)
 
 
-mac_re = re.compile(r'^(([A-F0-9]{2}:){5}[A-F0-9]{2})$')
+MAC_RE = re.compile(r'^(([A-F0-9]{2}:){5}[A-F0-9]{2})$')
 
 
 class MACAddressFormField(forms.RegexField):
@@ -47,4 +47,4 @@ class MACAddressFormField(forms.RegexField):
     }
 
     def __init__(self, *args, **kwargs):
-        super(MACAddressFormField, self).__init__(mac_re, *args, **kwargs)
+        super(MACAddressFormField, self).__init__(MAC_RE, *args, **kwargs)
