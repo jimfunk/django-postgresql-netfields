@@ -5,6 +5,7 @@ from django.db import models
 from netfields.managers import NET_OPERATORS, NET_TEXT_OPERATORS
 from netfields.forms import NetAddressFormField, MACAddressFormField
 
+
 class _NetAddressField(models.Field):
     empty_strings_allowed = False
 
@@ -28,7 +29,6 @@ class _NetAddressField(models.Field):
 
         return super(_NetAddressField, self).get_prep_lookup(
             lookup_type, value)
-
 
     def get_prep_value(self, value):
         if not value:
