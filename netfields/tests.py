@@ -3,7 +3,9 @@ from IPy import IP
 from django.db import IntegrityError
 from django.test import TestCase
 
-from .models import *
+from netfields.models import (CidrTestModel, InetTestModel, NullCidrTestModel,
+                              NullInetTestModel)
+
 
 class BaseTestCase(object):
     select = 'SELECT "table"."id", "table"."field" FROM "table" '
