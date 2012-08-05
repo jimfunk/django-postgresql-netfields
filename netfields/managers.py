@@ -25,13 +25,6 @@ class NetQuery(sql.Query):
     query_terms = sql.Query.query_terms.copy()
     query_terms.update(NET_OPERATORS)
 
-    def add_filter(self, (filter_string, value), *args, **kwargs):
-        # IP(...) == '' fails so make sure to force to string while we can
-        if isinstance(value, IP):
-            value = unicode(value)
-        return super(NetQuery, self).add_filter(
-            (filter_string, value), *args, **kwargs)
-
 
 class NetWhere(sql.where.WhereNode):
     def make_atom(self, child, qn, conn):
