@@ -1,1 +1,6 @@
 *.pyc
+.tox/
+MANIFEST
+build/
+dist/
+*.egg-info/
