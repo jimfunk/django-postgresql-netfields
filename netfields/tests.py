@@ -1,7 +1,7 @@
-import unittest
 from IPy import IP
 
 from django.db import IntegrityError
+from django.test import TestCase
 
 from .models import *
 
@@ -152,7 +152,7 @@ class BaseCidrFieldTestCase(BaseTestCase):
             self.select + 'WHERE TEXT("table"."field") ~* %s ')
 
 
-class TestInetField(BaseInetFieldTestCase, unittest.TestCase):
+class TestInetField(BaseInetFieldTestCase, TestCase):
     def setUp(self):
         self.model = InetTestModel
         self.qs = self.model.objects.all()
@@ -168,7 +168,7 @@ class TestInetField(BaseInetFieldTestCase, unittest.TestCase):
         self.assertRaises(IntegrityError, self.model().save)
 
 
-class TestInetFieldNullable(BaseInetFieldTestCase, unittest.TestCase):
+class TestInetFieldNullable(BaseInetFieldTestCase, TestCase):
     def setUp(self):
         self.model = NullInetTestModel
         self.qs = self.model.objects.all()
@@ -184,7 +184,7 @@ class TestInetFieldNullable(BaseInetFieldTestCase, unittest.TestCase):
         self.model().save()
 
 
-class TestCidrField(BaseCidrFieldTestCase, unittest.TestCase):
+class TestCidrField(BaseCidrFieldTestCase, TestCase):
     def setUp(self):
         self.model = CidrTestModel
         self.qs = self.model.objects.all()
@@ -200,7 +200,7 @@ class TestCidrField(BaseCidrFieldTestCase, unittest.TestCase):
         self.assertRaises(IntegrityError, self.model().save)
 
 
-class TestCidrFieldNullable(BaseCidrFieldTestCase, unittest.TestCase):
+class TestCidrFieldNullable(BaseCidrFieldTestCase, TestCase):
     def setUp(self):
         self.model = NullCidrTestModel
         self.qs = self.model.objects.all()
