@@ -25,13 +25,6 @@ class NetQuery(sql.Query):
     query_terms = sql.Query.query_terms.copy()
     query_terms.update(NET_OPERATORS)
 
-    def add_filter(self, (filter_string, value), *args, **kwargs):
-        # IP(...) == '' fails so make sure to force to string while we can
-        if isinstance(value, IP):
-            value = unicode(value)
-        return super(NetQuery, self).add_filter(
-            (filter_string, value), *args, **kwargs)
-
 
 class NetWhere(sql.where.WhereNode):
     def make_atom(self, child, qn, conn):
@@ -39,9 +32,10 @@ class NetWhere(sql.where.WhereNode):
 
         if hasattr(lvalue, 'process'):
             try:
-                lvalue, params = lvalue.process(lookup_type, params_or_value, connection)
-            except EmptyShortCircuit:
-                raise EmptyResultSet
+                lvalue, params = lvalue.process(lookup_type, params_or_value,
+                                                connection)
+            except sql.where.EmptyShortCircuit:
+                raise query.EmptyResultSet
         else:
             return super(NetWhere, self).make_atom(child, qn, conn)
 
@@ -57,9 +51,9 @@ class NetWhere(sql.where.WhereNode):
 
         if NET_OPERATORS.get(lookup_type, '') in NET_TEXT_OPERATORS:
             if db_type == 'inet':
-                field_sql  = 'HOST(%s)' % field_sql
+                field_sql = 'HOST(%s)' % field_sql
             else:
-                field_sql  = 'TEXT(%s)' % field_sql
+                field_sql = 'TEXT(%s)' % field_sql
 
         if isinstance(params, QueryWrapper):
             extra, params = params.data
@@ -70,17 +64,20 @@ class NetWhere(sql.where.WhereNode):
             params = (params,)
 
         if lookup_type in NET_OPERATORS:
-            return (' '.join([field_sql, NET_OPERATORS[lookup_type], extra]), params)
+            return (' '.join([field_sql, NET_OPERATORS[lookup_type], extra]),
+                    params)
         elif lookup_type == 'in':
             if not value_annot:
                 raise sql.datastructures.EmptyResultSet
             if extra:
                 return ('%s IN %s' % (field_sql, extra), params)
-            return ('%s IN (%s)' % (field_sql, ', '.join(['%s'] * len(params))), params)
+            return ('%s IN (%s)' % (field_sql, ', '.join(['%s'] *
+                    len(params))), params)
         elif lookup_type == 'range':
             return ('%s BETWEEN %%s and %%s' % field_sql, params)
         elif lookup_type == 'isnull':
-            return ('%s IS %sNULL' % (field_sql, (not value_annot and 'NOT ' or '')), params)
+            return ('%s IS %sNULL' % (field_sql, (not value_annot and 'NOT ' or
+                    '')), params)
 
         raise ValueError('Invalid lookup type "%s"' % lookup_type)
 
