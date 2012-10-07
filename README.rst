@@ -1,6 +1,8 @@
 Django PostgreSQL Netfields
 ===========================
 
+.. image:: https://secure.travis-ci.org/adamcik/django-postgresql-netfields.png
+
 This project is an attempt at making proper Django net related fields for
 Django Currently the built in ``IPAddressField`` does not support IPv6 and uses
 an inefficient ``HOST()`` cast in all lookups. Hopefully there experience from
