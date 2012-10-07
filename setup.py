@@ -11,7 +11,7 @@ def get_long_description():
         return f.read()
 
 setup(
-    name='django-postgresql-netfields',
+    name='django-netfields',
     version='0.1',
     license='BSD',
     description='Django PostgreSQL netfields implementation',
