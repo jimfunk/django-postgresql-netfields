@@ -3,14 +3,14 @@ Django PostgreSQL Netfields
 
 .. image:: https://secure.travis-ci.org/adamcik/django-postgresql-netfields.png
 
-This project is an attempt at making proper Django net related fields for
+This project is an attempt at making proper PostgreSQL net related fields for
 Django. In Django pre 1.4 the built in ``IPAddressField`` does not support IPv6
 and uses an inefficient ``HOST()`` cast in all lookups. As of 1.4 you can use
 ``GenericIPAddressField`` for IPv6, but the casting problem remains.
 
 In addition to the basic ``IPAddressField`` replacement a ``CIDR`` and
 ``MACADDR`` field have been added. This library also provides a manager that
-allows for advanced IP based lookup directly in the ORM. 
+allows for advanced IP based lookup directly in the ORM.
 
 Dependencies
 ------------
@@ -34,7 +34,7 @@ following::
 
      objects = NetManager()
 
-The page also provides ``CidrAddressField`` and a ``MACAddressField``.
+The package also provides ``CidrAddressField`` and a ``MACAddressField``.
 ``NetManager`` is required for the extra lookups to be available. Lookups for
 ``INET`` and ``CIDR`` database types will be handled differently than when
 running vanilla Django.  All lookups are case-insensitive and text based
