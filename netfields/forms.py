@@ -35,7 +35,7 @@ class NetAddressFormField(forms.Field):
         if isinstance(value, IP):
             return value
 
-        return self.python_type(value)
+        return IP(value)
 
 
 MAC_RE = re.compile(r'^(([A-F0-9]{2}:){5}[A-F0-9]{2})$')
