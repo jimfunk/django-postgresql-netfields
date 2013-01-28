@@ -1,6 +1,7 @@
 from IPy import IP
 
 from django.db import IntegrityError
+from django.forms import ModelForm
 from django.test import TestCase
 
 from netfields.models import (CidrTestModel, InetTestModel, NullCidrTestModel,
@@ -216,3 +217,21 @@ class TestCidrFieldNullable(BaseCidrFieldTestCase, TestCase):
 
     def test_save_nothing_fails(self):
         self.model().save()
+
+
+class InetTestModelForm(ModelForm):
+    class Meta:
+        model = InetTestModel
+
+
+class TestNetAddressFormField(TestCase):
+    def setUp(self):
+        self.data = {
+            'field': '10.0.0.1',
+        }
+        self.addr = IP('10.0.0.1')
+
+    def test_form(self):
+        form = InetTestModelForm(self.data)
+        self.assertTrue(form.is_valid())
+        self.assertEqual(form.cleaned_data['field'], self.addr)
