@@ -17,7 +17,7 @@ class _NetAddressField(models.Field):
         if not value:
             return value
 
-        return IP(value)
+        return IP(value , make_net=True)
 
     def get_prep_lookup(self, lookup_type, value):
         if not value:
