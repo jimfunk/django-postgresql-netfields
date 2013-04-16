@@ -26,6 +26,7 @@ setup(
     zip_safe=False,
     install_requires=[
         'IPy',
+        'netaddr',
         'django>=1.3',
     ],
 
