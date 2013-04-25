@@ -37,7 +37,7 @@ class NullCidrTestModel(Model):
 
 
 class MACTestModel(Model):
-    mac = MACAddressField(null=True)
+    field = MACAddressField(null=True)
     objects = NetManager()
 
     class Meta:

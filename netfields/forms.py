@@ -1,9 +1,12 @@
-import re
 from IPy import IP
+from netaddr import EUI, AddrFormatError
 
 from django import forms
 from django.utils.encoding import force_unicode
 from django.utils.safestring import mark_safe
+from django.core.exceptions import ValidationError
+
+from netfields.mac import mac_unix_common
 
 
 class NetInput(forms.Widget):
@@ -35,16 +38,28 @@ class NetAddressFormField(forms.Field):
         if isinstance(value, IP):
             return value
 
-        return self.python_type(value)
+        try:
+            return IP(value)
+        except ValueError, e:
+            raise ValidationError(str(e))
 
 
-MAC_RE = re.compile(r'^(([A-F0-9]{2}:){5}[A-F0-9]{2})$')
-
-
-class MACAddressFormField(forms.RegexField):
+class MACAddressFormField(forms.Field):
     default_error_messages = {
         'invalid': u'Enter a valid MAC address.',
     }
 
     def __init__(self, *args, **kwargs):
-        super(MACAddressFormField, self).__init__(MAC_RE, *args, **kwargs)
+        super(MACAddressFormField, self).__init__(*args, **kwargs)
+
+    def to_python(self, value):
+        if not value:
+            return None
+
+        if isinstance(value, EUI):
+            return value
+
+        try:
+            return EUI(value, dialect=mac_unix_common)
+        except AddrFormatError:
+            raise ValidationError(self.error_messages['invalid'])

@@ -1,9 +1,11 @@
 from IPy import IP
+from netaddr import EUI
 
 from django.db import models
 
 from netfields.managers import NET_OPERATORS, NET_TEXT_OPERATORS
 from netfields.forms import NetAddressFormField, MACAddressFormField
+from netfields.mac import mac_unix_common
 
 
 class _NetAddressField(models.Field):
@@ -82,7 +84,29 @@ class MACAddressField(models.Field):
     def db_type(self, connection):
         return 'macaddr'
 
+    def to_python(self, value):
+        if not value:
+            return value
+
+        return EUI(value, dialect=mac_unix_common)
+
+    def get_prep_value(self, value):
+        if not value:
+            return None
+
+        return unicode(self.to_python(value))
+
     def formfield(self, **kwargs):
         defaults = {'form_class': MACAddressFormField}
         defaults.update(kwargs)
         return super(MACAddressField, self).formfield(**defaults)
+
+try:
+    from south.modelsinspector import add_introspection_rules
+    add_introspection_rules([], [
+        "^netfields\.fields\.InetAddressField",
+        "^netfields\.fields\.CidrAddressField",
+        "^netfields\.fields\.MACAddressField",
+    ])
+except ImportError:
+    pass
