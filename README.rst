@@ -1,7 +1,7 @@
 Django PostgreSQL Netfields
 ===========================
 
-.. image:: https://secure.travis-ci.org/adamcik/django-postgresql-netfields.png
+.. image:: https://secure.travis-ci.org/jimfunk/django-postgresql-netfields.png
 
 This project is an attempt at making proper PostgreSQL net related fields for
 Django. In Django pre 1.4 the built in ``IPAddressField`` does not support IPv6
@@ -70,3 +70,10 @@ https://bitbucket.org/onelson/django-ipyfield tries to solve some of the same
 issues as this library. However, instead of supporting just postgres via the proper
 fields types the ipyfield currently uses a ``VARCHAR(39)`` as a fake unsigned 64 bit
 number in its implementation.
+
+History
+-------
+
+Main repo was originaly kept https://github.com/adamcik/django-postgresql-netfields
+Late April 2013 the project was moved to https://github.com/jimfunk/django-postgresql-netfields
+to pass the torch on to someone who actually uses this code actively :-)
