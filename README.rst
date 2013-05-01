@@ -13,7 +13,7 @@ a ``MACADDR`` field have been added. This library also provides a manager that
 allows for advanced IP based lookup directly in the ORM.
 
 In Python, the values of these fields are represented as types from the
-``netaddr_`` module.
+netaddr_ module.
 
 .. _netaddr: http://pythonhosted.org/netaddr/
 
