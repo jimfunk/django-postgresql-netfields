@@ -12,20 +12,19 @@ def get_long_description():
 
 setup(
     name='django-netfields',
-    version='0.1',
+    version='0.2',
     license='BSD',
     description='Django PostgreSQL netfields implementation',
     long_description=get_long_description(),
-    url='https://github.com/adamcik/django-postgresql-netfields',
+    url='https://github.com/jimfunk/django-postgresql-netfields',
 
-    author=u'Thomas Admacik',
-    author_email='adamcik@samfundet.no',
+    author=u'James Oakley',
+    author_email='jfunk@funktronics.ca',
 
     packages=find_packages(),
     include_package_data=True,
     zip_safe=False,
     install_requires=[
-        'IPy',
         'netaddr',
         'django>=1.3',
     ],

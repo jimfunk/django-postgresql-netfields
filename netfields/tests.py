@@ -1,5 +1,4 @@
-from IPy import IP
-from netaddr import EUI
+from netaddr import IPAddress, IPNetwork, EUI, AddrFormatError
 
 from django.db import IntegrityError
 from django.forms import ModelForm
@@ -69,15 +68,11 @@ class BaseSqlTestCase(object):
 
 
 class BaseInetTestCase(BaseSqlTestCase):
-    value1 = '10.0.0.1'
-    value2 = '10.0.0.2'
-    value3 = '10.0.0.10'
-
     def test_save_object(self):
-        self.model(field=IP(self.value1)).save()
+        self.model(field=self.value1).save()
 
     def test_init_with_text_fails(self):
-        self.assertRaises(ValueError, self.model, field='abc')
+        self.assertRaises(AddrFormatError, self.model, field='abc')
 
     def test_iexact_lookup(self):
         self.assertSqlEquals(self.qs.filter(field__iexact=self.value1),
@@ -95,24 +90,12 @@ class BaseInetTestCase(BaseSqlTestCase):
     def test_day_lookup_fails(self):
         self.assertSqlRaises(self.qs.filter(field__day=1), ValueError)
 
-    def test_net_contains_lookup(self):
-        self.assertSqlEquals(self.qs.filter(field__net_contains='10.0.0.1'),
-            self.select + 'WHERE "table"."field" >> %s ')
-
-    def test_net_contains_or_equals(self):
-        self.assertSqlEquals(self.qs.filter(field__net_contains_or_equals='10.0.0.1'),
-            self.select + 'WHERE "table"."field" >>= %s ')
-
-    def test_net_contained(self):
-        self.assertSqlEquals(self.qs.filter(field__net_contained='10.0.0.1'),
-            self.select + 'WHERE "table"."field" << %s ')
-
-    def test_net_contained_or_equals(self):
-        self.assertSqlEquals(self.qs.filter(field__net_contained_or_equal='10.0.0.1'),
-            self.select + 'WHERE "table"."field" <<= %s ')
-
 
 class BaseInetFieldTestCase(BaseInetTestCase):
+    value1 = '10.0.0.1'
+    value2 = '10.0.0.2'
+    value3 = '10.0.0.10'
+
     def test_startswith_lookup(self):
         self.assertSqlEquals(self.qs.filter(field__startswith='10.'),
             self.select + 'WHERE HOST("table"."field") ILIKE %s ')
@@ -139,6 +122,10 @@ class BaseInetFieldTestCase(BaseInetTestCase):
 
 
 class BaseCidrFieldTestCase(BaseInetTestCase):
+    value1 = '10.0.0.1/32'
+    value2 = '10.0.0.2/24'
+    value3 = '10.0.0.10/16'
+
     def test_startswith_lookup(self):
         self.assertSqlEquals(self.qs.filter(field__startswith='10.'),
             self.select + 'WHERE TEXT("table"."field") ILIKE %s ')
@@ -162,6 +149,23 @@ class BaseCidrFieldTestCase(BaseInetTestCase):
     def test_iregex_lookup(self):
         self.assertSqlEquals(self.qs.filter(field__iregex='10'),
             self.select + 'WHERE TEXT("table"."field") ~* %s ')
+
+    def test_net_contains_lookup(self):
+        self.assertSqlEquals(self.qs.filter(field__net_contains='10.0.0.1'),
+            self.select + 'WHERE "table"."field" >> %s ')
+
+    def test_net_contains_or_equals(self):
+        self.assertSqlEquals(self.qs.filter(field__net_contains_or_equals='10.0.0.1'),
+            self.select + 'WHERE "table"."field" >>= %s ')
+
+    def test_net_contained(self):
+        self.assertSqlEquals(self.qs.filter(field__net_contained='10.0.0.1'),
+            self.select + 'WHERE "table"."field" << %s ')
+
+    def test_net_contained_or_equals(self):
+        self.assertSqlEquals(self.qs.filter(field__net_contained_or_equal='10.0.0.1'),
+            self.select + 'WHERE "table"."field" <<= %s ')
+
 
 
 class TestInetField(BaseInetFieldTestCase, TestCase):
@@ -228,28 +232,53 @@ class TestCidrFieldNullable(BaseCidrFieldTestCase, TestCase):
         self.model().save()
 
 
-class InetTestModelForm(ModelForm):
+class InetAddressTestModelForm(ModelForm):
     class Meta:
         model = InetTestModel
 
 
-class TestNetAddressFormField(TestCase):
+class TestInetAddressFormField(TestCase):
     def test_form_ipv4_valid(self):
-        form = InetTestModelForm({'field': '10.0.0.1'})
+        form = InetAddressTestModelForm({'field': '10.0.0.1'})
         self.assertTrue(form.is_valid())
-        self.assertEqual(form.cleaned_data['field'], IP('10.0.0.1'))
+        self.assertEqual(form.cleaned_data['field'], IPAddress('10.0.0.1'))
 
     def test_form_ipv4_invalid(self):
-        form = InetTestModelForm({'field': '10.0.0.1.2'})
+        form = InetAddressTestModelForm({'field': '10.0.0.1.2'})
         self.assertFalse(form.is_valid())
 
     def test_form_ipv6(self):
-        form = InetTestModelForm({'field': '2001:0:1::2'})
+        form = InetAddressTestModelForm({'field': '2001:0:1::2'})
         self.assertTrue(form.is_valid())
-        self.assertEqual(form.cleaned_data['field'], IP('2001:0:1::2'))
+        self.assertEqual(form.cleaned_data['field'], IPAddress('2001:0:1::2'))
 
     def test_form_ipv6_invalid(self):
-        form = InetTestModelForm({'field': '2001:0::1::2'})
+        form = InetAddressTestModelForm({'field': '2001:0::1::2'})
+        self.assertFalse(form.is_valid())
+
+
+class CidrAddressTestModelForm(ModelForm):
+    class Meta:
+        model = CidrTestModel
+
+
+class TestNetAddressFormField(TestCase):
+    def test_form_ipv4_valid(self):
+        form = CidrAddressTestModelForm({'field': '10.0.0.1/24'})
+        self.assertTrue(form.is_valid())
+        self.assertEqual(form.cleaned_data['field'], IPNetwork('10.0.0.1/24'))
+
+    def test_form_ipv4_invalid(self):
+        form = CidrAddressTestModelForm({'field': '10.0.0.1.2/32'})
+        self.assertFalse(form.is_valid())
+
+    def test_form_ipv6(self):
+        form = CidrAddressTestModelForm({'field': '2001:0:1::2/64'})
+        self.assertTrue(form.is_valid())
+        self.assertEqual(form.cleaned_data['field'], IPNetwork('2001:0:1::2/64'))
+
+    def test_form_ipv6_invalid(self):
+        form = CidrAddressTestModelForm({'field': '2001:0::1::2/128'})
         self.assertFalse(form.is_valid())
 
 

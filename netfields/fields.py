@@ -1,10 +1,9 @@
-from IPy import IP
-from netaddr import EUI
+from netaddr import IPAddress, IPNetwork, EUI
 
 from django.db import models
 
 from netfields.managers import NET_OPERATORS, NET_TEXT_OPERATORS
-from netfields.forms import NetAddressFormField, MACAddressFormField
+from netfields.forms import InetAddressFormField, CidrAddressFormField, MACAddressFormField
 from netfields.mac import mac_unix_common
 
 
@@ -19,7 +18,7 @@ class _NetAddressField(models.Field):
         if not value:
             return value
 
-        return IP(value)
+        return self.python_type()(value)
 
     def get_prep_lookup(self, lookup_type, value):
         if not value:
@@ -51,9 +50,10 @@ class _NetAddressField(models.Field):
             lookup_type, value, connection=connection, prepared=prepared)
 
     def formfield(self, **kwargs):
-        defaults = {'form_class': NetAddressFormField}
+        defaults = {'form_class': self.form_class()}
         defaults.update(kwargs)
         return super(_NetAddressField, self).formfield(**defaults)
+
 
 
 class InetAddressField(_NetAddressField):
@@ -64,6 +64,12 @@ class InetAddressField(_NetAddressField):
     def db_type(self, connection):
         return 'inet'
 
+    def python_type(self):
+        return IPAddress
+
+    def form_class(self):
+        return InetAddressFormField
+
 
 class CidrAddressField(_NetAddressField):
     description = "PostgreSQL CIDR field"
@@ -72,6 +78,12 @@ class CidrAddressField(_NetAddressField):
 
     def db_type(self, connection):
         return 'cidr'
+
+    def python_type(self):
+        return IPNetwork
+
+    def form_class(self):
+        return CidrAddressFormField
 
 
 class MACAddressField(models.Field):

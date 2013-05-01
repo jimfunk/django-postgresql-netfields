@@ -1,5 +1,3 @@
-from IPy import IP
-
 from django.db import models, connection
 from django.db.backends.postgresql_psycopg2.base import DatabaseWrapper
 from django.db.models import sql, query

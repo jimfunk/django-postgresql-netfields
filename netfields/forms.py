@@ -1,5 +1,4 @@
-from IPy import IP
-from netaddr import EUI, AddrFormatError
+from netaddr import IPAddress, IPNetwork, EUI, AddrFormatError
 
 from django import forms
 from django.utils.encoding import force_unicode
@@ -22,25 +21,47 @@ class NetInput(forms.Widget):
         return mark_safe(u'<input%s />' % forms.util.flatatt(final_attrs))
 
 
-class NetAddressFormField(forms.Field):
+class InetAddressFormField(forms.Field):
     widget = NetInput
     default_error_messages = {
         'invalid': u'Enter a valid IP Address.',
     }
 
     def __init__(self, *args, **kwargs):
-        super(NetAddressFormField, self).__init__(*args, **kwargs)
+        super(InetAddressFormField, self).__init__(*args, **kwargs)
 
     def to_python(self, value):
         if not value:
             return None
 
-        if isinstance(value, IP):
+        if isinstance(value, IPAddress):
             return value
 
         try:
-            return IP(value)
-        except ValueError, e:
+            return IPAddress(value)
+        except (AddrFormatError, TypeError), e:
+            raise ValidationError(str(e))
+
+
+class CidrAddressFormField(forms.Field):
+    widget = NetInput
+    default_error_messages = {
+        'invalid': u'Enter a valid CIDR Address.',
+    }
+
+    def __init__(self, *args, **kwargs):
+        super(CidrAddressFormField, self).__init__(*args, **kwargs)
+
+    def to_python(self, value):
+        if not value:
+            return None
+
+        if isinstance(value, IPNetwork):
+            return value
+
+        try:
+            return IPNetwork(value)
+        except (AddrFormatError, TypeError), e:
             raise ValidationError(str(e))
 
 
@@ -61,5 +82,5 @@ class MACAddressFormField(forms.Field):
 
         try:
             return EUI(value, dialect=mac_unix_common)
-        except AddrFormatError:
+        except (AddrFormatError, TypeError):
             raise ValidationError(self.error_messages['invalid'])
