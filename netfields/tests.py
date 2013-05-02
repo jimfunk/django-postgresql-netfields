@@ -5,7 +5,8 @@ from django.forms import ModelForm
 from django.test import TestCase
 
 from netfields.models import (CidrTestModel, InetTestModel, NullCidrTestModel,
-                              NullInetTestModel, MACTestModel)
+                              NullInetTestModel, UniqueInetTestModel,
+                              UniqueCidrTestModel, MACTestModel)
 from netfields.mac import mac_unix_common
 
 
@@ -200,6 +201,17 @@ class TestInetFieldNullable(BaseInetFieldTestCase, TestCase):
         self.model().save()
 
 
+class TestInetFieldUnique(BaseInetFieldTestCase, TestCase):
+    def setUp(self):
+        self.model = UniqueInetTestModel
+        self.qs = self.model.objects.all()
+        self.table = 'uniqueinet'
+
+    def test_save_nonunique(self):
+        self.model(field='1.2.3.4').save()
+        self.assertRaises(IntegrityError, self.model(field='1.2.3.4').save)
+
+
 class TestCidrField(BaseCidrFieldTestCase, TestCase):
     def setUp(self):
         self.model = CidrTestModel
@@ -232,29 +244,51 @@ class TestCidrFieldNullable(BaseCidrFieldTestCase, TestCase):
         self.model().save()
 
 
+class TestCidrFieldUnique(BaseCidrFieldTestCase, TestCase):
+    def setUp(self):
+        self.model = UniqueCidrTestModel
+        self.qs = self.model.objects.all()
+        self.table = 'uniquecidr'
+
+    def test_save_nonunique(self):
+        self.model(field='1.2.3.0/24').save()
+        self.assertRaises(IntegrityError, self.model(field='1.2.3.0/24').save)
+
+
 class InetAddressTestModelForm(ModelForm):
     class Meta:
         model = InetTestModel
 
 
 class TestInetAddressFormField(TestCase):
+    form_class = InetAddressTestModelForm
+
     def test_form_ipv4_valid(self):
-        form = InetAddressTestModelForm({'field': '10.0.0.1'})
+        form = self.form_class({'field': '10.0.0.1'})
         self.assertTrue(form.is_valid())
         self.assertEqual(form.cleaned_data['field'], IPAddress('10.0.0.1'))
 
     def test_form_ipv4_invalid(self):
-        form = InetAddressTestModelForm({'field': '10.0.0.1.2'})
+        form = self.form_class({'field': '10.0.0.1.2'})
         self.assertFalse(form.is_valid())
 
     def test_form_ipv6(self):
-        form = InetAddressTestModelForm({'field': '2001:0:1::2'})
+        form = self.form_class({'field': '2001:0:1::2'})
         self.assertTrue(form.is_valid())
         self.assertEqual(form.cleaned_data['field'], IPAddress('2001:0:1::2'))
 
     def test_form_ipv6_invalid(self):
-        form = InetAddressTestModelForm({'field': '2001:0::1::2'})
+        form = self.form_class({'field': '2001:0::1::2'})
         self.assertFalse(form.is_valid())
+
+
+class UniqueInetAddressTestModelForm(ModelForm):
+    class Meta:
+        model = UniqueInetTestModel
+
+
+class TestUniqueInetAddressFormField(TestInetAddressFormField):
+    form_class = UniqueInetAddressTestModelForm
 
 
 class CidrAddressTestModelForm(ModelForm):
@@ -262,24 +296,35 @@ class CidrAddressTestModelForm(ModelForm):
         model = CidrTestModel
 
 
-class TestNetAddressFormField(TestCase):
+class TestCidrAddressFormField(TestCase):
+    form_class = CidrAddressTestModelForm
+
     def test_form_ipv4_valid(self):
-        form = CidrAddressTestModelForm({'field': '10.0.0.1/24'})
+        form = self.form_class({'field': '10.0.0.1/24'})
         self.assertTrue(form.is_valid())
         self.assertEqual(form.cleaned_data['field'], IPNetwork('10.0.0.1/24'))
 
     def test_form_ipv4_invalid(self):
-        form = CidrAddressTestModelForm({'field': '10.0.0.1.2/32'})
+        form = self.form_class({'field': '10.0.0.1.2/32'})
         self.assertFalse(form.is_valid())
 
     def test_form_ipv6(self):
-        form = CidrAddressTestModelForm({'field': '2001:0:1::2/64'})
+        form = self.form_class({'field': '2001:0:1::2/64'})
         self.assertTrue(form.is_valid())
         self.assertEqual(form.cleaned_data['field'], IPNetwork('2001:0:1::2/64'))
 
     def test_form_ipv6_invalid(self):
-        form = CidrAddressTestModelForm({'field': '2001:0::1::2/128'})
+        form = self.form_class({'field': '2001:0::1::2/128'})
         self.assertFalse(form.is_valid())
+
+
+class UniqueCidrAddressTestModelForm(ModelForm):
+    class Meta:
+        model = UniqueCidrTestModel
+
+
+class TestUniqueCidrAddressFormField(TestCidrAddressFormField):
+    form_class = UniqueCidrAddressTestModelForm
 
 
 class BaseMacTestCase(BaseSqlTestCase):

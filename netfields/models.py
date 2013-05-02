@@ -20,6 +20,14 @@ class NullInetTestModel(Model):
         db_table = 'nullinet'
 
 
+class UniqueInetTestModel(Model):
+    field = InetAddressField(unique=True)
+    objects = NetManager()
+
+    class Meta:
+        db_table = 'uniqueinet'
+
+
 class CidrTestModel(Model):
     field = CidrAddressField()
     objects = NetManager()
@@ -34,6 +42,14 @@ class NullCidrTestModel(Model):
 
     class Meta:
         db_table = 'nullcidr'
+
+
+class UniqueCidrTestModel(Model):
+    field = CidrAddressField(unique=True)
+    objects = NetManager()
+
+    class Meta:
+        db_table = 'uniquecidr'
 
 
 class MACTestModel(Model):
