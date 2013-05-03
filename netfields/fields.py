@@ -26,6 +26,9 @@ class _NetAddressField(models.Field):
 
         if (lookup_type in NET_OPERATORS and
                 NET_OPERATORS[lookup_type] not in NET_TEXT_OPERATORS):
+            if lookup_type.startswith('net_contained') and value is not None:
+                # Argument will be CIDR
+                return unicode(value)
             return self.get_prep_value(value)
 
         return super(_NetAddressField, self).get_prep_lookup(

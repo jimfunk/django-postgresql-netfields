@@ -91,6 +91,14 @@ class BaseInetTestCase(BaseSqlTestCase):
     def test_day_lookup_fails(self):
         self.assertSqlRaises(self.qs.filter(field__day=1), ValueError)
 
+    def test_net_contained(self):
+        self.assertSqlEquals(self.qs.filter(field__net_contained='10.0.0.1/24'),
+            self.select + 'WHERE "table"."field" << %s ')
+
+    def test_net_contained_or_equals(self):
+        self.assertSqlEquals(self.qs.filter(field__net_contained_or_equal='10.0.0.1/24'),
+            self.select + 'WHERE "table"."field" <<= %s ')
+
 
 class BaseInetFieldTestCase(BaseInetTestCase):
     value1 = '10.0.0.1'
@@ -158,15 +166,6 @@ class BaseCidrFieldTestCase(BaseInetTestCase):
     def test_net_contains_or_equals(self):
         self.assertSqlEquals(self.qs.filter(field__net_contains_or_equals='10.0.0.1'),
             self.select + 'WHERE "table"."field" >>= %s ')
-
-    def test_net_contained(self):
-        self.assertSqlEquals(self.qs.filter(field__net_contained='10.0.0.1'),
-            self.select + 'WHERE "table"."field" << %s ')
-
-    def test_net_contained_or_equals(self):
-        self.assertSqlEquals(self.qs.filter(field__net_contained_or_equal='10.0.0.1'),
-            self.select + 'WHERE "table"."field" <<= %s ')
-
 
 
 class TestInetField(BaseInetFieldTestCase, TestCase):
