@@ -1,3 +1,6 @@
+- 0.2.1
+  * Fix net_contained lookups in InetAddressField
+
 - 0.2
   * Fix IP type casting in form fields
   * Add South introspection rules
