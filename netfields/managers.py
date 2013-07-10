@@ -35,14 +35,10 @@ class NetWhere(sql.where.WhereNode):
 
 
     def _prepare_data(self, data):
-        """
-        Prepare data for addition to the tree. If the data is a list or tuple,
-        it is expected to be of the form (obj, lookup_type, value), where obj
-        is a Constraint object, and is then slightly munged before being
-        stored (to avoid storing any reference to field objects). Otherwise,
-        the 'data' is stored unchanged and can be any class with an 'as_sql()'
-        method.
-        """
+       """
+            Special form of WhereNode._prepare_data() that does not automatically consume the
+            __iter__ method of IPNetwork objects.  This is used in Django >= 1.6
+            """
         if not isinstance(data, (list, tuple)):
             return data
         obj, lookup_type, value = data
