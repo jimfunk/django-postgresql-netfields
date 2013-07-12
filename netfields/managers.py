@@ -35,10 +35,11 @@ class NetWhere(sql.where.WhereNode):
 
 
     def _prepare_data(self, data):
-       """
+        """
             Special form of WhereNode._prepare_data() that does not automatically consume the
             __iter__ method of IPNetwork objects.  This is used in Django >= 1.6
-            """
+        """
+
         if not isinstance(data, (list, tuple)):
             return data
         obj, lookup_type, value = data
