@@ -1,5 +1,6 @@
 from netaddr import IPAddress, IPNetwork, EUI, AddrFormatError
 
+from django import VERSION
 from django.db import IntegrityError
 from django.forms import ModelForm
 from django.test import TestCase
@@ -355,12 +356,20 @@ class BaseMacTestCase(BaseSqlTestCase):
             self.select + 'WHERE UPPER("table"."field"::text) LIKE UPPER(%s) ')
 
     def test_regex_lookup(self):
-        self.assertSqlEquals(self.qs.filter(field__regex='00'),
-            self.select + 'WHERE "table"."field" ~ %s ')
+        if VERSION[:2] < (1, 6):
+            self.assertSqlEquals(self.qs.filter(field__regex='00'),
+                self.select + 'WHERE "table"."field" ~ %s ')
+        else:
+            self.assertSqlEquals(self.qs.filter(field__regex='00'),
+                self.select + 'WHERE "table"."field"::text ~ %s ')
 
     def test_iregex_lookup(self):
-        self.assertSqlEquals(self.qs.filter(field__iregex='00'),
-            self.select + 'WHERE "table"."field" ~* %s ')
+        if VERSION[:2] < (1, 6):
+            self.assertSqlEquals(self.qs.filter(field__iregex='00'),
+                self.select + 'WHERE "table"."field" ~* %s ')
+        else:
+            self.assertSqlEquals(self.qs.filter(field__iregex='00'),
+                self.select + 'WHERE "table"."field"::text ~* %s ')
 
 
 class TestMacAddressField(BaseMacTestCase, TestCase):
