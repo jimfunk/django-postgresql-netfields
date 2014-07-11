@@ -92,10 +92,6 @@ class CidrAddressField(_NetAddressField):
 class MACAddressField(models.Field):
     description = "PostgreSQL MACADDR field"
 
-    def __init__(self, *args, **kwargs):
-        kwargs['max_length'] = 17
-        super(MACAddressField, self).__init__(*args, **kwargs)
-
     def db_type(self, connection):
         return 'macaddr'
 
