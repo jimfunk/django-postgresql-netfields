@@ -1,3 +1,4 @@
+from django.core.exceptions import ValidationError
 from netaddr import IPAddress, IPNetwork, EUI, AddrFormatError
 
 from django import VERSION
@@ -74,7 +75,7 @@ class BaseInetTestCase(BaseSqlTestCase):
         self.model(field=self.value1).save()
 
     def test_init_with_text_fails(self):
-        self.assertRaises(AddrFormatError, self.model, field='abc')
+        self.assertRaises(ValidationError, self.model, field='abc')
 
     def test_iexact_lookup(self):
         self.assertSqlEquals(self.qs.filter(field__iexact=self.value1),
@@ -386,6 +387,9 @@ class TestMacAddressField(BaseMacTestCase, TestCase):
 
     def test_save_nothing_fails(self):
         self.model().save()
+
+    def test_invalid_fails(self):
+        self.assertRaises(ValidationError, self.model(field='foobar').save)
 
 
 class MacAddressTestModelForm(ModelForm):
