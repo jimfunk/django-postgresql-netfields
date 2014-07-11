@@ -1,6 +1,8 @@
 from netaddr import IPAddress, IPNetwork, EUI
+from netaddr.core import AddrFormatError
 
 from django.db import models
+from django.core.exceptions import ValidationError
 
 from netfields.managers import NET_OPERATORS, NET_TEXT_OPERATORS
 from netfields.forms import InetAddressFormField, CidrAddressFormField, MACAddressFormField
@@ -18,7 +20,10 @@ class _NetAddressField(models.Field):
         if not value:
             return value
 
-        return self.python_type()(value)
+        try:
+            return self.python_type()(value)
+        except AddrFormatError as e:
+            raise ValidationError(e)
 
     def get_prep_lookup(self, lookup_type, value):
         if not value:
@@ -103,7 +108,10 @@ class MACAddressField(models.Field):
         if not value:
             return value
 
-        return EUI(value, dialect=mac_unix_common)
+        try:
+            return EUI(value, dialect=mac_unix_common)
+        except AddrFormatError as e:
+            raise ValidationError(e)
 
     def get_prep_value(self, value):
         if not value:
