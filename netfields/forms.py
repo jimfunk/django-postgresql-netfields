@@ -1,7 +1,7 @@
 from netaddr import IPAddress, IPNetwork, EUI, AddrFormatError
 
 from django import forms
-from django.utils.encoding import force_unicode
+from django.utils.encoding import force_text
 from django.utils.safestring import mark_safe
 from django.core.exceptions import ValidationError
 
@@ -17,7 +17,7 @@ class NetInput(forms.Widget):
             value = ''
         final_attrs = self.build_attrs(attrs, type=self.input_type, name=name)
         if value:
-            final_attrs['value'] = force_unicode(value)
+            final_attrs['value'] = force_text(value)
         return mark_safe(u'<input%s />' % forms.util.flatatt(final_attrs))
 
 
@@ -39,7 +39,7 @@ class InetAddressFormField(forms.Field):
 
         try:
             return IPAddress(value)
-        except (AddrFormatError, TypeError), e:
+        except (AddrFormatError, TypeError) as e:
             raise ValidationError(str(e))
 
 
@@ -61,7 +61,7 @@ class CidrAddressFormField(forms.Field):
 
         try:
             return IPNetwork(value)
-        except (AddrFormatError, TypeError), e:
+        except (AddrFormatError, TypeError) as e:
             raise ValidationError(str(e))
 
 
