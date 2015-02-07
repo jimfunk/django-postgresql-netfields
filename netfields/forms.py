@@ -39,7 +39,7 @@ class InetAddressFormField(forms.Field):
 
         try:
             return IPAddress(value)
-        except (AddrFormatError, TypeError), e:
+        except (AddrFormatError, TypeError) as e:
             raise ValidationError(str(e))
 
 
@@ -61,7 +61,7 @@ class CidrAddressFormField(forms.Field):
 
         try:
             return IPNetwork(value)
-        except (AddrFormatError, TypeError), e:
+        except (AddrFormatError, TypeError) as e:
             raise ValidationError(str(e))
 
 
