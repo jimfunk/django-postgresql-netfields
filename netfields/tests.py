@@ -13,7 +13,7 @@ from netfields.mac import mac_unix_common
 
 
 class BaseSqlTestCase(object):
-    select = 'SELECT "table"."id", "table"."field" FROM "table" '
+    select = u'SELECT "table"."id", "table"."field" FROM "table" '
 
     def assertSqlEquals(self, qs, sql):
         sql = sql.replace('"table"', '"%s"' % self.table)
