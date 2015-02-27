@@ -159,6 +159,6 @@ class NetWhere(sql.where.WhereNode):
 class NetManager(models.Manager):
     use_for_related_fields = True
 
-    def get_query_set(self):
+    def get_queryset(self):
         q = NetQuery(self.model, NetWhere)
         return query.QuerySet(self.model, q)

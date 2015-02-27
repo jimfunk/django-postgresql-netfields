@@ -35,7 +35,7 @@ class _NetAddressField(models.Field):
                 NET_OPERATORS[lookup_type] not in NET_TEXT_OPERATORS):
             if lookup_type.startswith('net_contained') and value is not None:
                 # Argument will be CIDR
-                return unicode(value)
+                return str(value)
             return self.get_prep_value(value)
 
         return super(_NetAddressField, self).get_prep_lookup(
@@ -45,7 +45,7 @@ class _NetAddressField(models.Field):
         if not value:
             return None
 
-        return unicode(self.to_python(value))
+        return str(self.to_python(value))
 
     def get_db_prep_lookup(self, lookup_type, value, connection,
             prepared=False):
@@ -115,7 +115,7 @@ class MACAddressField(models.Field):
         if not value:
             return None
 
-        return unicode(self.to_python(value))
+        return str(self.to_python(value))
 
     def formfield(self, **kwargs):
         defaults = {'form_class': MACAddressFormField}
