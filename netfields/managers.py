@@ -9,10 +9,7 @@ from django.db.models.query_utils import QueryWrapper
 from django.utils import tree
 
 import datetime
-
-# Python 2 detection hack
-import sys
-python2 = sys.version_info.major == 2
+import six
 
 NET_OPERATORS = DatabaseWrapper.operators.copy()
 
@@ -138,8 +135,7 @@ class NetWhere(sql.where.WhereNode):
         else:
             extra = ''
 
-        str_type = basestring if python2 else str
-        if isinstance(params, str_type):
+        if isinstance(params, six.string_types):
             params = (params,)
 
         if lookup_type in NET_OPERATORS:
