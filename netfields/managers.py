@@ -9,6 +9,7 @@ from django.db.models.query_utils import QueryWrapper
 from django.utils import tree
 
 import datetime
+import six
 
 NET_OPERATORS = DatabaseWrapper.operators.copy()
 
@@ -134,7 +135,7 @@ class NetWhere(sql.where.WhereNode):
         else:
             extra = ''
 
-        if isinstance(params, basestring):
+        if isinstance(params, six.string_types):
             params = (params,)
 
         if lookup_type in NET_OPERATORS:

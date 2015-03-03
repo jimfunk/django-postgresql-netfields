@@ -8,6 +8,13 @@ from netfields.managers import NET_OPERATORS, NET_TEXT_OPERATORS
 from netfields.forms import InetAddressFormField, CidrAddressFormField, MACAddressFormField
 from netfields.mac import mac_unix_common
 
+try:
+    from django.utils.encoding import force_text
+except ImportError:
+    from django.utils.encoding import force_unicode as force_text
+
+# Python 2 and 3 compatiblity
+import six
 
 class _NetAddressField(models.Field):
     empty_strings_allowed = False
@@ -35,7 +42,7 @@ class _NetAddressField(models.Field):
                 NET_OPERATORS[lookup_type] not in NET_TEXT_OPERATORS):
             if lookup_type.startswith('net_contained') and value is not None:
                 # Argument will be CIDR
-                return unicode(value)
+                return force_text(value)
             return self.get_prep_value(value)
 
         return super(_NetAddressField, self).get_prep_lookup(
@@ -45,7 +52,8 @@ class _NetAddressField(models.Field):
         if not value:
             return None
 
-        return unicode(self.to_python(value))
+        value = self.to_python(value)
+        return force_text(value)
 
     def get_db_prep_lookup(self, lookup_type, value, connection,
             prepared=False):
@@ -65,11 +73,10 @@ class _NetAddressField(models.Field):
         return super(_NetAddressField, self).formfield(**defaults)
 
 
-
+@six.add_metaclass(models.SubfieldBase)
 class InetAddressField(_NetAddressField):
     description = "PostgreSQL INET field"
     max_length = 39
-    __metaclass__ = models.SubfieldBase
 
     def db_type(self, connection):
         return 'inet'
@@ -81,10 +88,10 @@ class InetAddressField(_NetAddressField):
         return InetAddressFormField
 
 
+@six.add_metaclass(models.SubfieldBase)
 class CidrAddressField(_NetAddressField):
     description = "PostgreSQL CIDR field"
     max_length = 43
-    __metaclass__ = models.SubfieldBase
 
     def db_type(self, connection):
         return 'cidr'
@@ -115,7 +122,7 @@ class MACAddressField(models.Field):
         if not value:
             return None
 
-        return unicode(self.to_python(value))
+        return force_text(self.to_python(value))
 
     def formfield(self, **kwargs):
         defaults = {'form_class': MACAddressFormField}
