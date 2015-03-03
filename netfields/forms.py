@@ -3,12 +3,15 @@ import sys
 from netaddr import IPAddress, IPNetwork, EUI, AddrFormatError
 
 from django import forms
-from django.utils.encoding import force_unicode
 from django.utils.safestring import mark_safe
 from django.core.exceptions import ValidationError
 
 from netfields.mac import mac_unix_common
 
+try:
+    from django.utils.encoding import force_text
+except ImportError:
+    from django.utils.encoding import force_unicode as force_text
 
 class NetInput(forms.Widget):
     input_type = 'text'
@@ -19,7 +22,7 @@ class NetInput(forms.Widget):
             value = ''
         final_attrs = self.build_attrs(attrs, type=self.input_type, name=name)
         if value:
-            final_attrs['value'] = force_unicode(value)
+            final_attrs['value'] = force_text(value)
         return mark_safe(u'<input%s />' % forms.util.flatatt(final_attrs))
 
 
