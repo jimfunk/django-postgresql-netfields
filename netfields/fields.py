@@ -9,6 +9,8 @@ from netfields.managers import NET_OPERATORS, NET_TEXT_OPERATORS
 from netfields.forms import InetAddressFormField, CidrAddressFormField, MACAddressFormField
 from netfields.mac import mac_unix_common
 
+import six
+
 class _NetAddressField(models.Field):
     empty_strings_allowed = False
 
@@ -66,11 +68,10 @@ class _NetAddressField(models.Field):
         return super(_NetAddressField, self).formfield(**defaults)
 
 
-
+@six.add_metaclass(models.SubfieldBase)
 class InetAddressField(_NetAddressField):
     description = "PostgreSQL INET field"
     max_length = 39
-    __metaclass__ = models.SubfieldBase
 
     def db_type(self, connection):
         return 'inet'
@@ -82,10 +83,10 @@ class InetAddressField(_NetAddressField):
         return InetAddressFormField
 
 
+@six.add_metaclass(models.SubfieldBase)
 class CidrAddressField(_NetAddressField):
     description = "PostgreSQL CIDR field"
     max_length = 43
-    __metaclass__ = models.SubfieldBase
 
     def db_type(self, connection):
         return 'cidr'
