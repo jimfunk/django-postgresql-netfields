@@ -10,6 +10,10 @@ from django.utils import tree
 
 import datetime
 
+# Python 2 detection hack
+import sys
+python2 = sys.version_info.major == 2
+
 NET_OPERATORS = DatabaseWrapper.operators.copy()
 
 for operator in ['contains', 'startswith', 'endswith']:
@@ -134,7 +138,8 @@ class NetWhere(sql.where.WhereNode):
         else:
             extra = ''
 
-        if isinstance(params, basestring):
+        str_type = basestring if python2 else str
+        if isinstance(params, str_type):
             params = (params,)
 
         if lookup_type in NET_OPERATORS:
