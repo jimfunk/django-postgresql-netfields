@@ -8,6 +8,9 @@ from netfields.managers import NET_OPERATORS, NET_TEXT_OPERATORS
 from netfields.forms import InetAddressFormField, CidrAddressFormField, MACAddressFormField
 from netfields.mac import mac_unix_common
 
+# Python 2 detection hack
+import sys
+python2 = sys.version_info.major == 2
 
 class _NetAddressField(models.Field):
     empty_strings_allowed = False
@@ -35,7 +38,7 @@ class _NetAddressField(models.Field):
                 NET_OPERATORS[lookup_type] not in NET_TEXT_OPERATORS):
             if lookup_type.startswith('net_contained') and value is not None:
                 # Argument will be CIDR
-                return unicode(value)
+                return unicode(value) if python2 else str(value)
             return self.get_prep_value(value)
 
         return super(_NetAddressField, self).get_prep_lookup(
@@ -45,7 +48,8 @@ class _NetAddressField(models.Field):
         if not value:
             return None
 
-        return unicode(self.to_python(value))
+        value = self.to_python(value)
+        return unicode(value) if python2 else str(value)
 
     def get_db_prep_lookup(self, lookup_type, value, connection,
             prepared=False):
@@ -115,7 +119,8 @@ class MACAddressField(models.Field):
         if not value:
             return None
 
-        return unicode(self.to_python(value))
+        value = self.to_python(value)
+        return unicode(value) if python2 else str(value)
 
     def formfield(self, **kwargs):
         defaults = {'form_class': MACAddressFormField}

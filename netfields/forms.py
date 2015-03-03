@@ -1,3 +1,5 @@
+import sys
+
 from netaddr import IPAddress, IPNetwork, EUI, AddrFormatError
 
 from django import forms
@@ -39,7 +41,8 @@ class InetAddressFormField(forms.Field):
 
         try:
             return IPAddress(value)
-        except (AddrFormatError, TypeError), e:
+        except (AddrFormatError, TypeError):
+            e = sys.exc_info()[1]
             raise ValidationError(str(e))
 
 
@@ -61,7 +64,8 @@ class CidrAddressFormField(forms.Field):
 
         try:
             return IPNetwork(value)
-        except (AddrFormatError, TypeError), e:
+        except (AddrFormatError, TypeError):
+            e = sys.exc_info()[1]
             raise ValidationError(str(e))
 
 
