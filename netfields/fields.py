@@ -3,13 +3,14 @@ from netaddr.core import AddrFormatError
 
 from django.db import models
 from django.core.exceptions import ValidationError
-from django.utils.encoding import force_text
 
 from netfields.managers import NET_OPERATORS, NET_TEXT_OPERATORS
 from netfields.forms import InetAddressFormField, CidrAddressFormField, MACAddressFormField
 from netfields.mac import mac_unix_common
 
+# Python 2 and 3 compatiblity
 import six
+force_text = lambda x: unicode(x) if six.PY2 else str(x)
 
 class _NetAddressField(models.Field):
     empty_strings_allowed = False
