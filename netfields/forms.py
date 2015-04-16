@@ -83,3 +83,8 @@ class MACAddressFormField(forms.Field):
             return EUI(value, dialect=mac_unix_common)
         except (AddrFormatError, TypeError):
             raise ValidationError(self.error_messages['invalid'])
+
+    def widget_attrs(self, widget):
+        attrs = super(MACAddressFormField, self).widget_attrs(widget)
+        attrs.update({'maxlength': '17'})
+        return attrs
