@@ -162,3 +162,8 @@ class NetManager(models.Manager):
     def get_queryset(self):
         q = NetQuery(self.model, NetWhere)
         return query.QuerySet(self.model, q)
+
+    if VERSION[:2] < (1, 6):
+        def get_query_set(self):
+            q = NetQuery(self.model, NetWhere)
+            return query.QuerySet(self.model, q)
