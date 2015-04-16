@@ -21,3 +21,10 @@ before_script:
   - psql -c 'create database netfields;' -U postgres
 
 script: "./manage.py test"
+
+matrix:
+  exclude:
+  - python: "2.6"
+    env: DJANGO='Django<=1.7' PYSCOPG2='psycopg2'
+  - python: "2.6"
+    env: DJANGO='Django<=1.8' PYSCOPG2='psycopg2'
