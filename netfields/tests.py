@@ -1,7 +1,7 @@
 from django.core.exceptions import ValidationError
 from netaddr import IPAddress, IPNetwork, EUI
 
-from django import VERSION
+from django import VERSION as DJANGO_VERSION
 from django.db import IntegrityError
 from django.forms import ModelForm
 from django.test import TestCase
@@ -17,7 +17,10 @@ class BaseSqlTestCase(object):
 
     def assertSqlEquals(self, qs, sql):
         sql = sql.replace('"table"', '"%s"' % self.table)
-        self.assertEqual(qs.query.get_compiler(qs.db).as_sql()[0], sql)
+        self.assertEqual(
+            qs.query.get_compiler(qs.db).as_sql()[0].strip().lower(),
+            sql.strip().lower()
+        )
 
     def assertSqlRaises(self, qs, error):
         self.assertRaises(error, qs.query.get_compiler(qs.db).as_sql)
@@ -37,64 +40,36 @@ class BaseSqlTestCase(object):
         self.model(field=self.value1).save()
 
     def test_equals_lookup(self):
-        if VERSION[:2] < (1, 7):
-            self.assertSqlEquals(self.qs.filter(field=self.value1),
-                self.select + 'WHERE "table"."field" = %s ')
-        else:
-            self.assertSqlEquals(self.qs.filter(field=self.value1),
-                self.select + 'WHERE "table"."field" = %s')
+        self.assertSqlEquals(self.qs.filter(field=self.value1),
+            self.select + 'WHERE "table"."field" = %s')
 
     def test_exact_lookup(self):
-        if VERSION[:2] < (1, 7):
-            self.assertSqlEquals(self.qs.filter(field__exact=self.value1),
-                self.select + 'WHERE "table"."field" = %s ')
-        else:
-            self.assertSqlEquals(self.qs.filter(field__exact=self.value1),
-                self.select + 'WHERE "table"."field" = %s')
+        self.assertSqlEquals(self.qs.filter(field__exact=self.value1),
+            self.select + 'WHERE "table"."field" = %s')
 
     def test_in_lookup(self):
         self.assertSqlEquals(self.qs.filter(field__in=[self.value1, self.value2]),
             self.select + 'WHERE "table"."field" IN (%s, %s)')
 
     def test_gt_lookup(self):
-        if VERSION[:2] < (1, 7):
-            self.assertSqlEquals(self.qs.filter(field__gt=self.value1),
-                self.select + 'WHERE "table"."field" > %s ')
-        else:
-            self.assertSqlEquals(self.qs.filter(field__gt=self.value1),
-                self.select + 'WHERE "table"."field" > %s')
+        self.assertSqlEquals(self.qs.filter(field__gt=self.value1),
+            self.select + 'WHERE "table"."field" > %s')
 
     def test_gte_lookup(self):
-        if VERSION[:2] < (1, 7):
-            self.assertSqlEquals(self.qs.filter(field__gte=self.value1),
-                self.select + 'WHERE "table"."field" >= %s ')
-        else:
-            self.assertSqlEquals(self.qs.filter(field__gte=self.value1),
-                self.select + 'WHERE "table"."field" >= %s')
+        self.assertSqlEquals(self.qs.filter(field__gte=self.value1),
+            self.select + 'WHERE "table"."field" >= %s')
 
     def test_lt_lookup(self):
-        if VERSION[:2] < (1, 7):
-            self.assertSqlEquals(self.qs.filter(field__lt=self.value1),
-                self.select + 'WHERE "table"."field" < %s ')
-        else:
-            self.assertSqlEquals(self.qs.filter(field__lt=self.value1),
-                self.select + 'WHERE "table"."field" < %s')
+        self.assertSqlEquals(self.qs.filter(field__lt=self.value1),
+            self.select + 'WHERE "table"."field" < %s')
 
     def test_lte_lookup(self):
-        if VERSION[:2] < (1, 7):
-            self.assertSqlEquals(self.qs.filter(field__lte=self.value1),
-                self.select + 'WHERE "table"."field" <= %s ')
-        else:
-            self.assertSqlEquals(self.qs.filter(field__lte=self.value1),
-                self.select + 'WHERE "table"."field" <= %s')
+        self.assertSqlEquals(self.qs.filter(field__lte=self.value1),
+            self.select + 'WHERE "table"."field" <= %s')
 
     def test_range_lookup(self):
-        if VERSION[:2] < (1, 7):
-            self.assertSqlEquals(self.qs.filter(field__range=(self.value1, self.value3)),
-                self.select + 'WHERE "table"."field" BETWEEN %s and %s')
-        else:
-            self.assertSqlEquals(self.qs.filter(field__range=(self.value1, self.value3)),
-                self.select + 'WHERE "table"."field" BETWEEN %s AND %s')
+        self.assertSqlEquals(self.qs.filter(field__range=(self.value1, self.value3)),
+            self.select + 'WHERE "table"."field" BETWEEN %s AND %s')
 
 
 
@@ -106,7 +81,7 @@ class BaseInetTestCase(BaseSqlTestCase):
         self.assertRaises(ValidationError, self.model, field='abc')
 
     def test_iexact_lookup(self):
-        if VERSION[:2] < (1, 7):
+        if DJANGO_VERSION[:2] < (1, 7):
             self.assertSqlEquals(self.qs.filter(field__iexact=self.value1),
                 self.select + 'WHERE "table"."field" = %s ')
         else:
@@ -126,20 +101,12 @@ class BaseInetTestCase(BaseSqlTestCase):
         self.assertSqlRaises(self.qs.filter(field__day=1), ValueError)
 
     def test_net_contained(self):
-        if VERSION[:2] < (1, 7):
-            self.assertSqlEquals(self.qs.filter(field__net_contained='10.0.0.1/24'),
-                self.select + 'WHERE "table"."field" << %s ')
-        else:
-            self.assertSqlEquals(self.qs.filter(field__net_contained='10.0.0.1/24'),
-                self.select + 'WHERE "table"."field" << %s')
+        self.assertSqlEquals(self.qs.filter(field__net_contained='10.0.0.1/24'),
+            self.select + 'WHERE "table"."field" << %s')
 
     def test_net_contained_or_equals(self):
-        if VERSION[:2] < (1, 7):
-            self.assertSqlEquals(self.qs.filter(field__net_contained_or_equal='10.0.0.1/24'),
-                self.select + 'WHERE "table"."field" <<= %s ')
-        else:
-            self.assertSqlEquals(self.qs.filter(field__net_contained_or_equal='10.0.0.1/24'),
-                self.select + 'WHERE "table"."field" <<= %s')
+        self.assertSqlEquals(self.qs.filter(field__net_contained_or_equal='10.0.0.1/24'),
+            self.select + 'WHERE "table"."field" <<= %s')
 
 
 class BaseInetFieldTestCase(BaseInetTestCase):
@@ -148,7 +115,7 @@ class BaseInetFieldTestCase(BaseInetTestCase):
     value3 = '10.0.0.10'
 
     def test_startswith_lookup(self):
-        if VERSION[:2] < (1, 7):
+        if DJANGO_VERSION[:2] < (1, 7):
             self.assertSqlEquals(self.qs.filter(field__startswith='10.'),
                 self.select + 'WHERE HOST("table"."field") ILIKE %s ')
         else:
@@ -156,7 +123,7 @@ class BaseInetFieldTestCase(BaseInetTestCase):
                 self.select + 'WHERE HOST("table"."field") LIKE %s')
 
     def test_istartswith_lookup(self):
-        if VERSION[:2] < (1, 7):
+        if DJANGO_VERSION[:2] < (1, 7):
             self.assertSqlEquals(self.qs.filter(field__istartswith='10.'),
                 self.select + 'WHERE HOST("table"."field") ILIKE %s ')
         else:
@@ -164,7 +131,7 @@ class BaseInetFieldTestCase(BaseInetTestCase):
                 self.select + 'WHERE HOST("table"."field") LIKE UPPER(%s)')
 
     def test_endswith_lookup(self):
-        if VERSION[:2] < (1, 7):
+        if DJANGO_VERSION[:2] < (1, 7):
             self.assertSqlEquals(self.qs.filter(field__endswith='.1'),
                 self.select + 'WHERE HOST("table"."field") ILIKE %s ')
         else:
@@ -172,7 +139,7 @@ class BaseInetFieldTestCase(BaseInetTestCase):
                 self.select + 'WHERE HOST("table"."field") LIKE %s')
 
     def test_iendswith_lookup(self):
-        if VERSION[:2] < (1, 7):
+        if DJANGO_VERSION[:2] < (1, 7):
             self.assertSqlEquals(self.qs.filter(field__iendswith='.1'),
                 self.select + 'WHERE HOST("table"."field") ILIKE %s ')
         else:
@@ -180,7 +147,7 @@ class BaseInetFieldTestCase(BaseInetTestCase):
                 self.select + 'WHERE HOST("table"."field") LIKE UPPER(%s)')
 
     def test_regex_lookup(self):
-        if VERSION[:2] < (1, 7):
+        if DJANGO_VERSION[:2] < (1, 7):
             self.assertSqlEquals(self.qs.filter(field__regex='10'),
                 self.select + 'WHERE HOST("table"."field") ~* %s ')
         else:
@@ -188,12 +155,8 @@ class BaseInetFieldTestCase(BaseInetTestCase):
                 self.select + 'WHERE HOST("table"."field") ~ %s')
 
     def test_iregex_lookup(self):
-        if VERSION[:2] < (1, 7):
-            self.assertSqlEquals(self.qs.filter(field__iregex='10'),
-                self.select + 'WHERE HOST("table"."field") ~* %s ')
-        else:
-            self.assertSqlEquals(self.qs.filter(field__iregex='10'),
-                self.select + 'WHERE HOST("table"."field") ~* %s')
+        self.assertSqlEquals(self.qs.filter(field__iregex='10'),
+            self.select + 'WHERE HOST("table"."field") ~* %s')
 
 
 class BaseCidrFieldTestCase(BaseInetTestCase):
@@ -202,7 +165,7 @@ class BaseCidrFieldTestCase(BaseInetTestCase):
     value3 = '10.0.0.10/16'
 
     def test_startswith_lookup(self):
-        if VERSION[:2] < (1, 7):
+        if DJANGO_VERSION[:2] < (1, 7):
             self.assertSqlEquals(self.qs.filter(field__startswith='10.'),
                 self.select + 'WHERE TEXT("table"."field") ILIKE %s ')
         else:
@@ -210,7 +173,7 @@ class BaseCidrFieldTestCase(BaseInetTestCase):
                 self.select + 'WHERE TEXT("table"."field") LIKE %s')
 
     def test_istartswith_lookup(self):
-        if VERSION[:2] < (1, 7):
+        if DJANGO_VERSION[:2] < (1, 7):
             self.assertSqlEquals(self.qs.filter(field__istartswith='10.'),
                 self.select + 'WHERE TEXT("table"."field") ILIKE %s ')
         else:
@@ -218,7 +181,7 @@ class BaseCidrFieldTestCase(BaseInetTestCase):
                 self.select + 'WHERE TEXT("table"."field") LIKE UPPER(%s)')
 
     def test_endswith_lookup(self):
-        if VERSION[:2] < (1, 7):
+        if DJANGO_VERSION[:2] < (1, 7):
             self.assertSqlEquals(self.qs.filter(field__endswith='.1'),
                 self.select + 'WHERE TEXT("table"."field") ILIKE %s ')
         else:
@@ -226,7 +189,7 @@ class BaseCidrFieldTestCase(BaseInetTestCase):
                 self.select + 'WHERE TEXT("table"."field") LIKE %s')
 
     def test_iendswith_lookup(self):
-        if VERSION[:2] < (1, 7):
+        if DJANGO_VERSION[:2] < (1, 7):
             self.assertSqlEquals(self.qs.filter(field__iendswith='.1'),
                 self.select + 'WHERE TEXT("table"."field") ILIKE %s ')
         else:
@@ -234,7 +197,7 @@ class BaseCidrFieldTestCase(BaseInetTestCase):
                 self.select + 'WHERE TEXT("table"."field") LIKE UPPER(%s)')
 
     def test_regex_lookup(self):
-        if VERSION[:2] < (1, 7):
+        if DJANGO_VERSION[:2] < (1, 7):
             self.assertSqlEquals(self.qs.filter(field__regex='10'),
                 self.select + 'WHERE TEXT("table"."field") ~* %s ')
         else:
@@ -242,28 +205,16 @@ class BaseCidrFieldTestCase(BaseInetTestCase):
                 self.select + 'WHERE TEXT("table"."field") ~ %s')
 
     def test_iregex_lookup(self):
-        if VERSION[:2] < (1, 7):
-            self.assertSqlEquals(self.qs.filter(field__iregex='10'),
-                self.select + 'WHERE TEXT("table"."field") ~* %s ')
-        else:
-            self.assertSqlEquals(self.qs.filter(field__iregex='10'),
-                self.select + 'WHERE TEXT("table"."field") ~* %s')
+        self.assertSqlEquals(self.qs.filter(field__iregex='10'),
+            self.select + 'WHERE TEXT("table"."field") ~* %s')
 
     def test_net_contains_lookup(self):
-        if VERSION[:2] < (1, 7):
-            self.assertSqlEquals(self.qs.filter(field__net_contains='10.0.0.1'),
-                self.select + 'WHERE "table"."field" >> %s ')
-        else:
-            self.assertSqlEquals(self.qs.filter(field__net_contains='10.0.0.1'),
-                self.select + 'WHERE "table"."field" >> %s')
+        self.assertSqlEquals(self.qs.filter(field__net_contains='10.0.0.1'),
+            self.select + 'WHERE "table"."field" >> %s')
 
     def test_net_contains_or_equals(self):
-        if VERSION[:2] < (1, 7):
-            self.assertSqlEquals(self.qs.filter(field__net_contains_or_equals='10.0.0.1'),
-                self.select + 'WHERE "table"."field" >>= %s ')
-        else:
-            self.assertSqlEquals(self.qs.filter(field__net_contains_or_equals='10.0.0.1'),
-                self.select + 'WHERE "table"."field" >>= %s')
+        self.assertSqlEquals(self.qs.filter(field__net_contains_or_equals='10.0.0.1'),
+            self.select + 'WHERE "table"."field" >>= %s')
 
 
 class TestInetField(BaseInetFieldTestCase, TestCase):
@@ -437,50 +388,30 @@ class BaseMacTestCase(BaseSqlTestCase):
         self.model(field=EUI(self.value1)).save()
 
     def test_iexact_lookup(self):
-        if VERSION[:2] < (1, 7):
-            self.assertSqlEquals(self.qs.filter(field__iexact=self.value1),
-                self.select + 'WHERE UPPER("table"."field"::text) = UPPER(%s) ')
-        else:
-            self.assertSqlEquals(self.qs.filter(field__iexact=self.value1),
-                self.select + 'WHERE UPPER("table"."field"::text) = UPPER(%s)')
+        self.assertSqlEquals(self.qs.filter(field__iexact=self.value1),
+            self.select + 'WHERE UPPER("table"."field"::text) = UPPER(%s)')
 
     def test_startswith_lookup(self):
-        if VERSION[:2] < (1, 7):
-            self.assertSqlEquals(self.qs.filter(field__startswith='00:'),
-                self.select + 'WHERE "table"."field"::text LIKE %s ')
-        else:
-            self.assertSqlEquals(self.qs.filter(field__startswith='00:'),
-                self.select + 'WHERE "table"."field"::text LIKE %s')
+        self.assertSqlEquals(self.qs.filter(field__startswith='00:'),
+            self.select + 'WHERE "table"."field"::text LIKE %s')
 
     def test_istartswith_lookup(self):
-        if VERSION[:2] < (1, 7):
-            self.assertSqlEquals(self.qs.filter(field__istartswith='00:'),
-                self.select + 'WHERE UPPER("table"."field"::text) LIKE UPPER(%s) ')
-        else:
-            self.assertSqlEquals(self.qs.filter(field__istartswith='00:'),
-                self.select + 'WHERE UPPER("table"."field"::text) LIKE UPPER(%s)')
+        self.assertSqlEquals(self.qs.filter(field__istartswith='00:'),
+            self.select + 'WHERE UPPER("table"."field"::text) LIKE UPPER(%s)')
 
     def test_endswith_lookup(self):
-        if VERSION[:2] < (1, 7):
-            self.assertSqlEquals(self.qs.filter(field__endswith=':ff'),
-                self.select + 'WHERE "table"."field"::text LIKE %s ')
-        else:
-            self.assertSqlEquals(self.qs.filter(field__endswith=':ff'),
-                self.select + 'WHERE "table"."field"::text LIKE %s')
+        self.assertSqlEquals(self.qs.filter(field__endswith=':ff'),
+            self.select + 'WHERE "table"."field"::text LIKE %s')
 
     def test_iendswith_lookup(self):
-        if VERSION[:2] < (1, 7):
-            self.assertSqlEquals(self.qs.filter(field__iendswith=':ff'),
-                self.select + 'WHERE UPPER("table"."field"::text) LIKE UPPER(%s) ')
-        else:
-            self.assertSqlEquals(self.qs.filter(field__iendswith=':ff'),
-                self.select + 'WHERE UPPER("table"."field"::text) LIKE UPPER(%s)')
+        self.assertSqlEquals(self.qs.filter(field__iendswith=':ff'),
+            self.select + 'WHERE UPPER("table"."field"::text) LIKE UPPER(%s)')
 
     def test_regex_lookup(self):
-        if VERSION[:2] < (1, 6):
+        if DJANGO_VERSION[:2] < (1, 6):
             self.assertSqlEquals(self.qs.filter(field__regex='00'),
                 self.select + 'WHERE "table"."field" ~ %s ')
-        elif VERSION[:2] < (1, 7):
+        elif DJANGO_VERSION[:2] < (1, 7):
             self.assertSqlEquals(self.qs.filter(field__regex='00'),
                 self.select + 'WHERE "table"."field"::text ~ %s ')
         else:
@@ -488,10 +419,10 @@ class BaseMacTestCase(BaseSqlTestCase):
                 self.select + 'WHERE "table"."field"::text ~ %s')
 
     def test_iregex_lookup(self):
-        if VERSION[:2] < (1, 6):
+        if DJANGO_VERSION[:2] < (1, 6):
             self.assertSqlEquals(self.qs.filter(field__iregex='00'),
                 self.select + 'WHERE "table"."field" ~* %s ')
-        elif VERSION[:2] < (1, 7):
+        elif DJANGO_VERSION[:2] < (1, 7):
             self.assertSqlEquals(self.qs.filter(field__iregex='00'),
                 self.select + 'WHERE "table"."field"::text ~* %s ')
         else:

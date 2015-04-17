@@ -1,6 +1,6 @@
 from netaddr import IPNetwork
 
-from django import VERSION
+from django import VERSION as DJANGO_VERSION
 from django.db import models, connection
 from django.db.backends.postgresql_psycopg2.base import DatabaseWrapper
 from django.db.models.fields import DateTimeField
@@ -9,6 +9,12 @@ from django.db.models.query_utils import QueryWrapper
 from django.utils import tree
 
 import datetime
+
+try:
+    basestring
+except NameError:
+    basestring = (str, bytes)
+
 
 NET_OPERATORS = DatabaseWrapper.operators.copy()
 
@@ -32,14 +38,11 @@ class NetQuery(sql.Query):
 
 
 class NetWhere(sql.where.WhereNode):
-
-
     def _prepare_data(self, data):
         """
         Special form of WhereNode._prepare_data() that does not automatically consume the
         __iter__ method of IPNetwork objects.  This is used in Django >= 1.6
         """
-
         if not isinstance(data, (list, tuple)):
             return data
         obj, lookup_type, value = data
@@ -65,7 +68,7 @@ class NetWhere(sql.where.WhereNode):
         return (obj, lookup_type, value_annotation, value)
 
 
-    if VERSION[:2] < (1, 6):
+    if DJANGO_VERSION[:2] < (1, 6):
         def add(self, data, connector):
             """
             Special form of WhereNode.add() that does not automatically consume the
@@ -100,7 +103,7 @@ class NetWhere(sql.where.WhereNode):
             tree.Node.add(self,
                 (obj, lookup_type, value_annotation, value), connector)
 
-    if VERSION[:2] < (1, 7):
+    if DJANGO_VERSION[:2] < (1, 7):
         def make_atom(self, child, qn, conn):
             lvalue, lookup_type, value_annot, params_or_value = child
 
@@ -163,7 +166,7 @@ class NetManager(models.Manager):
         q = NetQuery(self.model, NetWhere)
         return query.QuerySet(self.model, q)
 
-    if VERSION[:2] < (1, 6):
+    if DJANGO_VERSION[:2] < (1, 6):
         def get_query_set(self):
             q = NetQuery(self.model, NetWhere)
             return query.QuerySet(self.model, q)

@@ -1,9 +1,10 @@
 from netaddr import IPAddress, IPNetwork, EUI
 from netaddr.core import AddrFormatError
 
-from django import VERSION
+from django import VERSION as DJANGO_VERSION
 from django.db import models
 from django.core.exceptions import ValidationError
+from django.utils.six import with_metaclass
 
 from netfields.managers import NET_OPERATORS, NET_TEXT_OPERATORS
 from netfields.forms import InetAddressFormField, CidrAddressFormField, MACAddressFormField
@@ -65,7 +66,7 @@ class _NetAddressField(models.Field):
         defaults.update(kwargs)
         return super(_NetAddressField, self).formfield(**defaults)
 
-    if VERSION[:2] >= (1, 7):
+    if DJANGO_VERSION[:2] >= (1, 7):
         def deconstruct(self):
             name, path, args, kwargs = super(_NetAddressField, self).deconstruct()
             if self.max_length is not None:
@@ -73,10 +74,9 @@ class _NetAddressField(models.Field):
             return name, path, args, kwargs
 
 
-class InetAddressField(_NetAddressField):
+class InetAddressField(with_metaclass(models.SubfieldBase, _NetAddressField)):
     description = "PostgreSQL INET field"
     max_length = 39
-    __metaclass__ = models.SubfieldBase
 
     def db_type(self, connection):
         return 'inet'
@@ -88,10 +88,9 @@ class InetAddressField(_NetAddressField):
         return InetAddressFormField
 
 
-class CidrAddressField(_NetAddressField):
+class CidrAddressField(with_metaclass(models.SubfieldBase, _NetAddressField)):
     description = "PostgreSQL CIDR field"
     max_length = 43
-    __metaclass__ = models.SubfieldBase
 
     def db_type(self, connection):
         return 'cidr'
@@ -129,7 +128,7 @@ class MACAddressField(models.Field):
         defaults.update(kwargs)
         return super(MACAddressField, self).formfield(**defaults)
 
-if VERSION[:2] < (1, 7):
+if DJANGO_VERSION[:2] < (1, 7):
     try:
         from south.modelsinspector import add_introspection_rules
         add_introspection_rules([], [
