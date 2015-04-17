@@ -1,3 +1,8 @@
+- 0.3
+  * Added support for Django 1.7/1.8 (Antwan86, smclenithan)
+  * Added support for Python 3.x
+  * Removed support for Django 1.4
+
 - 0.2.2
   * Support for Django 1.6 (Jay McEntire)
 
