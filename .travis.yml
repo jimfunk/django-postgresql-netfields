@@ -8,6 +8,8 @@ env:
   - DJANGO='Django<=1.4' PYSCOPG2='psycopg2==2.4.1' # see django issue #16250
   - DJANGO='Django<=1.5' PYSCOPG2='psycopg2'
   - DJANGO='Django<=1.6' PYSCOPG2='psycopg2'
+  - DJANGO='Django<=1.7' PYSCOPG2='psycopg2'
+  - DJANGO='Django<=1.8' PYSCOPG2='psycopg2'
 
 install:
   - pip install -q $PYSCOPG2 --use-mirrors
@@ -19,3 +21,10 @@ before_script:
   - psql -c 'create database netfields;' -U postgres
 
 script: "./manage.py test"
+
+matrix:
+  exclude:
+  - python: "2.6"
+    env: DJANGO='Django<=1.7' PYSCOPG2='psycopg2'
+  - python: "2.6"
+    env: DJANGO='Django<=1.8' PYSCOPG2='psycopg2'

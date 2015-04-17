@@ -1,6 +1,7 @@
 from netaddr import IPAddress, IPNetwork, EUI
 from netaddr.core import AddrFormatError
 
+from django import VERSION
 from django.db import models
 from django.core.exceptions import ValidationError
 
@@ -35,7 +36,7 @@ class _NetAddressField(models.Field):
                 NET_OPERATORS[lookup_type] not in NET_TEXT_OPERATORS):
             if lookup_type.startswith('net_contained') and value is not None:
                 # Argument will be CIDR
-                return unicode(value)
+                return str(value)
             return self.get_prep_value(value)
 
         return super(_NetAddressField, self).get_prep_lookup(
@@ -45,7 +46,7 @@ class _NetAddressField(models.Field):
         if not value:
             return None
 
-        return unicode(self.to_python(value))
+        return str(self.to_python(value))
 
     def get_db_prep_lookup(self, lookup_type, value, connection,
             prepared=False):
@@ -64,6 +65,12 @@ class _NetAddressField(models.Field):
         defaults.update(kwargs)
         return super(_NetAddressField, self).formfield(**defaults)
 
+    if VERSION[:2] >= (1, 7):
+        def deconstruct(self):
+            name, path, args, kwargs = super(_NetAddressField, self).deconstruct()
+            if self.max_length is not None:
+                kwargs['max_length'] = self.max_length
+            return name, path, args, kwargs
 
 
 class InetAddressField(_NetAddressField):
@@ -115,19 +122,20 @@ class MACAddressField(models.Field):
         if not value:
             return None
 
-        return unicode(self.to_python(value))
+        return str(self.to_python(value))
 
     def formfield(self, **kwargs):
         defaults = {'form_class': MACAddressFormField}
         defaults.update(kwargs)
         return super(MACAddressField, self).formfield(**defaults)
 
-try:
-    from south.modelsinspector import add_introspection_rules
-    add_introspection_rules([], [
-        "^netfields\.fields\.InetAddressField",
-        "^netfields\.fields\.CidrAddressField",
-        "^netfields\.fields\.MACAddressField",
-    ])
-except ImportError:
-    pass
+if VERSION[:2] < (1, 7):
+    try:
+        from south.modelsinspector import add_introspection_rules
+        add_introspection_rules([], [
+            "^netfields\.fields\.InetAddressField",
+            "^netfields\.fields\.CidrAddressField",
+            "^netfields\.fields\.MACAddressField",
+        ])
+    except ImportError:
+        pass
