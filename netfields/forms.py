@@ -1,6 +1,7 @@
 from netaddr import IPAddress, IPNetwork, EUI, AddrFormatError
 
 from django import forms
+from django.forms.util import flatatt
 from django.utils.safestring import mark_safe
 from django.core.exceptions import ValidationError
 
@@ -17,7 +18,7 @@ class NetInput(forms.Widget):
         final_attrs = self.build_attrs(attrs, type=self.input_type, name=name)
         if value:
             final_attrs['value'] = value
-        return mark_safe(u'<input%s />' % forms.util.flatatt(final_attrs))
+        return mark_safe(u'<input%s />' % flatatt(final_attrs))
 
 
 class InetAddressFormField(forms.Field):
