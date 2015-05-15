@@ -20,14 +20,15 @@ netaddr_ module.
 Dependencies
 ------------
 
-Current version of code is targeting Django 1.3-1.4 support, as this relies
+Current version of code is targeting Django 1.5-1.8 support, as this relies
 heavily on ORM internals supporting multiple versions is especially tricky. The
 ``netaddr`` module is used for the same reasons.
 
 Getting started
 ---------------
 
-Make sure ``netfields`` is in your ``PYTHONPATH``.
+Make sure ``netfields`` is in your ``PYTHONPATH`` and in ``INSTALLED_APPS`` on
+Django 1.7+.
 
 ``InetAddressField`` will store values in PostgreSQL as type ``INET``. In
 Python, the value will be represented as a ``netaddr.IPAddress`` object.
@@ -76,8 +77,6 @@ possible. In addition to Django's default lookup types the following have been a
 
 These correspond with the operators from
 http://www.postgresql.org/docs/9.1/interactive/functions-net.html
-
-``netfields`` does not have to be in ``INSTALLED_APPS``.
 
 Related Django bugs
 -------------------
