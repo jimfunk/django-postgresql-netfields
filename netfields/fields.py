@@ -28,6 +28,8 @@ class _NetAddressField(models.Field):
             raise ValidationError(e)
 
     def get_prep_lookup(self, lookup_type, value):
+        if type(value) is list and not value:
+            return []
         if not value:
             return None
         if type(value) is list and len(value) == 1:
