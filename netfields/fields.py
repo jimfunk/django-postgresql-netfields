@@ -32,9 +32,9 @@ class _NetAddressField(models.Field):
             return []
         if not value:
             return None
-        if type(value) is list and len(value) == 1:
-            value = value[0]
-
+        # Reintordied a bug :()
+        # if type(value) is list and len(value) == 1:
+        #     value = value[0]
         if (lookup_type in NET_OPERATORS and
                 NET_OPERATORS[lookup_type] not in NET_TEXT_OPERATORS):
             if lookup_type.startswith('net_contained') and value is not None:
