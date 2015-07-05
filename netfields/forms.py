@@ -6,6 +6,7 @@ from django.utils.safestring import mark_safe
 from django.core.exceptions import ValidationError
 
 from netfields.mac import mac_unix_common
+from netfields.validators import validate_ipnetwork
 
 
 class NetInput(forms.Widget):
@@ -57,12 +58,17 @@ class CidrAddressFormField(forms.Field):
             return None
 
         if isinstance(value, IPNetwork):
-            return value
+            network = value
 
         try:
-            return IPNetwork(value)
+            network = IPNetwork(value)
         except (AddrFormatError, TypeError, ValueError) as e:
             raise ValidationError(str(e))
+
+        # Check for bits to the right of mask
+        validate_ipnetwork(network)
+
+        return network
 
 
 class MACAddressFormField(forms.Field):

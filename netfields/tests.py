@@ -171,8 +171,8 @@ class BaseInetFieldTestCase(BaseInetTestCase):
 
 class BaseCidrFieldTestCase(BaseInetTestCase):
     value1 = '10.0.0.1/32'
-    value2 = '10.0.0.2/24'
-    value3 = '10.0.0.10/16'
+    value2 = '10.0.2.0/24'
+    value3 = '10.5.0.0/16'
 
     def test_startswith_lookup(self):
         if DJANGO_VERSION[:2] < (1, 7):
@@ -367,21 +367,29 @@ class TestCidrAddressFormField(TestCase):
     form_class = CidrAddressTestModelForm
 
     def test_form_ipv4_valid(self):
-        form = self.form_class({'field': '10.0.0.1/24'})
+        form = self.form_class({'field': '10.0.1.0/24'})
         self.assertTrue(form.is_valid())
-        self.assertEqual(form.cleaned_data['field'], IPNetwork('10.0.0.1/24'))
+        self.assertEqual(form.cleaned_data['field'], IPNetwork('10.0.1.0/24'))
 
     def test_form_ipv4_invalid(self):
         form = self.form_class({'field': '10.0.0.1.2/32'})
         self.assertFalse(form.is_valid())
 
+    def test_form_ipv4_bits_to_right_of_mask(self):
+        form = self.form_class({'field': '10.0.0.1.2/24'})
+        self.assertFalse(form.is_valid())
+
     def test_form_ipv6(self):
-        form = self.form_class({'field': '2001:0:1::2/64'})
+        form = self.form_class({'field': '2001:0:1::/64'})
         self.assertTrue(form.is_valid())
-        self.assertEqual(form.cleaned_data['field'], IPNetwork('2001:0:1::2/64'))
+        self.assertEqual(form.cleaned_data['field'], IPNetwork('2001:0:1::/64'))
 
     def test_form_ipv6_invalid(self):
         form = self.form_class({'field': '2001:0::1::2/128'})
+        self.assertFalse(form.is_valid())
+
+    def test_form_ipv4_bits_to_right_of_mask(self):
+        form = self.form_class({'field': '2001:0::1::2/64'})
         self.assertFalse(form.is_valid())
 
 

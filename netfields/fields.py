@@ -9,6 +9,7 @@ from django.utils.six import with_metaclass
 from netfields.managers import NET_OPERATORS, NET_TEXT_OPERATORS
 from netfields.forms import InetAddressFormField, CidrAddressFormField, MACAddressFormField
 from netfields.mac import mac_unix_common
+from netfields.validators import validate_ipnetwork
 
 
 class _NetAddressField(models.Field):
@@ -89,6 +90,12 @@ class InetAddressField(with_metaclass(models.SubfieldBase, _NetAddressField)):
 class CidrAddressField(with_metaclass(models.SubfieldBase, _NetAddressField)):
     description = "PostgreSQL CIDR field"
     max_length = 43
+
+    def to_python(self, value):
+        value = super(CidrAddressField, self).to_python(value)
+        # Check for bits to the right of mask
+        validate_ipnetwork(value)
+        return value
 
     def db_type(self, connection):
         return 'cidr'
