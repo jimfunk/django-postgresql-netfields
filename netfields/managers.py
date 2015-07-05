@@ -170,3 +170,11 @@ class NetManager(models.Manager):
         def get_query_set(self):
             q = NetQuery(self.model, NetWhere)
             return query.QuerySet(self.model, q)
+
+    def filter(self, *args, **kwargs):
+        for key, val in kwargs.items():
+            if isinstance(val, IPNetwork):
+                # Django will attempt to consume the IPNetwork iterator, which
+                # will convert it to a list of every IPAddress in the network
+                kwargs[key] = str(val)
+        return super(NetManager, self).filter(*args, **kwargs)

@@ -51,6 +51,10 @@ class BaseSqlTestCase(object):
         self.assertSqlEquals(self.qs.filter(field__in=[self.value1, self.value2]),
             self.select + 'WHERE "table"."field" IN (%s, %s)')
 
+    def test_in_single_lookup(self):
+        self.assertSqlEquals(self.qs.filter(field__in=[self.value1]),
+            self.select + 'WHERE "table"."field" IN (%s)')
+
     def test_gt_lookup(self):
         self.assertSqlEquals(self.qs.filter(field__gt=self.value1),
             self.select + 'WHERE "table"."field" > %s')
@@ -158,6 +162,12 @@ class BaseInetFieldTestCase(BaseInetTestCase):
         self.assertSqlEquals(self.qs.filter(field__iregex='10'),
             self.select + 'WHERE HOST("table"."field") ~* %s')
 
+    def test_query_filter_str(self):
+        self.model.objects.filter(field='1.2.3.4')
+
+    def test_query_filter_ipaddress(self):
+        self.model.objects.filter(field=IPAddress('1.2.3.4'))
+
 
 class BaseCidrFieldTestCase(BaseInetTestCase):
     value1 = '10.0.0.1/32'
@@ -215,6 +225,12 @@ class BaseCidrFieldTestCase(BaseInetTestCase):
     def test_net_contains_or_equals(self):
         self.assertSqlEquals(self.qs.filter(field__net_contains_or_equals='10.0.0.1'),
             self.select + 'WHERE "table"."field" >>= %s')
+
+    def test_query_filter_str(self):
+        self.model.objects.filter(field='1.2.3.0/24')
+
+    def test_query_filter_ipnetwork(self):
+        self.model.objects.filter(field=IPNetwork('1.2.3.0/24'))
 
 
 class TestInetField(BaseInetFieldTestCase, TestCase):

@@ -61,7 +61,7 @@ class CidrAddressFormField(forms.Field):
 
         try:
             return IPNetwork(value)
-        except (AddrFormatError, TypeError) as e:
+        except (AddrFormatError, TypeError, ValueError) as e:
             raise ValidationError(str(e))
 
 
