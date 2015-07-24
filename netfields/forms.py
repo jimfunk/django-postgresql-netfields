@@ -1,6 +1,7 @@
 from netaddr import IPAddress, IPNetwork, EUI, AddrFormatError
 
 from django import forms
+import django
 if django.VERSION >= (1, 7):
     from django.forms.utils import flatatt
 else:
