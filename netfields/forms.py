@@ -1,7 +1,10 @@
 from netaddr import IPAddress, IPNetwork, EUI, AddrFormatError
 
 from django import forms
-from django.forms.util import flatatt
+if django.VERSION >= (1, 7):
+    from django.forms.utils import flatatt
+else:
+    from django.forms.util import flatatt
 from django.utils.safestring import mark_safe
 from django.core.exceptions import ValidationError
 
