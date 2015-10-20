@@ -2,7 +2,7 @@ from django.apps import AppConfig
 
 from django.db.models.lookups import default_lookups
 from netfields.fields import CidrAddressField, InetAddressField
-from netfields.lookups import NetContained, NetContains, NetContainedOrEqual, NetContainsOrEquals, InvalidLookup
+from netfields.lookups import NetContained, NetContains, NetContainedOrEqual, NetContainsOrEquals, InvalidLookup, Family
 from netfields.lookups import EndsWith, IEndsWith, StartsWith, IStartsWith, Regex, IRegex
 
 
@@ -27,6 +27,7 @@ class NetfieldsConfig(AppConfig):
     CidrAddressField.register_lookup(NetContains)
     CidrAddressField.register_lookup(NetContainedOrEqual)
     CidrAddressField.register_lookup(NetContainsOrEquals)
+    CidrAddressField.register_lookup(Family)
 
     InetAddressField.register_lookup(EndsWith)
     InetAddressField.register_lookup(IEndsWith)
@@ -38,4 +39,4 @@ class NetfieldsConfig(AppConfig):
     InetAddressField.register_lookup(NetContains)
     InetAddressField.register_lookup(NetContainedOrEqual)
     InetAddressField.register_lookup(NetContainsOrEquals)
-
+    InetAddressField.register_lookup(Family)

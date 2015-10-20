@@ -1,4 +1,4 @@
-from django.db.models import Lookup
+from django.db.models import Lookup, Transform, IntegerField
 from django.db.models.lookups import BuiltinLookup
 from netfields.fields import InetAddressField, CidrAddressField
 
@@ -80,3 +80,15 @@ class NetContainedOrEqual(Lookup):
         rhs, rhs_params = self.process_rhs(qn, connection)
         params = lhs_params + rhs_params
         return '%s <<= %s' % (lhs, rhs), params
+
+
+class Family(Transform):
+    lookup_name = 'family'
+
+    def as_sql(self, compiler, connection):
+        lhs, params = compiler.compile(self.lhs)
+        return "family(%s)" % lhs, params
+
+    @property
+    def output_field(self):
+        return IntegerField()

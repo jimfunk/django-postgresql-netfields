@@ -112,6 +112,10 @@ class BaseInetTestCase(BaseSqlTestCase):
         self.assertSqlEquals(self.qs.filter(field__net_contained_or_equal='10.0.0.1/24'),
             self.select + 'WHERE "table"."field" <<= %s')
 
+    def test_family_lookup(self):
+        self.assertSqlEquals(self.qs.filter(field__family=4),
+            self.select + 'WHERE family("table"."field") = %s')
+
 
 class BaseInetFieldTestCase(BaseInetTestCase):
     value1 = '10.0.0.1'
