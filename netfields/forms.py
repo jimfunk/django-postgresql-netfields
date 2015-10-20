@@ -1,4 +1,4 @@
-from netaddr import IPAddress, IPNetwork, EUI, AddrFormatError
+from netaddr import IPNetwork, EUI, AddrFormatError
 
 from django import forms
 import django
@@ -39,12 +39,12 @@ class InetAddressFormField(forms.Field):
         if not value:
             return None
 
-        if isinstance(value, IPAddress):
+        if isinstance(value, IPNetwork):
             return value
 
         try:
-            return IPAddress(value)
-        except (AddrFormatError, TypeError) as e:
+            return IPNetwork(value)
+        except (AddrFormatError, TypeError, ValueError) as e:
             raise ValidationError(str(e))
 
 

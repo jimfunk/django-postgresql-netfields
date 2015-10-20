@@ -1,5 +1,5 @@
 from django.core.exceptions import ValidationError
-from netaddr import IPAddress, IPNetwork, EUI
+from netaddr import IPNetwork, EUI
 
 from django import VERSION as DJANGO_VERSION
 from django.db import IntegrityError
@@ -170,7 +170,7 @@ class BaseInetFieldTestCase(BaseInetTestCase):
         self.model.objects.filter(field='1.2.3.4')
 
     def test_query_filter_ipaddress(self):
-        self.model.objects.filter(field=IPAddress('1.2.3.4'))
+        self.model.objects.filter(field=IPNetwork('1.2.3.4'))
 
 
 class BaseCidrFieldTestCase(BaseInetTestCase):
@@ -335,7 +335,7 @@ class TestInetAddressFormField(TestCase):
     def test_form_ipv4_valid(self):
         form = self.form_class({'field': '10.0.0.1'})
         self.assertTrue(form.is_valid())
-        self.assertEqual(form.cleaned_data['field'], IPAddress('10.0.0.1'))
+        self.assertEqual(form.cleaned_data['field'], IPNetwork('10.0.0.1'))
 
     def test_form_ipv4_invalid(self):
         form = self.form_class({'field': '10.0.0.1.2'})
@@ -344,7 +344,7 @@ class TestInetAddressFormField(TestCase):
     def test_form_ipv6(self):
         form = self.form_class({'field': '2001:0:1::2'})
         self.assertTrue(form.is_valid())
-        self.assertEqual(form.cleaned_data['field'], IPAddress('2001:0:1::2'))
+        self.assertEqual(form.cleaned_data['field'], IPNetwork('2001:0:1::2'))
 
     def test_form_ipv6_invalid(self):
         form = self.form_class({'field': '2001:0::1::2'})

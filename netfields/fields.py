@@ -1,4 +1,4 @@
-from netaddr import IPAddress, IPNetwork, EUI
+from netaddr import IPNetwork, EUI
 from netaddr.core import AddrFormatError
 
 from django import VERSION as DJANGO_VERSION
@@ -81,7 +81,7 @@ class InetAddressField(with_metaclass(models.SubfieldBase, _NetAddressField)):
         return 'inet'
 
     def python_type(self):
-        return IPAddress
+        return IPNetwork
 
     def form_class(self):
         return InetAddressFormField
