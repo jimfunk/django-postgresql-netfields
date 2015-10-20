@@ -6,7 +6,7 @@ from django.db import IntegrityError
 from django.forms import ModelForm
 from django.test import TestCase
 
-from netfields.models import (CidrTestModel, InetTestModel, NullCidrTestModel,
+from test.models import (CidrTestModel, InetTestModel, NullCidrTestModel,
                               NullInetTestModel, UniqueInetTestModel,
                               UniqueCidrTestModel, MACTestModel)
 from netfields.mac import mac_unix_common
