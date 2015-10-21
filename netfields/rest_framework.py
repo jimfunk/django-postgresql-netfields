@@ -8,10 +8,8 @@ from netfields import fields
 
 class NetfieldsField(object):
     def __init__(self, *args, **kwargs):
-        validators = kwargs.get('validators', [])
-        validators.append(self._validate_netaddr)
-        kwargs['validators'] = validators
         super(NetfieldsField, self).__init__(*args, **kwargs)
+        self.validators.append(self._validate_netaddr)
 
     def _validate_netaddr(self, value):
         """Convert Django validation errors to DRF validation errors.
