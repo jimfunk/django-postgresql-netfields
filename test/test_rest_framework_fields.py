@@ -36,3 +36,15 @@ class FieldsTestCase(unittest.TestCase):
         with self.assertRaises(serializers.ValidationError) as e:
             serializer.is_valid(raise_exception=True)
         self.assertEqual(e.exception.detail['mac'], ['Invalid MAC address.'])
+
+    def test_validation_additional_validators(self):
+        def validate(value):
+            raise serializers.ValidationError('Invalid.')
+
+        class TestSerializer(serializers.Serializer):
+            ip = fields.InetAddressField(validators=[validate])
+
+        serializer = TestSerializer(data={'ip': 'de:'})
+        with self.assertRaises(serializers.ValidationError) as e:
+            serializer.is_valid(raise_exception=True)
+        self.assertItemsEqual(e.exception.detail['ip'], ['Invalid IP address.', 'Invalid.'])
