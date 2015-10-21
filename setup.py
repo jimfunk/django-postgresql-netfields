@@ -12,7 +12,7 @@ def get_long_description():
 
 setup(
     name='django-netfields',
-    version='0.3.1',
+    version='0.4',
     license='BSD',
     description='Django PostgreSQL netfields implementation',
     long_description=get_long_description(),
@@ -26,7 +26,7 @@ setup(
     zip_safe=False,
     install_requires=[
         'netaddr',
-        'django>=1.5',
+        'django>=1.7',
     ],
 
     classifiers=[

@@ -20,18 +20,17 @@ netaddr_ module.
 Dependencies
 ------------
 
-Current version of code is targeting Django 1.5-1.8 support, as this relies
+Current version of code is targeting Django >= 1.7 support, as this relies
 heavily on ORM internals supporting multiple versions is especially tricky. The
 ``netaddr`` module is used for the same reasons.
 
 Getting started
 ---------------
 
-Make sure ``netfields`` is in your ``PYTHONPATH`` and in ``INSTALLED_APPS`` on
-Django 1.7+.
+Make sure ``netfields`` is in your ``PYTHONPATH`` and in ``INSTALLED_APPS``.
 
 ``InetAddressField`` will store values in PostgreSQL as type ``INET``. In
-Python, the value will be represented as a ``netaddr.IPAddress`` object.
+Python, the value will be represented as a ``netaddr.IPNetwork`` object.
 
  from netfields import InetAddressField, NetManager
 
@@ -68,15 +67,26 @@ For ``InetAddressField`` and ``CidrAddressField``, ``NetManager`` is required
 for the extra lookups to be available. Lookups for ``INET`` and ``CIDR``
 database types will be handled differently than when running vanilla Django.
 All lookups are case-insensitive and text based lookups are avoided whenever
-possible. In addition to Django's default lookup types the following have been added.
+possible. In addition to Django's default lookup types the following have been
+added:
 
-* ``__net_contained``
-* ``__net_contained_or_equal``
-* ``__net_contains``
-* ``__net_contains_or_equals``
+``__net_contained``
+    is contained within the given network
 
-These correspond with the operators from
-http://www.postgresql.org/docs/9.1/interactive/functions-net.html
+``__net_contained_or_equal``
+    is contained or equal to the given network
+
+``__net_contains``
+    contains the given address
+
+``__net_contains_or_equals``
+    contains or is equal to the given address/network
+
+``__family``
+    matches the given address family
+
+These correspond with the operators and functions from
+http://www.postgresql.org/docs/9.4/interactive/functions-net.html
 
 Related Django bugs
 -------------------
