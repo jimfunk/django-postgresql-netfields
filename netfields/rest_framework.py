@@ -1,38 +1,37 @@
 from __future__ import absolute_import
 
-from functools import partial
-
 from django.core.exceptions import ValidationError as DjangoValidationError
 from rest_framework import serializers
 
 from netfields import fields
 
 
-def _validate_netaddr(netfields_type, value):
-    """Convert Django validation errors to DRF validation errors.
-    """
-    try:
-        field = netfields_type(value)
-        field.to_python(value)
-    except DjangoValidationError:
-        raise serializers.ValidationError("Invalid {} address.".format(field.short_name))
-
-
 class NetfieldsField(object):
     def __init__(self, *args, **kwargs):
         validators = kwargs.get('validators', [])
-        validators.append(partial(_validate_netaddr, self.netfields_type))
+        validators.append(self._validate_netaddr)
         kwargs['validators'] = validators
         super(NetfieldsField, self).__init__(*args, **kwargs)
+
+    def _validate_netaddr(self, value):
+        """Convert Django validation errors to DRF validation errors.
+        """
+        try:
+            self.netfields_type(value).to_python(value)
+        except DjangoValidationError:
+            raise serializers.ValidationError("Invalid {} address.".format(self.short_name))
 
 
 class InetAddressField(NetfieldsField, serializers.CharField):
     netfields_type = fields.InetAddressField
+    short_name = "IP"
 
 
 class CidrAddressField(NetfieldsField, serializers.CharField):
     netfields_type = fields.CidrAddressField
+    short_name = "CIDR"
 
 
 class MACAddressField(NetfieldsField, serializers.CharField):
     netfields_type = fields.MACAddressField
+    short_name = "MAC"
