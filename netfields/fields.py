@@ -74,6 +74,7 @@ class _NetAddressField(models.Field):
 
 
 class InetAddressField(with_metaclass(models.SubfieldBase, _NetAddressField)):
+    short_name = "IP"
     description = "PostgreSQL INET field"
     max_length = 39
 
@@ -88,6 +89,7 @@ class InetAddressField(with_metaclass(models.SubfieldBase, _NetAddressField)):
 
 
 class CidrAddressField(with_metaclass(models.SubfieldBase, _NetAddressField)):
+    short_name = "CIDR"
     description = "PostgreSQL CIDR field"
     max_length = 43
 
@@ -108,6 +110,7 @@ class CidrAddressField(with_metaclass(models.SubfieldBase, _NetAddressField)):
 
 
 class MACAddressField(models.Field):
+    short_name = "MAC"
     description = "PostgreSQL MACADDR field"
 
     def db_type(self, connection):
