@@ -341,6 +341,14 @@ class TestInetAddressFormField(TestCase):
         form = self.form_class({'field': '10.0.0.1.2'})
         self.assertFalse(form.is_valid())
 
+    def test_form_ipv4_change(self):
+        instance = InetTestModel.objects.create(field='10.1.2.3/24')
+        form = self.form_class({'field': '10.1.2.4/24'}, instance=instance)
+        self.assertTrue(form.is_valid())
+        form.save()
+        instance = InetTestModel.objects.get(pk=instance.pk)
+        self.assertEqual(instance.field, IPNetwork('10.1.2.4/24'))
+
     def test_form_ipv6(self):
         form = self.form_class({'field': '2001:0:1::2'})
         self.assertTrue(form.is_valid())
@@ -349,6 +357,14 @@ class TestInetAddressFormField(TestCase):
     def test_form_ipv6_invalid(self):
         form = self.form_class({'field': '2001:0::1::2'})
         self.assertFalse(form.is_valid())
+
+    def test_form_ipv6_change(self):
+        instance = InetTestModel.objects.create(field='2001:0:1::2/64')
+        form = self.form_class({'field': '2001:0:1::3/64'}, instance=instance)
+        self.assertTrue(form.is_valid())
+        form.save()
+        instance = InetTestModel.objects.get(pk=instance.pk)
+        self.assertEqual(instance.field, IPNetwork('2001:0:1::3/64'))
 
 
 class UniqueInetAddressTestModelForm(ModelForm):
