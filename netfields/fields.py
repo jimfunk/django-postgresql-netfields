@@ -2,7 +2,6 @@ from ipaddress import ip_interface, ip_network
 from netaddr import EUI
 from netaddr.core import AddrFormatError
 
-from django import VERSION as DJANGO_VERSION
 from django.db import models
 from django.core.exceptions import ValidationError
 from django.utils.six import with_metaclass
@@ -65,12 +64,11 @@ class _NetAddressField(models.Field):
         defaults.update(kwargs)
         return super(_NetAddressField, self).formfield(**defaults)
 
-    if DJANGO_VERSION[:2] >= (1, 7):
-        def deconstruct(self):
-            name, path, args, kwargs = super(_NetAddressField, self).deconstruct()
-            if self.max_length is not None:
-                kwargs['max_length'] = self.max_length
-            return name, path, args, kwargs
+    def deconstruct(self):
+        name, path, args, kwargs = super(_NetAddressField, self).deconstruct()
+        if self.max_length is not None:
+            kwargs['max_length'] = self.max_length
+        return name, path, args, kwargs
 
 
 class InetAddressField(with_metaclass(models.SubfieldBase, _NetAddressField)):
@@ -139,14 +137,3 @@ class MACAddressField(models.Field):
         defaults = {'form_class': MACAddressFormField}
         defaults.update(kwargs)
         return super(MACAddressField, self).formfield(**defaults)
-
-if DJANGO_VERSION[:2] < (1, 7):
-    try:
-        from south.modelsinspector import add_introspection_rules
-        add_introspection_rules([], [
-            "^netfields\.fields\.InetAddressField",
-            "^netfields\.fields\.CidrAddressField",
-            "^netfields\.fields\.MACAddressField",
-        ])
-    except ImportError:
-        pass
