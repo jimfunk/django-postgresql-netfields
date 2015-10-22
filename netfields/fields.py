@@ -1,4 +1,5 @@
-from netaddr import IPAddress, IPNetwork, EUI
+from ipaddress import ip_interface, ip_network
+from netaddr import EUI
 from netaddr.core import AddrFormatError
 
 from django import VERSION as DJANGO_VERSION
@@ -9,7 +10,6 @@ from django.utils.six import with_metaclass
 from netfields.managers import NET_OPERATORS, NET_TEXT_OPERATORS
 from netfields.forms import InetAddressFormField, CidrAddressFormField, MACAddressFormField
 from netfields.mac import mac_unix_common
-from netfields.validators import validate_ipnetwork
 
 
 class _NetAddressField(models.Field):
@@ -25,7 +25,7 @@ class _NetAddressField(models.Field):
 
         try:
             return self.python_type()(value)
-        except AddrFormatError as e:
+        except (AddrFormatError, ValueError) as e:
             raise ValidationError(e)
 
     def get_prep_lookup(self, lookup_type, value):
@@ -90,10 +90,10 @@ class InetAddressField(with_metaclass(models.SubfieldBase, _NetAddressField)):
 
         try:
             if self.store_prefix_length:
-                return IPNetwork(value)
+                return ip_interface(value)
             else:
-                return IPAddress(IPNetwork(value))
-        except AddrFormatError as e:
+                return ip_interface(value).ip
+        except ValueError as e:
             raise ValidationError(e)
 
     def form_class(self):
@@ -104,17 +104,11 @@ class CidrAddressField(with_metaclass(models.SubfieldBase, _NetAddressField)):
     description = "PostgreSQL CIDR field"
     max_length = 43
 
-    def to_python(self, value):
-        value = super(CidrAddressField, self).to_python(value)
-        # Check for bits to the right of mask
-        validate_ipnetwork(value)
-        return value
-
     def db_type(self, connection):
         return 'cidr'
 
     def python_type(self):
-        return IPNetwork
+        return ip_network
 
     def form_class(self):
         return CidrAddressFormField

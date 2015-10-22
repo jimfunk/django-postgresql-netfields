@@ -1,3 +1,11 @@
+- 0.5
+  * Switched InetAddressField and CidrAddressField from netaddr to the
+    ipaddress module found in core Python >= 3.3. For Python < 3 the backported
+    py2-ipaddress module will be used. The API of these objects are mostly
+    compatible with the netaddr API and do not suffer from some subtle issues
+    that netaddr objects have when used in Django forms. Most applications
+    should not require any adjustments as a result of this change
+
 - 0.4.1
   * Added serializer fields for Django REST Framework. Thanks to Brandon
     Cazander

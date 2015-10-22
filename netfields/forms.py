@@ -1,4 +1,5 @@
-from netaddr import IPNetwork, EUI, AddrFormatError
+from ipaddress import ip_interface, ip_network, _IPAddressBase, _BaseNetwork
+from netaddr import EUI, AddrFormatError
 
 from django import forms
 import django
@@ -10,7 +11,6 @@ from django.utils.safestring import mark_safe
 from django.core.exceptions import ValidationError
 
 from netfields.mac import mac_unix_common
-from netfields.validators import validate_ipnetwork
 
 
 class NetInput(forms.Widget):
@@ -39,12 +39,12 @@ class InetAddressFormField(forms.Field):
         if not value:
             return None
 
-        if isinstance(value, IPNetwork):
+        if isinstance(value, _IPAddressBase):
             return value
 
         try:
-            return IPNetwork(value)
-        except (AddrFormatError, TypeError, ValueError) as e:
+            return ip_interface(value)
+        except ValueError as e:
             raise ValidationError(str(e))
 
 
@@ -61,16 +61,13 @@ class CidrAddressFormField(forms.Field):
         if not value:
             return None
 
-        if isinstance(value, IPNetwork):
+        if isinstance(value, _BaseNetwork):
             network = value
 
         try:
-            network = IPNetwork(value)
-        except (AddrFormatError, TypeError, ValueError) as e:
+            network = ip_network(value)
+        except ValueError as e:
             raise ValidationError(str(e))
-
-        # Check for bits to the right of mask
-        validate_ipnetwork(network)
 
         return network
 

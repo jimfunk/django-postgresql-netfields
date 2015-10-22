@@ -1,4 +1,4 @@
-from netaddr import IPNetwork
+from ipaddress import _BaseNetwork
 
 from django import VERSION as DJANGO_VERSION
 from django.db import models, connection
@@ -41,12 +41,12 @@ class NetWhere(sql.where.WhereNode):
     def _prepare_data(self, data):
         """
         Special form of WhereNode._prepare_data() that does not automatically consume the
-        __iter__ method of IPNetwork objects.  This is used in Django >= 1.6
+        __iter__ method of _BaseNetwork objects.  This is used in Django >= 1.6
         """
         if not isinstance(data, (list, tuple)):
             return data
         obj, lookup_type, value = data
-        if not isinstance(value, IPNetwork) and hasattr(value, '__iter__') and hasattr(value, 'next'):
+        if not isinstance(value, _BaseNetwork) and hasattr(value, '__iter__') and hasattr(value, 'next'):
             # Consume any generators immediately, so that we can determine
             # emptiness and transform any non-empty values correctly.
             value = list(value)
@@ -72,7 +72,7 @@ class NetWhere(sql.where.WhereNode):
         def add(self, data, connector):
             """
             Special form of WhereNode.add() that does not automatically consume the
-            __iter__ method of IPNetwork objects.
+            __iter__ method of _BaseNetwork objects.
             """
             if not isinstance(data, (list, tuple)):
                 # Need to bypass WhereNode
@@ -80,7 +80,7 @@ class NetWhere(sql.where.WhereNode):
                 return
 
             obj, lookup_type, value = data
-            if not isinstance(value, IPNetwork) and hasattr(value, '__iter__') and hasattr(value, 'next'):
+            if not isinstance(value, _BaseNetwork) and hasattr(value, '__iter__') and hasattr(value, 'next'):
                 # Consume any generators immediately, so that we can determine
                 # emptiness and transform any non-empty values correctly.
                 value = list(value)
@@ -173,8 +173,8 @@ class NetManager(models.Manager):
 
     def filter(self, *args, **kwargs):
         for key, val in kwargs.items():
-            if isinstance(val, IPNetwork):
-                # Django will attempt to consume the IPNetwork iterator, which
-                # will convert it to a list of every IPAddress in the network
+            if isinstance(val, _BaseNetwork):
+                # Django will attempt to consume the _BaseNetwork iterator, which
+                # will convert it to a list of every address in the network
                 kwargs[key] = str(val)
         return super(NetManager, self).filter(*args, **kwargs)

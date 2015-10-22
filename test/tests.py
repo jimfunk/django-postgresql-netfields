@@ -1,5 +1,6 @@
 from django.core.exceptions import ValidationError
-from netaddr import IPNetwork, EUI
+from ipaddress import ip_address, ip_interface, ip_network
+from netaddr import EUI
 
 from django import VERSION as DJANGO_VERSION
 from django.db import IntegrityError
@@ -176,7 +177,7 @@ class BaseInetFieldTestCase(BaseInetTestCase):
         self.model.objects.filter(field='1.2.3.4')
 
     def test_query_filter_ipaddress(self):
-        self.model.objects.filter(field=IPNetwork('1.2.3.4'))
+        self.model.objects.filter(field=ip_interface('1.2.3.4'))
 
 
 class BaseCidrFieldTestCase(BaseInetTestCase):
@@ -240,7 +241,7 @@ class BaseCidrFieldTestCase(BaseInetTestCase):
         self.model.objects.filter(field='1.2.3.0/24')
 
     def test_query_filter_ipnetwork(self):
-        self.model.objects.filter(field=IPNetwork('1.2.3.0/24'))
+        self.model.objects.filter(field=ip_network('1.2.3.0/24'))
 
 
 class TestInetField(BaseInetFieldTestCase, TestCase):
@@ -358,7 +359,7 @@ class TestInetAddressFormField(TestCase):
     def test_form_ipv4_valid(self):
         form = self.form_class({'field': '10.0.0.1'})
         self.assertTrue(form.is_valid())
-        self.assertEqual(form.cleaned_data['field'], IPNetwork('10.0.0.1'))
+        self.assertEqual(form.cleaned_data['field'], ip_interface('10.0.0.1'))
 
     def test_form_ipv4_invalid(self):
         form = self.form_class({'field': '10.0.0.1.2'})
@@ -370,12 +371,12 @@ class TestInetAddressFormField(TestCase):
         self.assertTrue(form.is_valid())
         form.save()
         instance = InetTestModel.objects.get(pk=instance.pk)
-        self.assertEqual(instance.field, IPNetwork('10.1.2.4/24'))
+        self.assertEqual(instance.field, ip_interface('10.1.2.4/24'))
 
     def test_form_ipv6(self):
         form = self.form_class({'field': '2001:0:1::2'})
         self.assertTrue(form.is_valid())
-        self.assertEqual(form.cleaned_data['field'], IPNetwork('2001:0:1::2'))
+        self.assertEqual(form.cleaned_data['field'], ip_interface('2001:0:1::2'))
 
     def test_form_ipv6_invalid(self):
         form = self.form_class({'field': '2001:0::1::2'})
@@ -387,7 +388,53 @@ class TestInetAddressFormField(TestCase):
         self.assertTrue(form.is_valid())
         form.save()
         instance = InetTestModel.objects.get(pk=instance.pk)
-        self.assertEqual(instance.field, IPNetwork('2001:0:1::3/64'))
+        self.assertEqual(instance.field, ip_interface('2001:0:1::3/64'))
+
+
+class NoPrefixInetAddressTestModelForm(ModelForm):
+    class Meta:
+        model = NoPrefixInetTestModel
+        exclude = []
+
+
+class TestNoPrefixInetAddressFormField(TestCase):
+    form_class = NoPrefixInetAddressTestModelForm
+
+    def test_form_ipv4_valid(self):
+        form = self.form_class({'field': '10.0.0.1'})
+        self.assertTrue(form.is_valid())
+        # Form always passes ip_interface. Model field will return the requested type
+        self.assertEqual(form.cleaned_data['field'], ip_interface('10.0.0.1'))
+
+    def test_form_ipv4_invalid(self):
+        form = self.form_class({'field': '10.0.0.1.2'})
+        self.assertFalse(form.is_valid())
+
+    def test_form_ipv4_change(self):
+        instance = NoPrefixInetTestModel.objects.create(field='10.1.2.3/24')
+        form = self.form_class({'field': '10.1.2.4/24'}, instance=instance)
+        self.assertTrue(form.is_valid())
+        form.save()
+        instance = NoPrefixInetTestModel.objects.get(pk=instance.pk)
+        self.assertEqual(instance.field, ip_address('10.1.2.4'))
+
+    def test_form_ipv6(self):
+        form = self.form_class({'field': '2001:0:1::2'})
+        self.assertTrue(form.is_valid())
+        # Form always passes ip_interface. Model field will return the requested type
+        self.assertEqual(form.cleaned_data['field'], ip_interface('2001:0:1::2'))
+
+    def test_form_ipv6_invalid(self):
+        form = self.form_class({'field': '2001:0::1::2'})
+        self.assertFalse(form.is_valid())
+
+    def test_form_ipv6_change(self):
+        instance = NoPrefixInetTestModel.objects.create(field='2001:0:1::2/64')
+        form = self.form_class({'field': '2001:0:1::3/64'}, instance=instance)
+        self.assertTrue(form.is_valid())
+        form.save()
+        instance = NoPrefixInetTestModel.objects.get(pk=instance.pk)
+        self.assertEqual(instance.field, ip_address('2001:0:1::3'))
 
 
 class UniqueInetAddressTestModelForm(ModelForm):
@@ -412,7 +459,7 @@ class TestCidrAddressFormField(TestCase):
     def test_form_ipv4_valid(self):
         form = self.form_class({'field': '10.0.1.0/24'})
         self.assertTrue(form.is_valid())
-        self.assertEqual(form.cleaned_data['field'], IPNetwork('10.0.1.0/24'))
+        self.assertEqual(form.cleaned_data['field'], ip_network('10.0.1.0/24'))
 
     def test_form_ipv4_invalid(self):
         form = self.form_class({'field': '10.0.0.1.2/32'})
@@ -425,7 +472,7 @@ class TestCidrAddressFormField(TestCase):
     def test_form_ipv6(self):
         form = self.form_class({'field': '2001:0:1::/64'})
         self.assertTrue(form.is_valid())
-        self.assertEqual(form.cleaned_data['field'], IPNetwork('2001:0:1::/64'))
+        self.assertEqual(form.cleaned_data['field'], ip_network('2001:0:1::/64'))
 
     def test_form_ipv6_invalid(self):
         form = self.form_class({'field': '2001:0::1::2/128'})
