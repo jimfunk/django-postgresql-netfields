@@ -28,6 +28,14 @@ class UniqueInetTestModel(Model):
         db_table = 'uniqueinet'
 
 
+class NoPrefixInetTestModel(Model):
+    field = InetAddressField(store_prefix_length=False)
+    objects = NetManager()
+
+    class Meta:
+        db_table = 'noprefixinet'
+
+
 class CidrTestModel(Model):
     field = CidrAddressField()
     objects = NetManager()

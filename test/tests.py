@@ -6,9 +6,16 @@ from django.db import IntegrityError
 from django.forms import ModelForm
 from django.test import TestCase
 
-from test.models import (CidrTestModel, InetTestModel, NullCidrTestModel,
-                              NullInetTestModel, UniqueInetTestModel,
-                              UniqueCidrTestModel, MACTestModel)
+from test.models import (
+    CidrTestModel,
+    InetTestModel,
+    NullCidrTestModel,
+    NullInetTestModel,
+    UniqueInetTestModel,
+    UniqueCidrTestModel,
+    NoPrefixInetTestModel,
+    MACTestModel
+)
 from netfields.mac import mac_unix_common
 
 
@@ -76,7 +83,6 @@ class BaseSqlTestCase(object):
             self.select + 'WHERE "table"."field" BETWEEN %s AND %s')
 
 
-
 class BaseInetTestCase(BaseSqlTestCase):
     def test_save_object(self):
         self.model(field=self.value1).save()
@@ -119,7 +125,7 @@ class BaseInetTestCase(BaseSqlTestCase):
 
 class BaseInetFieldTestCase(BaseInetTestCase):
     value1 = '10.0.0.1'
-    value2 = '10.0.0.2'
+    value2 = '10.0.0.2/24'
     value3 = '10.0.0.10'
 
     def test_startswith_lookup(self):
@@ -252,6 +258,11 @@ class TestInetField(BaseInetFieldTestCase, TestCase):
     def test_save_nothing_fails(self):
         self.assertRaises(IntegrityError, self.model().save)
 
+    def test_save_preserves_prefix_length(self):
+        instance = self.model.objects.create(field='10.1.2.3/24')
+        instance = self.model.objects.get(pk=instance.pk)
+        self.assertEqual(str(instance.field), '10.1.2.3/24')
+
 
 class TestInetFieldNullable(BaseInetFieldTestCase, TestCase):
     def setUp(self):
@@ -278,6 +289,18 @@ class TestInetFieldUnique(BaseInetFieldTestCase, TestCase):
     def test_save_nonunique(self):
         self.model(field='1.2.3.4').save()
         self.assertRaises(IntegrityError, self.model(field='1.2.3.4').save)
+
+
+class TestInetFieldNoPrefix(BaseInetFieldTestCase, TestCase):
+    def setUp(self):
+        self.model = NoPrefixInetTestModel
+        self.qs = self.model.objects.all()
+        self.table = 'noprefixinet'
+
+    def test_save_truncates_prefix_length(self):
+        instance = self.model.objects.create(field='10.1.2.3/24')
+        instance = self.model.objects.get(pk=instance.pk)
+        self.assertEqual(str(instance.field), '10.1.2.3')
 
 
 class TestCidrField(BaseCidrFieldTestCase, TestCase):

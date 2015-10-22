@@ -1,4 +1,4 @@
-from netaddr import IPNetwork, EUI
+from netaddr import IPAddress, IPNetwork, EUI
 from netaddr.core import AddrFormatError
 
 from django import VERSION as DJANGO_VERSION
@@ -77,11 +77,24 @@ class InetAddressField(with_metaclass(models.SubfieldBase, _NetAddressField)):
     description = "PostgreSQL INET field"
     max_length = 39
 
+    def __init__(self, *args, **kwargs):
+        self.store_prefix_length = kwargs.pop('store_prefix_length', True)
+        super(InetAddressField, self).__init__(*args, **kwargs)
+
     def db_type(self, connection):
         return 'inet'
 
-    def python_type(self):
-        return IPNetwork
+    def to_python(self, value):
+        if not value:
+            return value
+
+        try:
+            if self.store_prefix_length:
+                return IPNetwork(value)
+            else:
+                return IPAddress(IPNetwork(value))
+        except AddrFormatError as e:
+            raise ValidationError(e)
 
     def form_class(self):
         return InetAddressFormField

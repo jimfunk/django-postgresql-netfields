@@ -12,7 +12,7 @@ def get_long_description():
 
 setup(
     name='django-netfields',
-    version='0.4',
+    version='0.4.1',
     license='BSD',
     description='Django PostgreSQL netfields implementation',
     long_description=get_long_description(),

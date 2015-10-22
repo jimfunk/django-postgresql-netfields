@@ -1,3 +1,10 @@
+- 0.4.1
+  * Added serializer fields for Django REST Framework. Thanks to Brandon
+    Cazander
+  * Added a store_prefix_length argument to InetAddressField. If set to False
+    an IPAddress will be returned instead of an IPNetwork. If there is a prefix
+    length before conversion, it will be truncated
+
 - 0.4
   * Return IPNetwork object from InetAddressField instead of IPAddress. This
     better matches the capabilities of the underlying inet type since it can
