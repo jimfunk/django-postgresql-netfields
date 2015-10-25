@@ -29,7 +29,7 @@ class NetInput(forms.Widget):
 class InetAddressFormField(forms.Field):
     widget = NetInput
     default_error_messages = {
-        'invalid': u'Enter a valid IP Address.',
+        'invalid': u'Enter a valid IP address.',
     }
 
     def __init__(self, *args, **kwargs):
@@ -45,13 +45,13 @@ class InetAddressFormField(forms.Field):
         try:
             return ip_interface(value)
         except ValueError as e:
-            raise ValidationError(str(e))
+            raise ValidationError(self.default_error_messages['invalid'])
 
 
 class CidrAddressFormField(forms.Field):
     widget = NetInput
     default_error_messages = {
-        'invalid': u'Enter a valid CIDR Address.',
+        'invalid': u'Enter a valid CIDR address.',
     }
 
     def __init__(self, *args, **kwargs):
@@ -67,7 +67,7 @@ class CidrAddressFormField(forms.Field):
         try:
             network = ip_network(value)
         except ValueError as e:
-            raise ValidationError(str(e))
+            raise ValidationError(self.default_error_messages['invalid'])
 
         return network
 

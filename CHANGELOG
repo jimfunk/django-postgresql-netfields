@@ -1,3 +1,7 @@
+- 0.5.1
+  * Fixed form validation error messages to avoid confusion
+  * Updated README to reflect the change to the ipaddress module
+
 - 0.5
   * Switched InetAddressField and CidrAddressField from netaddr to the
     ipaddress module found in core Python >= 3.3. For Python < 3 the backported

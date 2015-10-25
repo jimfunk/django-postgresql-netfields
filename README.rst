@@ -12,17 +12,19 @@ In addition to the basic ``IPAddressField`` replacement a ``CIDR`` and
 a ``MACADDR`` field have been added. This library also provides a manager that
 allows for advanced IP based lookup directly in the ORM.
 
-In Python, the values of these fields are represented as types from the
-netaddr_ module.
+In Python, the values of the IP address fields are represented as types from
+the ipaddress_ module. In Python 2.x, the py2-ipaddress_ module is used. The
+MAC address field is represented as an EUI type from the netaddr_ module.
 
+.. _ipaddress: https://docs.python.org/3/library/ipaddress.html
+.. _py2-ipaddress: https://pypi.python.org/pypi/py2-ipaddress/
 .. _netaddr: http://pythonhosted.org/netaddr/
 
 Dependencies
 ------------
 
 Current version of code is targeting Django >= 1.7 support, as this relies
-heavily on ORM internals supporting multiple versions is especially tricky. The
-``netaddr`` module is used for the same reasons.
+heavily on ORM internals supporting multiple versions is especially tricky.
 
 Getting started
 ---------------
@@ -30,9 +32,10 @@ Getting started
 Make sure ``netfields`` is in your ``PYTHONPATH`` and in ``INSTALLED_APPS``.
 
 ``InetAddressField`` will store values in PostgreSQL as type ``INET``. In
-Python, the value will be represented as a ``netaddr.IPNetwork`` object unless
-the ``store_prefix_length`` argument is set to `False``, in which case the
-value will be represented as a ``netaddr.IPAddress`` object.
+Python, the value will be represented as an ``ipaddress.ip_interface`` object
+representing an IP address and netmask/prefix length pair unless the
+``store_prefix_length`` argument is set to `False``, in which case the value
+will be represented as an ``ipaddress.ip_address`` object.
 
  from netfields import InetAddressField, NetManager
 
@@ -43,7 +46,7 @@ value will be represented as a ``netaddr.IPAddress`` object.
      objects = NetManager()
 
 ``CidrAddressField`` will store values in PostgreSQL as type ``CIDR``. In
-Python, the value will be represented as a ``netaddr.IPNetwork`` object.
+Python, the value will be represented as an ``ipaddress.ip_network`` object.
 
  from netfields import CidrAddressField, NetManager
 

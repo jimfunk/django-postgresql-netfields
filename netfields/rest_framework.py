@@ -17,19 +17,19 @@ class NetfieldsField(object):
         try:
             self.netfields_type(value).to_python(value)
         except DjangoValidationError:
-            raise serializers.ValidationError("Invalid {} address.".format(self.short_name))
+            raise serializers.ValidationError("Invalid {} address.".format(self.address_type))
 
 
 class InetAddressField(NetfieldsField, serializers.CharField):
     netfields_type = fields.InetAddressField
-    short_name = "IP"
+    address_type = "IP"
 
 
 class CidrAddressField(NetfieldsField, serializers.CharField):
     netfields_type = fields.CidrAddressField
-    short_name = "CIDR"
+    address_type = "CIDR"
 
 
 class MACAddressField(NetfieldsField, serializers.CharField):
     netfields_type = fields.MACAddressField
-    short_name = "MAC"
+    address_type = "MAC"
