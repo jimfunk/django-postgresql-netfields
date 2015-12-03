@@ -1,3 +1,8 @@
+- 0.5.2
+  * Support for Django 1.9
+  * Invalid lookups on Django < 1.9 will now raise FieldError or
+    NotImplementedError to match Django 1.9
+
 - 0.5.1
   * Fixed form validation error messages to avoid confusion
   * Updated README to reflect the change to the ipaddress module
