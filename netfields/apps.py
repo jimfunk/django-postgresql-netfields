@@ -1,21 +1,38 @@
+import django
 from django.apps import AppConfig
+from django.db.models import Field
 
-from django.db.models.lookups import default_lookups
 from netfields.fields import CidrAddressField, InetAddressField
-from netfields.lookups import NetContained, NetContains, NetContainedOrEqual, NetContainsOrEquals, InvalidLookup, Family
-from netfields.lookups import EndsWith, IEndsWith, StartsWith, IStartsWith, Regex, IRegex
+from netfields.lookups import (
+    EndsWith,
+    Family,
+    IEndsWith,
+    IRegex,
+    IStartsWith,
+    InvalidLookup,
+    InvalidSearchLookup,
+    NetContained,
+    NetContainedOrEqual,
+    NetContains,
+    NetContainsOrEquals,
+    Regex,
+    StartsWith,
+)
 
 
 class NetfieldsConfig(AppConfig):
     name = 'netfields'
 
-    for lookup in default_lookups.keys():
-        if lookup not in ['contains', 'startswith', 'endswith', 'icontains', 'istartswith', 'iendswith', 'isnull', 'in',
-                          'exact', 'iexact', 'regex', 'iregex', 'lt', 'lte', 'gt', 'gte', 'equals', 'iequals', 'range']:
-            invalid_lookup = InvalidLookup
-            invalid_lookup.lookup_name = lookup
-            CidrAddressField.register_lookup(invalid_lookup)
-            InetAddressField.register_lookup(invalid_lookup)
+    if django.VERSION < (1, 9):
+        for lookup in Field.class_lookups.keys():
+            if lookup not in ['contains', 'startswith', 'endswith', 'icontains', 'istartswith', 'iendswith', 'isnull', 'in',
+                              'exact', 'iexact', 'regex', 'iregex', 'lt', 'lte', 'gt', 'gte', 'equals', 'iequals', 'range', 'search']:
+                invalid_lookup = InvalidLookup
+                invalid_lookup.lookup_name = lookup
+                CidrAddressField.register_lookup(invalid_lookup)
+                InetAddressField.register_lookup(invalid_lookup)
+        CidrAddressField.register_lookup(InvalidSearchLookup)
+        InetAddressField.register_lookup(InvalidSearchLookup)
 
     CidrAddressField.register_lookup(EndsWith)
     CidrAddressField.register_lookup(IEndsWith)

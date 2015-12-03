@@ -1,8 +1,10 @@
+import django
 from django.core.exceptions import ValidationError
 from ipaddress import ip_interface, ip_network
 from netaddr import EUI
 
 from django.db import IntegrityError
+from django.core.exceptions import FieldError
 from django.test import TestCase
 
 from test.models import (
@@ -27,8 +29,8 @@ class BaseSqlTestCase(object):
             sql.strip().lower()
         )
 
-    def assertSqlRaises(self, qs, error):
-        self.assertRaises(error, qs.query.get_compiler(qs.db).as_sql)
+    def compile_queryset(self, qs):
+        qs.query.get_compiler(qs.db).as_sql()
 
     def test_init_with_blank(self):
         self.model()
@@ -117,16 +119,20 @@ class BaseInetTestCase(BaseSqlTestCase):
         )
 
     def test_search_lookup_fails(self):
-        self.assertSqlRaises(self.qs.filter(field__search='10'), ValueError)
+        with self.assertRaises(NotImplementedError):
+            self.compile_queryset(self.qs.filter(field__search='10'))
 
     def test_year_lookup_fails(self):
-        self.assertSqlRaises(self.qs.filter(field__year=1), ValueError)
+        with self.assertRaises(FieldError):
+            self.compile_queryset(self.qs.filter(field__year=1))
 
     def test_month_lookup_fails(self):
-        self.assertSqlRaises(self.qs.filter(field__month=1), ValueError)
+        with self.assertRaises(FieldError):
+            self.compile_queryset(self.qs.filter(field__month=1))
 
     def test_day_lookup_fails(self):
-        self.assertSqlRaises(self.qs.filter(field__day=1), ValueError)
+        with self.assertRaises(FieldError):
+            self.compile_queryset(self.qs.filter(field__day=1))
 
     def test_net_contained(self):
         self.assertSqlEquals(

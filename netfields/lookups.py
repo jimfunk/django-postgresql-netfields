@@ -1,11 +1,25 @@
+from django.core.exceptions import FieldError
 from django.db.models import Lookup, Transform, IntegerField
 from django.db.models.lookups import BuiltinLookup
 from netfields.fields import InetAddressField, CidrAddressField
 
 
 class InvalidLookup(BuiltinLookup):
+    """
+    Emulate Django 1.9 error for unsupported lookups
+    """
     def as_sql(self, qn, connection):
-        raise ValueError('Invalid lookup type "%s"' % self.lookup_name)
+        raise FieldError("Unsupported lookup '%s'" % self.lookup_name)
+
+
+class InvalidSearchLookup(BuiltinLookup):
+    """
+    Emulate Django 1.9 error for unsupported search lookup
+    """
+    lookup_name = 'search'
+
+    def as_sql(self, qn, connection):
+        raise NotImplementedError("Full-text search is not implemented for this database backend")
 
 
 class NetFieldDecoratorMixin(object):
