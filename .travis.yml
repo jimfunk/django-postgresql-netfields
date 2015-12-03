@@ -15,7 +15,7 @@ env:
   - TOX_ENV=py35-django19
 
 install:
-  - pip install tox --use-mirrors
+  - pip install tox
 
 before_script:
   - psql -c 'create database netfields;' -U postgres
