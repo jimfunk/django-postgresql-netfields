@@ -1,6 +1,10 @@
 from django.core.exceptions import FieldError
 from django.db.models import Lookup, Transform, IntegerField
 from django.db.models.lookups import BuiltinLookup
+from django.db.models.lookups import EndsWith as BaseEndsWith
+from django.db.models.lookups import IEndsWith as BaseIEndsWith
+from django.db.models.lookups import StartsWith as BaseStartsWith
+from django.db.models.lookups import IStartsWith as BaseIStartsWith
 from netfields.fields import InetAddressField, CidrAddressField
 
 
@@ -33,19 +37,19 @@ class NetFieldDecoratorMixin(object):
         return lhs_string, lhs_params
 
 
-class EndsWith(NetFieldDecoratorMixin, BuiltinLookup):
+class EndsWith(NetFieldDecoratorMixin, BaseEndsWith):
     lookup_name = 'endswith'
 
 
-class IEndsWith(NetFieldDecoratorMixin, BuiltinLookup):
+class IEndsWith(NetFieldDecoratorMixin, BaseIEndsWith):
     lookup_name = 'iendswith'
 
 
-class StartsWith(NetFieldDecoratorMixin, BuiltinLookup):
+class StartsWith(NetFieldDecoratorMixin, BaseStartsWith):
     lookup_name = 'startswith'
 
 
-class IStartsWith(NetFieldDecoratorMixin, BuiltinLookup):
+class IStartsWith(NetFieldDecoratorMixin, BaseIStartsWith):
     lookup_name = 'istartswith'
 
 
