@@ -93,6 +93,14 @@ added:
 These correspond with the operators and functions from
 http://www.postgresql.org/docs/9.4/interactive/functions-net.html
 
+``CidrAddressField`` includes two extra lookups:
+
+``__max_prefixlen``
+    Maximum value (inclusive) for ``CIDR`` prefix, does not distinguish between IPv4 and IPv6
+
+``__min_prefixlen``
+    Minimun value (inclusive) for ``CIDR`` prefix, does not distinguish between IPv4 and IPv6
+
 Related Django bugs
 -------------------
 
