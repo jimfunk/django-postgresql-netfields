@@ -109,8 +109,8 @@ class BaseInetTestCase(BaseSqlTestCase):
     def test_save_object(self):
         self.model(field=self.value1).save()
 
-    def test_init_with_text_fails(self):
-        self.assertRaises(ValidationError, self.model, field='abc')
+    def test_save_with_text_fails(self):
+        self.assertRaises(ValidationError, self.model.objects.create, field='abc')
 
     def test_iexact_lookup(self):
         self.assertSqlEquals(
