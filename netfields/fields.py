@@ -33,7 +33,8 @@ class _NetAddressField(models.Field):
 
         if (lookup_type in NET_OPERATORS and
                 NET_OPERATORS[lookup_type] not in NET_TEXT_OPERATORS):
-            if lookup_type.startswith('net_contained') and value is not None:
+            if (lookup_type.startswith('net_contained') or
+                    lookup_type.endswith('prefixlen')) and value is not None:
                 # Argument will be CIDR
                 return str(value)
             return self.get_prep_value(value)

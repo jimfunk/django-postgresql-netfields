@@ -106,3 +106,31 @@ class Family(Transform):
     @property
     def output_field(self):
         return IntegerField()
+
+
+class _PrefixlenMixin(object):
+    def process_lhs(self, qn, connection, lhs=None):
+        lhs = lhs or self.lhs
+        lhs_string, lhs_params = qn.compile(lhs)
+        lhs_string = 'MASKLEN(%s)' % lhs_string
+        return lhs_string, lhs_params
+
+
+class MaxPrefixlen(_PrefixlenMixin, Lookup):
+    lookup_name = 'max_prefixlen'
+
+    def as_sql(self, qn, connection):
+        lhs, lhs_params = self.process_lhs(qn, connection)
+        rhs, rhs_params = self.process_rhs(qn, connection)
+        params = lhs_params + rhs_params
+        return '%s <= %s' % (lhs, rhs), params
+
+
+class MinPrefixlen(_PrefixlenMixin, Lookup):
+    lookup_name = 'min_prefixlen'
+
+    def as_sql(self, qn, connection):
+        lhs, lhs_params = self.process_lhs(qn, connection)
+        rhs, rhs_params = self.process_rhs(qn, connection)
+        params = lhs_params + rhs_params
+        return '%s >= %s' % (lhs, rhs), params
