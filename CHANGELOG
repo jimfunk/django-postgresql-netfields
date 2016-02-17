@@ -1,3 +1,6 @@
+- 0.5.3
+  * Use the ipaddress module instead of py2-ipaddress for Python 2.x
+
 - 0.5.2
   * Support for Django 1.9
   * Invalid lookups on Django < 1.9 will now raise FieldError or

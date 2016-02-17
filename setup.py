@@ -18,7 +18,7 @@ requirements = [
 ]
 
 if sys.version_info.major == 2:
-    requirements.append('py2-ipaddress')
+    requirements.append('ipaddress')
 
 setup(
     name='django-netfields',
