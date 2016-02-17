@@ -24,6 +24,11 @@ class _NetAddressField(models.Field):
             return value
 
         try:
+            value = unicode(value)
+        except NameError:
+            pass
+
+        try:
             return self.python_type()(value)
         except (AddrFormatError, ValueError) as e:
             raise ValidationError(e)
@@ -91,6 +96,11 @@ if VERSION < (1, 8):
                 return value
 
             try:
+                value = unicode(value)
+            except NameError:
+                pass
+
+            try:
                 if self.store_prefix_length:
                     return ip_interface(value)
                 else:
@@ -118,6 +128,11 @@ else:
         def to_python(self, value):
             if not value:
                 return value
+
+            try:
+                value = unicode(value)
+            except NameError:
+                pass
 
             try:
                 if self.store_prefix_length:
