@@ -1,10 +1,10 @@
 from django.core.exceptions import FieldError
 from django.db.models import Lookup, Transform, IntegerField
-from django.db.models.lookups import BuiltinLookup
+from django.db.models.lookups import EndsWith, IEndsWith, StartsWith, IStartsWith, Regex, IRegex
 from netfields.fields import InetAddressField, CidrAddressField
 
 
-class InvalidLookup(BuiltinLookup):
+class InvalidLookup(Lookup):
     """
     Emulate Django 1.9 error for unsupported lookups
     """
@@ -12,7 +12,7 @@ class InvalidLookup(BuiltinLookup):
         raise FieldError("Unsupported lookup '%s'" % self.lookup_name)
 
 
-class InvalidSearchLookup(BuiltinLookup):
+class InvalidSearchLookup(Lookup):
     """
     Emulate Django 1.9 error for unsupported search lookup
     """
@@ -33,28 +33,28 @@ class NetFieldDecoratorMixin(object):
         return lhs_string, lhs_params
 
 
-class EndsWith(NetFieldDecoratorMixin, BuiltinLookup):
-    lookup_name = 'endswith'
+class EndsWith(NetFieldDecoratorMixin, EndsWith):
+    pass
 
 
-class IEndsWith(NetFieldDecoratorMixin, BuiltinLookup):
-    lookup_name = 'iendswith'
+class IEndsWith(NetFieldDecoratorMixin, IEndsWith):
+    pass
 
 
-class StartsWith(NetFieldDecoratorMixin, BuiltinLookup):
-    lookup_name = 'startswith'
+class StartsWith(NetFieldDecoratorMixin, StartsWith):
+    pass
 
 
-class IStartsWith(NetFieldDecoratorMixin, BuiltinLookup):
-    lookup_name = 'istartswith'
+class IStartsWith(NetFieldDecoratorMixin, IStartsWith):
+    pass
 
 
-class Regex(NetFieldDecoratorMixin, BuiltinLookup):
-    lookup_name = 'regex'
+class Regex(NetFieldDecoratorMixin, Regex):
+    pass
 
 
-class IRegex(NetFieldDecoratorMixin, BuiltinLookup):
-    lookup_name = 'iregex'
+class IRegex(NetFieldDecoratorMixin, IRegex):
+    pass
 
 
 class NetContains(Lookup):
@@ -85,6 +85,7 @@ class NetContainsOrEquals(Lookup):
         rhs, rhs_params = self.process_rhs(qn, connection)
         params = lhs_params + rhs_params
         return '%s >>= %s' % (lhs, rhs), params
+
 
 class NetContainedOrEqual(Lookup):
     lookup_name = 'net_contained_or_equal'
