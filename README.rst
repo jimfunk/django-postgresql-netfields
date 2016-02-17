@@ -13,11 +13,11 @@ a ``MACADDR`` field have been added. This library also provides a manager that
 allows for advanced IP based lookup directly in the ORM.
 
 In Python, the values of the IP address fields are represented as types from
-the ipaddress_ module. In Python 2.x, the py2-ipaddress_ module is used. The
-MAC address field is represented as an EUI type from the netaddr_ module.
+the ipaddress_ module. In Python 2.x, a backport_ is used. The MAC address
+field is represented as an EUI type from the netaddr_ module.
 
 .. _ipaddress: https://docs.python.org/3/library/ipaddress.html
-.. _py2-ipaddress: https://pypi.python.org/pypi/py2-ipaddress/
+.. _backport: https://pypi.python.org/pypi/ipaddress/
 .. _netaddr: http://pythonhosted.org/netaddr/
 
 Dependencies
@@ -62,10 +62,10 @@ the default text representation of EUI objects is not the same as that of the
 ``netaddr`` module. It is represented in a format that is more commonly used
 in network utilities and by network administrators (``00:11:22:aa:bb:cc``).
 
- from netfields import CidrAddressField, NetManager
+ from netfields import MACAddressField, NetManager
 
  class Example(models.Model):
-     inet = CidrAddressField()
+     inet = MACAddressField()
      # ...
 
 For ``InetAddressField`` and ``CidrAddressField``, ``NetManager`` is required
@@ -79,7 +79,7 @@ added:
     is contained within the given network
 
 ``__net_contained_or_equal``
-    is contained or equal to the given network
+    is contained within or equal to the given network
 
 ``__net_contains``
     contains the given address
