@@ -23,10 +23,8 @@ class _NetAddressField(models.Field):
         if not value:
             return value
 
-        try:
-            value = unicode(value)
-        except NameError:
-            pass
+        if isinstance(value, bytes):
+            value = value.decode('ascii')
 
         try:
             return self.python_type()(value)
@@ -95,10 +93,8 @@ if VERSION < (1, 8):
             if not value:
                 return value
 
-            try:
-                value = unicode(value)
-            except NameError:
-                pass
+            if isinstance(value, bytes):
+                value = value.decode('ascii')
 
             try:
                 if self.store_prefix_length:
@@ -129,10 +125,8 @@ else:
             if not value:
                 return value
 
-            try:
-                value = unicode(value)
-            except NameError:
-                pass
+            if isinstance(value, bytes):
+                value = value.decode('ascii')
 
             try:
                 if self.store_prefix_length:
