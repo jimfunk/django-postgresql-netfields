@@ -1,5 +1,8 @@
 - 0.5.3
+  * Add max_prefixlen and min_prefixlen lookups (Hugo Castilho)
+  * Changed field subclassing to Django 1.8+ format (Antwan86)
   * Use the ipaddress module instead of py2-ipaddress for Python 2.x
+  * Standard lookups now inherit from base lookups
 
 - 0.5.2
   * Support for Django 1.9
