@@ -78,105 +78,75 @@ class _NetAddressField(models.Field):
 if VERSION < (1, 8):
     # SubFieldBase has been deprecated in Django 1.8
     # see https://docs.djangoproject.com/en/1.9/releases/1.8/#subfieldbase
-    class InetAddressField(with_metaclass(models.SubfieldBase, _NetAddressField)):
-        description = "PostgreSQL INET field"
-        max_length = 39
-
-        def __init__(self, *args, **kwargs):
-            self.store_prefix_length = kwargs.pop('store_prefix_length', True)
-            super(InetAddressField, self).__init__(*args, **kwargs)
-
-        def db_type(self, connection):
-            return 'inet'
-
-        def to_python(self, value):
-            if not value:
-                return value
-
-            if isinstance(value, bytes):
-                value = value.decode('ascii')
-
-            try:
-                if self.store_prefix_length:
-                    return ip_interface(value)
-                else:
-                    return ip_interface(value).ip
-            except ValueError as e:
-                raise ValidationError(e)
-
-        def form_class(self):
-            return InetAddressFormField
+    _field_base_class = with_metaclass(models.SubfieldBase, _NetAddressField)
+    _mac_field_base_class = with_metaclass(models.SubfieldBase, models.Field)
 else:
-    class InetAddressField(_NetAddressField):
-        description = "PostgreSQL INET field"
-        max_length = 39
+    _field_base_class = _NetAddressField
+    _mac_field_base_class = models.Field
 
-        def __init__(self, *args, **kwargs):
-            self.store_prefix_length = kwargs.pop('store_prefix_length', True)
-            super(InetAddressField, self).__init__(*args, **kwargs)
 
+class InetAddressField(_field_base_class):
+    description = "PostgreSQL INET field"
+    max_length = 39
+
+    def __init__(self, *args, **kwargs):
+        self.store_prefix_length = kwargs.pop('store_prefix_length', True)
+        super(InetAddressField, self).__init__(*args, **kwargs)
+
+    if VERSION >= (1, 8):
         def from_db_value(self, value, expression, connection, context):
             return self.to_python(value)
 
-        def db_type(self, connection):
-            return 'inet'
+    def db_type(self, connection):
+        return 'inet'
 
-        def to_python(self, value):
-            if not value:
-                return value
+    def to_python(self, value):
+        if not value:
+            return value
 
-            if isinstance(value, bytes):
-                value = value.decode('ascii')
+        if isinstance(value, bytes):
+            value = value.decode('ascii')
 
-            try:
-                if self.store_prefix_length:
-                    return ip_interface(value)
-                else:
-                    return ip_interface(value).ip
-            except ValueError as e:
-                raise ValidationError(e)
+        try:
+            if self.store_prefix_length:
+                return ip_interface(value)
+            else:
+                return ip_interface(value).ip
+        except ValueError as e:
+            raise ValidationError(e)
 
-        def form_class(self):
-            return InetAddressFormField
+    def form_class(self):
+        return InetAddressFormField
 
-if VERSION < (1, 8):
-    # SubFieldBase has been deprecated in Django 1.8
-    # see https://docs.djangoproject.com/en/1.9/releases/1.8/#subfieldbase
-    class CidrAddressField(with_metaclass(models.SubfieldBase, _NetAddressField)):
-        description = "PostgreSQL CIDR field"
-        max_length = 43
 
-        def db_type(self, connection):
-            return 'cidr'
+class CidrAddressField(_field_base_class):
+    description = "PostgreSQL CIDR field"
+    max_length = 43
 
-        def python_type(self):
-            return ip_network
-
-        def form_class(self):
-            return CidrAddressFormField
-else:
-    class CidrAddressField(_NetAddressField):
-        description = "PostgreSQL CIDR field"
-        max_length = 43
-
+    if VERSION >= (1, 8):
         def from_db_value(self, value, expression, connection, context):
             return self.to_python(value)
 
-        def db_type(self, connection):
-            return 'cidr'
+    def db_type(self, connection):
+        return 'cidr'
 
-        def python_type(self):
-            return ip_network
+    def python_type(self):
+        return ip_network
 
-        def form_class(self):
-            return CidrAddressFormField
+    def form_class(self):
+        return CidrAddressFormField
 
 
-class MACAddressField(models.Field):
+class MACAddressField(_mac_field_base_class):
     description = "PostgreSQL MACADDR field"
+    max_length = 17
 
     def db_type(self, connection):
         return 'macaddr'
+
+    if VERSION >= (1, 8):
+        def from_db_value(self, value, expression, connection, context):
+            return self.to_python(value)
 
     def to_python(self, value):
         if not value:
