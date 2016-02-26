@@ -444,8 +444,8 @@ class TestMacAddressField(BaseMacTestCase, TestCase):
         self.model().save()
 
     def test_invalid_fails(self):
-        self.assertRaises(ValidationError, self.model(field='foobar').save)
- 
+        self.assertRaises(ValidationError, lambda: self.model(field='foobar').save())
+
     def test_returns_eui(self):
         self.model(field=self.value1).save()
 
