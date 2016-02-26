@@ -445,3 +445,9 @@ class TestMacAddressField(BaseMacTestCase, TestCase):
 
     def test_invalid_fails(self):
         self.assertRaises(ValidationError, self.model(field='foobar').save)
+ 
+    def test_returns_eui(self):
+        self.model(field=self.value1).save()
+
+        obj = self.qs.first()
+        self.assert_(isinstance(obj.field, EUI))
