@@ -1,15 +1,14 @@
 from ipaddress import ip_interface, ip_network
-from netaddr import EUI
-from netaddr.core import AddrFormatError
 
 from django import VERSION
-from django.db import models
 from django.core.exceptions import ValidationError
+from django.db import models
 from django.utils.six import with_metaclass
-
-from netfields.managers import NET_OPERATORS, NET_TEXT_OPERATORS
+from netaddr import EUI
+from netaddr.core import AddrFormatError
 from netfields.forms import InetAddressFormField, CidrAddressFormField, MACAddressFormField
 from netfields.mac import mac_unix_common
+from netfields.managers import NET_OPERATORS, NET_TEXT_OPERATORS
 
 
 class _NetAddressField(models.Field):
@@ -36,7 +35,7 @@ class _NetAddressField(models.Field):
             return None
 
         if (lookup_type in NET_OPERATORS and
-                NET_OPERATORS[lookup_type] not in NET_TEXT_OPERATORS):
+                    NET_OPERATORS[lookup_type] not in NET_TEXT_OPERATORS):
             if (lookup_type.startswith('net_contained') or
                     lookup_type.endswith('prefixlen')) and value is not None:
                 # Argument will be CIDR
@@ -53,12 +52,12 @@ class _NetAddressField(models.Field):
         return str(self.to_python(value))
 
     def get_db_prep_lookup(self, lookup_type, value, connection,
-            prepared=False):
+                           prepared=False):
         if not value:
             return []
 
         if (lookup_type in NET_OPERATORS and
-                NET_OPERATORS[lookup_type] not in NET_TEXT_OPERATORS):
+                    NET_OPERATORS[lookup_type] not in NET_TEXT_OPERATORS):
             return [value] if prepared else [self.get_prep_value(value)]
 
         return super(_NetAddressField, self).get_db_prep_lookup(
@@ -74,6 +73,7 @@ class _NetAddressField(models.Field):
         if self.max_length is not None:
             kwargs['max_length'] = self.max_length
         return name, path, args, kwargs
+
 
 if VERSION < (1, 8):
     # SubFieldBase has been deprecated in Django 1.8
