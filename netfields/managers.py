@@ -30,35 +30,40 @@ class NetQuery(sql.Query):
     query_terms.update(NET_OPERATORS)
 
 
-class NetWhere(sql.where.WhereNode):
-    def _prepare_data(self, data):
-        """
-        Special form of WhereNode._prepare_data() that does not automatically consume the
-        __iter__ method of _BaseNetwork objects.  This is used in Django >= 1.6
-        """
-        if not isinstance(data, (list, tuple)):
-            return data
-        obj, lookup_type, value = data
-        if not isinstance(value, _BaseNetwork) and hasattr(value, '__iter__') and hasattr(value, 'next'):
-            # Consume any generators immediately, so that we can determine
-            # emptiness and transform any non-empty values correctly.
-            value = list(value)
+if VERSION < (1, 9):
+    # _prepare_data has been removed / deprecated in
+    # https://github.com/django/django/commit/5008a4db440c8f7d108a6979b959025ffb5789ba
+    class NetWhere(sql.where.WhereNode):
+        def _prepare_data(self, data):
+            """
+            Special form of WhereNode._prepare_data() that does not automatically consume the
+            __iter__ method of _BaseNetwork objects.  This is used in Django >= 1.6
+            """
+            if not isinstance(data, (list, tuple)):
+                return data
+            obj, lookup_type, value = data
+            if not isinstance(value, _BaseNetwork) and hasattr(value, '__iter__') and hasattr(value, 'next'):
+                # Consume any generators immediately, so that we can determine
+                # emptiness and transform any non-empty values correctly.
+                value = list(value)
 
-        # The "value_annotation" parameter is used to pass auxilliary information
-        # about the value(s) to the query construction. Specifically, datetime
-        # and empty values need special handling. Other types could be used
-        # here in the future (using Python types is suggested for consistency).
-        if (isinstance(value, datetime.datetime)
-            or (isinstance(obj.field, DateTimeField) and lookup_type != 'isnull')):
-            value_annotation = datetime.datetime
-        elif hasattr(value, 'value_annotation'):
-            value_annotation = value.value_annotation
-        else:
-            value_annotation = bool(value)
+            # The "value_annotation" parameter is used to pass auxilliary information
+            # about the value(s) to the query construction. Specifically, datetime
+            # and empty values need special handling. Other types could be used
+            # here in the future (using Python types is suggested for consistency).
+            if (isinstance(value, datetime.datetime)
+                or (isinstance(obj.field, DateTimeField) and lookup_type != 'isnull')):
+                value_annotation = datetime.datetime
+            elif hasattr(value, 'value_annotation'):
+                value_annotation = value.value_annotation
+            else:
+                value_annotation = bool(value)
 
-        if hasattr(obj, "prepare"):
-            value = obj.prepare(lookup_type, value)
-        return (obj, lookup_type, value_annotation, value)
+            if hasattr(obj, "prepare"):
+                value = obj.prepare(lookup_type, value)
+            return (obj, lookup_type, value_annotation, value)
+else:
+    NetWhere = sql.where.WhereNode
 
 
 class NetManager(models.Manager):
