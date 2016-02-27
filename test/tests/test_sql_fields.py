@@ -289,6 +289,9 @@ class TestInetField(BaseInetFieldTestCase, TestCase):
     def test_save_nothing_fails(self):
         self.assertRaises(IntegrityError, self.model().save)
 
+    def test_save_accepts_bytes(self):
+        self.model(field=b'1.1.1.1/24').save()
+
     def test_save_preserves_prefix_length(self):
         instance = self.model.objects.create(field='10.1.2.3/24')
         instance = self.model.objects.get(pk=instance.pk)
