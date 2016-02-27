@@ -1,19 +1,11 @@
+import datetime
 from ipaddress import _BaseNetwork
 
-from django.db import models, connection
+from django import VERSION
+from django.db import models
 from django.db.backends.postgresql_psycopg2.base import DatabaseWrapper
-from django.db.models.fields import DateTimeField
 from django.db.models import sql, query
-from django.db.models.query_utils import QueryWrapper
-from django.utils import tree
-
-import datetime
-
-try:
-    basestring
-except NameError:
-    basestring = (str, bytes)
-
+from django.db.models.fields import DateTimeField
 
 NET_OPERATORS = DatabaseWrapper.operators.copy()
 
