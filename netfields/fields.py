@@ -3,9 +3,10 @@ from ipaddress import ip_interface, ip_network
 from django import VERSION
 from django.core.exceptions import ValidationError
 from django.db import models
-from django.utils.six import with_metaclass
+from django.utils.six import with_metaclass, text_type
 from netaddr import EUI
 from netaddr.core import AddrFormatError
+
 from netfields.forms import InetAddressFormField, CidrAddressFormField, MACAddressFormField
 from netfields.mac import mac_unix_common
 from netfields.managers import NET_OPERATORS, NET_TEXT_OPERATORS
@@ -100,20 +101,18 @@ class InetAddressField(_field_base_class):
     def db_type(self, connection):
         return 'inet'
 
+    def python_type(self):
+        return ip_interface
+
     def to_python(self, value):
+        value = super(InetAddressField, self).to_python(value)
         if not value:
+            return
+
+        if self.store_prefix_length:
             return value
-
-        if isinstance(value, bytes):
-            value = value.decode('ascii')
-
-        try:
-            if self.store_prefix_length:
-                return ip_interface(value)
-            else:
-                return ip_interface(value).ip
-        except ValueError as e:
-            raise ValidationError(e)
+        else:
+            return value.ip
 
     def form_class(self):
         return InetAddressFormField
@@ -161,7 +160,7 @@ class MACAddressField(_mac_field_base_class):
         if not value:
             return None
 
-        return str(self.to_python(value))
+        return text_type(self.to_python(value))
 
     def formfield(self, **kwargs):
         defaults = {'form_class': MACAddressFormField}
