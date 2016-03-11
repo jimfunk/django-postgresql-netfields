@@ -1,7 +1,7 @@
 from __future__ import unicode_literals
 import django
 from django.core.exceptions import ValidationError
-from ipaddress import ip_interface, ip_network
+from ipaddress import ip_interface, ip_network, IPv4Address, IPv6Address
 from netaddr import EUI
 
 from django.db import IntegrityError
@@ -289,10 +289,19 @@ class TestInetField(BaseInetFieldTestCase, TestCase):
     def test_save_nothing_fails(self):
         self.assertRaises(IntegrityError, self.model().save)
 
+    def test_save_accepts_bytes(self):
+        self.model(field=b'1.1.1.1/24').save()
+
     def test_save_preserves_prefix_length(self):
         instance = self.model.objects.create(field='10.1.2.3/24')
         instance = self.model.objects.get(pk=instance.pk)
         self.assertEqual(str(instance.field), '10.1.2.3/24')
+        self.assertIsInstance(instance.field, IPv4Address)
+
+        instance = self.model.objects.create(field='2001:0DB8::/32')
+        instance = self.model.objects.get(pk=instance.pk)
+        self.assertEqual(str(instance.field), '2001:db8::/32')
+        self.assertIsInstance(instance.field, IPv6Address)
 
 
 class TestInetFieldNullable(BaseInetFieldTestCase, TestCase):
@@ -444,4 +453,10 @@ class TestMacAddressField(BaseMacTestCase, TestCase):
         self.model().save()
 
     def test_invalid_fails(self):
-        self.assertRaises(ValidationError, self.model(field='foobar').save)
+        self.assertRaises(ValidationError, lambda: self.model(field='foobar').save())
+
+    def test_returns_eui(self):
+        self.model(field=self.value1).save()
+
+        obj = self.qs.first()
+        self.assert_(isinstance(obj.field, EUI))
