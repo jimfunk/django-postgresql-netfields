@@ -1,3 +1,46 @@
+- 0.5.3
+  * Add max_prefixlen and min_prefixlen lookups (Hugo Castilho)
+  * Changed field subclassing to Django 1.8+ format (Antwan86)
+  * Use the ipaddress module instead of py2-ipaddress for Python 2.x
+  * Standard lookups now inherit from base lookups
+
+- 0.5.2
+  * Support for Django 1.9
+  * Invalid lookups on Django < 1.9 will now raise FieldError or
+    NotImplementedError to match Django 1.9
+
+- 0.5.1
+  * Fixed form validation error messages to avoid confusion
+  * Updated README to reflect the change to the ipaddress module
+
+- 0.5
+  * Switched InetAddressField and CidrAddressField from netaddr to the
+    ipaddress module found in core Python >= 3.3. For Python < 3 the backported
+    py2-ipaddress module will be used. The API of these objects are mostly
+    compatible with the netaddr API and do not suffer from some subtle issues
+    that netaddr objects have when used in Django forms. Most applications
+    should not require any adjustments as a result of this change
+
+- 0.4.1
+  * Added serializer fields for Django REST Framework. Thanks to Brandon
+    Cazander
+  * Added a store_prefix_length argument to InetAddressField. If set to False
+    an IPAddress will be returned instead of an IPNetwork. If there is a prefix
+    length before conversion, it will be truncated
+
+- 0.4
+  * Return IPNetwork object from InetAddressField instead of IPAddress. This
+    better matches the capabilities of the underlying inet type since it can
+    contain an embedded prefix length/netmask. This change may affect some
+    users
+  * Added __family lookups for filtering by address family, eg:
+    'filter(ip__family=4)' to select only IPv4 addresses. Thanks to leifurhauks
+  * Removed support for Django < 1.7
+
+- 0.3.1
+  * Fix CidrAddressField in lookups with single-item lists #39
+  * Fix validation of CIDR with bits to right of mask #19
+
 - 0.3
   * Added support for Django 1.7/1.8 (Antwan86, smclenithan)
   * Added support for Python 3.x

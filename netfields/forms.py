@@ -1,7 +1,12 @@
-from netaddr import IPAddress, IPNetwork, EUI, AddrFormatError
+from ipaddress import ip_interface, ip_network, _IPAddressBase, _BaseNetwork
+from netaddr import EUI, AddrFormatError
 
 from django import forms
-from django.forms.util import flatatt
+import django
+if django.VERSION >= (1, 7):
+    from django.forms.utils import flatatt
+else:
+    from django.forms.util import flatatt
 from django.utils.safestring import mark_safe
 from django.core.exceptions import ValidationError
 
@@ -24,7 +29,7 @@ class NetInput(forms.Widget):
 class InetAddressFormField(forms.Field):
     widget = NetInput
     default_error_messages = {
-        'invalid': u'Enter a valid IP Address.',
+        'invalid': u'Enter a valid IP address.',
     }
 
     def __init__(self, *args, **kwargs):
@@ -34,19 +39,19 @@ class InetAddressFormField(forms.Field):
         if not value:
             return None
 
-        if isinstance(value, IPAddress):
+        if isinstance(value, _IPAddressBase):
             return value
 
         try:
-            return IPAddress(value)
-        except (AddrFormatError, TypeError) as e:
-            raise ValidationError(str(e))
+            return ip_interface(value)
+        except ValueError as e:
+            raise ValidationError(self.default_error_messages['invalid'])
 
 
 class CidrAddressFormField(forms.Field):
     widget = NetInput
     default_error_messages = {
-        'invalid': u'Enter a valid CIDR Address.',
+        'invalid': u'Enter a valid CIDR address.',
     }
 
     def __init__(self, *args, **kwargs):
@@ -56,13 +61,15 @@ class CidrAddressFormField(forms.Field):
         if not value:
             return None
 
-        if isinstance(value, IPNetwork):
-            return value
+        if isinstance(value, _BaseNetwork):
+            network = value
 
         try:
-            return IPNetwork(value)
-        except (AddrFormatError, TypeError) as e:
-            raise ValidationError(str(e))
+            network = ip_network(value)
+        except ValueError as e:
+            raise ValidationError(self.default_error_messages['invalid'])
+
+        return network
 
 
 class MACAddressFormField(forms.Field):

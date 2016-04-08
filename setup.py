@@ -4,15 +4,25 @@ from distutils.core import setup
 from setuptools import find_packages
 
 import os
+import sys
+
 
 def get_long_description():
     path = os.path.join(os.path.dirname(__file__), 'README.rst')
     with open(path) as f:
         return f.read()
 
+requirements = [
+    'netaddr',
+    'django>=1.7',
+]
+
+if sys.version_info.major == 2:
+    requirements.append('ipaddress')
+
 setup(
     name='django-netfields',
-    version='0.3',
+    version='0.5.3',
     license='BSD',
     description='Django PostgreSQL netfields implementation',
     long_description=get_long_description(),
@@ -24,10 +34,7 @@ setup(
     packages=find_packages(),
     include_package_data=True,
     zip_safe=False,
-    install_requires=[
-        'netaddr',
-        'django>=1.3',
-    ],
+    install_requires=requirements,
 
     classifiers=[
         'Development Status :: 4 - Beta',

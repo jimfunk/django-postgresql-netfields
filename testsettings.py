@@ -7,6 +7,7 @@ DATABASES = {
 
 INSTALLED_APPS = (
     'netfields',
+    'test',
 )
 
 MIDDLEWARE_CLASSES = (

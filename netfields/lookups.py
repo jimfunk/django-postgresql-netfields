@@ -1,11 +1,25 @@
-from django.db.models import Lookup
-from django.db.models.lookups import BuiltinLookup
+from django.core.exceptions import FieldError
+from django.db.models import Lookup, Transform, IntegerField
+from django.db.models.lookups import EndsWith, IEndsWith, StartsWith, IStartsWith, Regex, IRegex
 from netfields.fields import InetAddressField, CidrAddressField
 
 
-class InvalidLookup(BuiltinLookup):
+class InvalidLookup(Lookup):
+    """
+    Emulate Django 1.9 error for unsupported lookups
+    """
     def as_sql(self, qn, connection):
-        raise ValueError('Invalid lookup type "%s"' % self.lookup_name)
+        raise FieldError("Unsupported lookup '%s'" % self.lookup_name)
+
+
+class InvalidSearchLookup(Lookup):
+    """
+    Emulate Django 1.9 error for unsupported search lookup
+    """
+    lookup_name = 'search'
+
+    def as_sql(self, qn, connection):
+        raise NotImplementedError("Full-text search is not implemented for this database backend")
 
 
 class NetFieldDecoratorMixin(object):
@@ -19,28 +33,28 @@ class NetFieldDecoratorMixin(object):
         return lhs_string, lhs_params
 
 
-class EndsWith(NetFieldDecoratorMixin, BuiltinLookup):
-    lookup_name = 'endswith'
+class EndsWith(NetFieldDecoratorMixin, EndsWith):
+    pass
 
 
-class IEndsWith(NetFieldDecoratorMixin, BuiltinLookup):
-    lookup_name = 'iendswith'
+class IEndsWith(NetFieldDecoratorMixin, IEndsWith):
+    pass
 
 
-class StartsWith(NetFieldDecoratorMixin, BuiltinLookup):
-    lookup_name = 'startswith'
+class StartsWith(NetFieldDecoratorMixin, StartsWith):
+    pass
 
 
-class IStartsWith(NetFieldDecoratorMixin, BuiltinLookup):
-    lookup_name = 'istartswith'
+class IStartsWith(NetFieldDecoratorMixin, IStartsWith):
+    pass
 
 
-class Regex(NetFieldDecoratorMixin, BuiltinLookup):
-    lookup_name = 'regex'
+class Regex(NetFieldDecoratorMixin, Regex):
+    pass
 
 
-class IRegex(NetFieldDecoratorMixin, BuiltinLookup):
-    lookup_name = 'iregex'
+class IRegex(NetFieldDecoratorMixin, IRegex):
+    pass
 
 
 class NetContains(Lookup):
@@ -72,6 +86,7 @@ class NetContainsOrEquals(Lookup):
         params = lhs_params + rhs_params
         return '%s >>= %s' % (lhs, rhs), params
 
+
 class NetContainedOrEqual(Lookup):
     lookup_name = 'net_contained_or_equal'
 
@@ -80,3 +95,43 @@ class NetContainedOrEqual(Lookup):
         rhs, rhs_params = self.process_rhs(qn, connection)
         params = lhs_params + rhs_params
         return '%s <<= %s' % (lhs, rhs), params
+
+
+class Family(Transform):
+    lookup_name = 'family'
+
+    def as_sql(self, compiler, connection):
+        lhs, params = compiler.compile(self.lhs)
+        return "family(%s)" % lhs, params
+
+    @property
+    def output_field(self):
+        return IntegerField()
+
+
+class _PrefixlenMixin(object):
+    def process_lhs(self, qn, connection, lhs=None):
+        lhs = lhs or self.lhs
+        lhs_string, lhs_params = qn.compile(lhs)
+        lhs_string = 'MASKLEN(%s)' % lhs_string
+        return lhs_string, lhs_params
+
+
+class MaxPrefixlen(_PrefixlenMixin, Lookup):
+    lookup_name = 'max_prefixlen'
+
+    def as_sql(self, qn, connection):
+        lhs, lhs_params = self.process_lhs(qn, connection)
+        rhs, rhs_params = self.process_rhs(qn, connection)
+        params = lhs_params + rhs_params
+        return '%s <= %s' % (lhs, rhs), params
+
+
+class MinPrefixlen(_PrefixlenMixin, Lookup):
+    lookup_name = 'min_prefixlen'
+
+    def as_sql(self, qn, connection):
+        lhs, lhs_params = self.process_lhs(qn, connection)
+        rhs, rhs_params = self.process_rhs(qn, connection)
+        params = lhs_params + rhs_params
+        return '%s >= %s' % (lhs, rhs), params
