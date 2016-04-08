@@ -32,11 +32,6 @@ class _NetAddressField(models.Field):
             raise ValidationError(e)
 
     def get_prep_lookup(self, lookup_type, value):
-        if type(value) is list and not value:
-            return []
-        if not value:
-            return None
-
         if (lookup_type in NET_OPERATORS and
                     NET_OPERATORS[lookup_type] not in NET_TEXT_OPERATORS):
             if (lookup_type.startswith('net_contained') or
