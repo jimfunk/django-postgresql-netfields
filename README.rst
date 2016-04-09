@@ -23,8 +23,8 @@ field is represented as an EUI type from the netaddr_ module.
 Dependencies
 ------------
 
-Current version of code is targeting Django >= 1.7 support, as this relies
-heavily on ORM internals supporting multiple versions is especially tricky.
+Current version of code is targeting Django >= 1.8 support, as this relies
+heavily on ORM internals and supporting multiple versions is especially tricky.
 
 Getting started
 ---------------

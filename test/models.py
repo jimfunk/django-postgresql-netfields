@@ -1,3 +1,4 @@
+from django.contrib.postgres.fields import ArrayField
 from django.db.models import Model
 
 from netfields import InetAddressField, CidrAddressField, MACAddressField, \
@@ -66,3 +67,24 @@ class MACTestModel(Model):
 
     class Meta:
         db_table = 'mac'
+
+
+class InetArrayTestModel(Model):
+    field = ArrayField(InetAddressField(), blank=True, null=True)
+
+    class Meta:
+        db_table = 'inetarray'
+
+
+class CidrArrayTestModel(Model):
+    field = ArrayField(CidrAddressField(), blank=True, null=True)
+
+    class Meta:
+        db_table = 'cidrarray'
+
+
+class MACArrayTestModel(Model):
+    field = ArrayField(MACAddressField(), blank=True, null=True)
+
+    class Meta:
+        db_table = 'macarray'

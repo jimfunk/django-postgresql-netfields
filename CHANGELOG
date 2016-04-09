@@ -1,3 +1,11 @@
+- 0.6
+  * Removed support for Django 1.7
+  * MACAddressField fixes and cleanups (Andreas Rammhold)
+  * Support for ArrayField from django.contrib.postgres. Note that the types
+    returned in the array will not be the proper types returned by the
+    non-array fields in Django < 1.9.6 due to
+    https://code.djangoproject.com/ticket/25143
+
 - 0.5.3
   * Add max_prefixlen and min_prefixlen lookups (Hugo Castilho)
   * Changed field subclassing to Django 1.8+ format (Antwan86)

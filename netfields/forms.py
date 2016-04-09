@@ -3,10 +3,7 @@ from netaddr import EUI, AddrFormatError
 
 from django import forms
 import django
-if django.VERSION >= (1, 7):
-    from django.forms.utils import flatatt
-else:
-    from django.forms.util import flatatt
+from django.forms.utils import flatatt
 from django.utils.safestring import mark_safe
 from django.core.exceptions import ValidationError
 
