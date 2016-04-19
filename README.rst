@@ -87,6 +87,9 @@ added:
 ``__net_contains_or_equals``
     contains or is equal to the given address/network
 
+``__net_overlaps``
+    contains or contained by the given address
+
 ``__family``
     matches the given address family
 

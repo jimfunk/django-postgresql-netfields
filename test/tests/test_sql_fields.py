@@ -162,6 +162,12 @@ class BaseInetTestCase(BaseSqlTestCase):
             self.select + 'WHERE "table"."field" <<= %s'
         )
 
+    def test_net_overlaps(self):
+        self.assertSqlEquals(
+            self.qs.filter(field__net_overlaps='10.0.0.0/24'),
+            self.select + 'WHERE "table"."field" && %s',
+        )
+
     def test_family_lookup(self):
         self.assertSqlEquals(
             self.qs.filter(field__family=4),
@@ -311,12 +317,12 @@ class TestInetField(BaseInetFieldTestCase, TestCase):
         instance = self.model.objects.create(field='10.1.2.3/24')
         instance = self.model.objects.get(pk=instance.pk)
         self.assertIsInstance(instance.field, IPv4Interface)
-        
+
     def test_retrieves_ipv6_ipinterface_type(self):
         instance = self.model.objects.create(field='2001:db8::1/32')
         instance = self.model.objects.get(pk=instance.pk)
         self.assertIsInstance(instance.field, IPv6Interface)
-        
+
     def test_save_preserves_prefix_length(self):
         instance = self.model.objects.create(field='10.1.2.3/24')
         instance = self.model.objects.get(pk=instance.pk)
@@ -365,7 +371,7 @@ class TestInetFieldNoPrefix(BaseInetFieldTestCase, TestCase):
         instance = self.model.objects.create(field='10.1.2.3/24')
         instance = self.model.objects.get(pk=instance.pk)
         self.assertIsInstance(instance.field, IPv4Address)
-        
+
     def test_retrieves_ipv6_ipaddress_type(self):
         instance = self.model.objects.create(field='2001:db8::1/32')
         instance = self.model.objects.get(pk=instance.pk)
@@ -391,12 +397,12 @@ class TestCidrField(BaseCidrFieldTestCase, TestCase):
         instance = self.model.objects.create(field='10.1.2.0/24')
         instance = self.model.objects.get(pk=instance.pk)
         self.assertIsInstance(instance.field, IPv4Network)
-        
+
     def test_retrieves_ipv6_ipnetwork_type(self):
         instance = self.model.objects.create(field='2001:db8::0/32')
         instance = self.model.objects.get(pk=instance.pk)
         self.assertIsInstance(instance.field, IPv6Network)
-        
+
 
 class TestCidrFieldNullable(BaseCidrFieldTestCase, TestCase):
     def setUp(self):
