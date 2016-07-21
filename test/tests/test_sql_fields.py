@@ -1,21 +1,36 @@
 from __future__ import unicode_literals
 import django
+from django import VERSION
 from django.core.exceptions import ValidationError
-from ipaddress import ip_interface, ip_network, IPv4Address, IPv6Address
+from ipaddress import (
+    IPv4Address,
+    IPv4Interface,
+    IPv4Network,
+    IPv6Address,
+    IPv6Interface,
+    IPv6Network,
+    ip_address,
+    ip_interface,
+    ip_network,
+)
 from netaddr import EUI
 
 from django.db import IntegrityError
 from django.core.exceptions import FieldError
 from django.test import TestCase
+from unittest import skipIf
 
 from test.models import (
+    CidrArrayTestModel,
     CidrTestModel,
+    InetArrayTestModel,
     InetTestModel,
     NullCidrTestModel,
     NullInetTestModel,
     UniqueInetTestModel,
     UniqueCidrTestModel,
     NoPrefixInetTestModel,
+    MACArrayTestModel,
     MACTestModel
 )
 
@@ -292,16 +307,20 @@ class TestInetField(BaseInetFieldTestCase, TestCase):
     def test_save_accepts_bytes(self):
         self.model(field=b'1.1.1.1/24').save()
 
+    def test_retrieves_ipv4_ipinterface_type(self):
+        instance = self.model.objects.create(field='10.1.2.3/24')
+        instance = self.model.objects.get(pk=instance.pk)
+        self.assertIsInstance(instance.field, IPv4Interface)
+        
+    def test_retrieves_ipv6_ipinterface_type(self):
+        instance = self.model.objects.create(field='2001:db8::1/32')
+        instance = self.model.objects.get(pk=instance.pk)
+        self.assertIsInstance(instance.field, IPv6Interface)
+        
     def test_save_preserves_prefix_length(self):
         instance = self.model.objects.create(field='10.1.2.3/24')
         instance = self.model.objects.get(pk=instance.pk)
         self.assertEqual(str(instance.field), '10.1.2.3/24')
-        self.assertIsInstance(instance.field, IPv4Address)
-
-        instance = self.model.objects.create(field='2001:0DB8::/32')
-        instance = self.model.objects.get(pk=instance.pk)
-        self.assertEqual(str(instance.field), '2001:db8::/32')
-        self.assertIsInstance(instance.field, IPv6Address)
 
 
 class TestInetFieldNullable(BaseInetFieldTestCase, TestCase):
@@ -342,6 +361,16 @@ class TestInetFieldNoPrefix(BaseInetFieldTestCase, TestCase):
         instance = self.model.objects.get(pk=instance.pk)
         self.assertEqual(str(instance.field), '10.1.2.3')
 
+    def test_retrieves_ipv4_ipaddress_type(self):
+        instance = self.model.objects.create(field='10.1.2.3/24')
+        instance = self.model.objects.get(pk=instance.pk)
+        self.assertIsInstance(instance.field, IPv4Address)
+        
+    def test_retrieves_ipv6_ipaddress_type(self):
+        instance = self.model.objects.create(field='2001:db8::1/32')
+        instance = self.model.objects.get(pk=instance.pk)
+        self.assertIsInstance(instance.field, IPv6Address)
+
 
 class TestCidrField(BaseCidrFieldTestCase, TestCase):
     def setUp(self):
@@ -358,6 +387,16 @@ class TestCidrField(BaseCidrFieldTestCase, TestCase):
     def test_save_nothing_fails(self):
         self.assertRaises(IntegrityError, self.model().save)
 
+    def test_retrieves_ipv4_ipnetwork_type(self):
+        instance = self.model.objects.create(field='10.1.2.0/24')
+        instance = self.model.objects.get(pk=instance.pk)
+        self.assertIsInstance(instance.field, IPv4Network)
+        
+    def test_retrieves_ipv6_ipnetwork_type(self):
+        instance = self.model.objects.create(field='2001:db8::0/32')
+        instance = self.model.objects.get(pk=instance.pk)
+        self.assertIsInstance(instance.field, IPv6Network)
+        
 
 class TestCidrFieldNullable(BaseCidrFieldTestCase, TestCase):
     def setUp(self):
@@ -455,8 +494,64 @@ class TestMacAddressField(BaseMacTestCase, TestCase):
     def test_invalid_fails(self):
         self.assertRaises(ValidationError, lambda: self.model(field='foobar').save())
 
-    def test_returns_eui(self):
-        self.model(field=self.value1).save()
+    def test_retrieves_eui_type(self):
+        instance = self.model.objects.create(field='00:aa:2b:c3:dd:44')
+        instance = self.model.objects.get(pk=instance.pk)
+        self.assertIsInstance(instance.field, EUI)
 
-        obj = self.qs.first()
-        self.assert_(isinstance(obj.field, EUI))
+
+class TestInetAddressFieldArray(TestCase):
+    def test_save_null(self):
+        InetArrayTestModel().save()
+
+    def test_save_single_item(self):
+        InetArrayTestModel(field=['10.1.1.1/24']).save()
+
+    def test_save_multiple_items(self):
+        InetArrayTestModel(field=['10.1.1.1', '10.1.1.2']).save()
+
+    @skipIf(VERSION < (1, 9, 6), 'ArrayField does not return correct types in Django < 1.9.6. https://code.djangoproject.com/ticket/25143')
+    def test_retrieves_ipv4_ipinterface_type(self):
+        instance = InetArrayTestModel(field=['10.1.1.1/24'])
+        instance.save()
+        instance = InetArrayTestModel.objects.get(id=instance.id)
+        self.assertEqual(instance.field, [IPv4Interface('10.1.1.1/24')])
+        self.assertIsInstance(instance.field[0], IPv4Interface)
+
+
+class TestCidrAddressFieldArray(TestCase):
+    def test_save_null(self):
+        CidrArrayTestModel().save()
+
+    def test_save_single_item(self):
+        CidrArrayTestModel(field=['10.1.1.0/24']).save()
+
+    def test_save_multiple_items(self):
+        CidrArrayTestModel(field=['10.1.1.0/24', '10.1.2.0/24']).save()
+
+    @skipIf(VERSION < (1, 9, 6), 'ArrayField does not return correct types in Django < 1.9.6. https://code.djangoproject.com/ticket/25143')
+    def test_retrieves_ipv4_ipnetwork_type(self):
+        instance = CidrArrayTestModel(field=['10.1.1.0/24'])
+        instance.save()
+        instance = CidrArrayTestModel.objects.get(id=instance.id)
+        self.assertEqual(instance.field, [IPv4Network('10.1.1.0/24')])
+        self.assertIsInstance(instance.field[0], IPv4Network)
+
+
+class TestMACAddressFieldArray(TestCase):
+    def test_save_null(self):
+        MACArrayTestModel().save()
+
+    def test_save_single_item(self):
+        MACArrayTestModel(field=['00:aa:2b:c3:dd:44']).save()
+
+    def test_save_multiple_items(self):
+        MACArrayTestModel(field=['00:aa:2b:c3:dd:44', '00:aa:2b:c3:dd:45']).save()
+
+    @skipIf(VERSION < (1, 9, 6), 'ArrayField does not return correct types in Django < 1.9.6. https://code.djangoproject.com/ticket/25143')
+    def test_retrieves_eui_type(self):
+        instance = MACArrayTestModel(field=['00:aa:2b:c3:dd:44'])
+        instance.save()
+        instance = MACArrayTestModel.objects.get(id=instance.id)
+        self.assertEqual(instance.field, [EUI('00:aa:2b:c3:dd:44')])
+        self.assertIsInstance(instance.field[0], EUI)
