@@ -19,6 +19,7 @@ NET_OPERATORS['net_contained'] = '<< %s'
 NET_OPERATORS['net_contained_or_equal'] = '<<= %s'
 NET_OPERATORS['net_contains'] = '>> %s'
 NET_OPERATORS['net_contains_or_equals'] = '>>= %s'
+NET_OPERATORS['net_overlaps'] = '&& %s'
 NET_OPERATORS['max_prefixlen'] = '%s'
 NET_OPERATORS['min_prefixlen'] = '%s'
 

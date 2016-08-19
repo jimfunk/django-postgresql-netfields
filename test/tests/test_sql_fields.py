@@ -167,6 +167,12 @@ class BaseInetTestCase(BaseSqlTestCase):
             self.select + 'WHERE "table"."field" <<= %s'
         )
 
+    def test_net_overlaps(self):
+        self.assertSqlEquals(
+            self.qs.filter(field__net_overlaps='10.0.0.0/24'),
+            self.select + 'WHERE "table"."field" && %s',
+        )
+
     def test_family_lookup(self):
         self.assertSqlEquals(
             self.qs.filter(field__family=4),
