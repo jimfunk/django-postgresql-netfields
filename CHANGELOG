@@ -1,3 +1,8 @@
+- 0.7
+  * Added support for Django 1.10
+  * Added __overlaps lookup (Emre Hasegeli)
+  * Fixed __in lookups of empty lists (Simeon J Morgan)
+
 - 0.6
   * Removed support for Django 1.7
   * MACAddressField fixes and cleanups (Andreas Rammhold)
