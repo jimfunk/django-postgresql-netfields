@@ -112,7 +112,7 @@ class NetContainedOrEqual(NetworkLookup, Lookup):
         return '%s <<= %s' % (lhs, rhs), params
 
 
-class NetOverlaps(Lookup):
+class NetOverlaps(NetworkLookup, Lookup):
     lookup_name = 'net_overlaps'
 
     def as_sql(self, qn, connection):
