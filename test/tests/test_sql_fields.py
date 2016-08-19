@@ -152,13 +152,13 @@ class BaseInetTestCase(BaseSqlTestCase):
 
     def test_net_contained(self):
         self.assertSqlEquals(
-            self.qs.filter(field__net_contained='10.0.0.1/24'),
+            self.qs.filter(field__net_contained='10.0.0.0/24'),
             self.select + 'WHERE "table"."field" << %s'
         )
 
     def test_net_contained_or_equals(self):
         self.assertSqlEquals(
-            self.qs.filter(field__net_contained_or_equal='10.0.0.1/24'),
+            self.qs.filter(field__net_contained_or_equal='10.0.0.0/24'),
             self.select + 'WHERE "table"."field" <<= %s'
         )
 
@@ -311,12 +311,12 @@ class TestInetField(BaseInetFieldTestCase, TestCase):
         instance = self.model.objects.create(field='10.1.2.3/24')
         instance = self.model.objects.get(pk=instance.pk)
         self.assertIsInstance(instance.field, IPv4Interface)
-        
+
     def test_retrieves_ipv6_ipinterface_type(self):
         instance = self.model.objects.create(field='2001:db8::1/32')
         instance = self.model.objects.get(pk=instance.pk)
         self.assertIsInstance(instance.field, IPv6Interface)
-        
+
     def test_save_preserves_prefix_length(self):
         instance = self.model.objects.create(field='10.1.2.3/24')
         instance = self.model.objects.get(pk=instance.pk)
@@ -365,7 +365,7 @@ class TestInetFieldNoPrefix(BaseInetFieldTestCase, TestCase):
         instance = self.model.objects.create(field='10.1.2.3/24')
         instance = self.model.objects.get(pk=instance.pk)
         self.assertIsInstance(instance.field, IPv4Address)
-        
+
     def test_retrieves_ipv6_ipaddress_type(self):
         instance = self.model.objects.create(field='2001:db8::1/32')
         instance = self.model.objects.get(pk=instance.pk)
@@ -391,12 +391,12 @@ class TestCidrField(BaseCidrFieldTestCase, TestCase):
         instance = self.model.objects.create(field='10.1.2.0/24')
         instance = self.model.objects.get(pk=instance.pk)
         self.assertIsInstance(instance.field, IPv4Network)
-        
+
     def test_retrieves_ipv6_ipnetwork_type(self):
         instance = self.model.objects.create(field='2001:db8::0/32')
         instance = self.model.objects.get(pk=instance.pk)
         self.assertIsInstance(instance.field, IPv6Network)
-        
+
 
 class TestCidrFieldNullable(BaseCidrFieldTestCase, TestCase):
     def setUp(self):
@@ -510,7 +510,7 @@ class TestInetAddressFieldArray(TestCase):
     def test_save_multiple_items(self):
         InetArrayTestModel(field=['10.1.1.1', '10.1.1.2']).save()
 
-    @skipIf(VERSION < (1, 9, 6), 'ArrayField does not return correct types in Django < 1.9.6. https://code.djangoproject.com/ticket/25143')
+    @skipIf(VERSION < (1, 10), 'ArrayField does not return correct types in Django < 1.10. https://code.djangoproject.com/ticket/25143')
     def test_retrieves_ipv4_ipinterface_type(self):
         instance = InetArrayTestModel(field=['10.1.1.1/24'])
         instance.save()
@@ -529,7 +529,7 @@ class TestCidrAddressFieldArray(TestCase):
     def test_save_multiple_items(self):
         CidrArrayTestModel(field=['10.1.1.0/24', '10.1.2.0/24']).save()
 
-    @skipIf(VERSION < (1, 9, 6), 'ArrayField does not return correct types in Django < 1.9.6. https://code.djangoproject.com/ticket/25143')
+    @skipIf(VERSION < (1, 10), 'ArrayField does not return correct types in Django < 1.10. https://code.djangoproject.com/ticket/25143')
     def test_retrieves_ipv4_ipnetwork_type(self):
         instance = CidrArrayTestModel(field=['10.1.1.0/24'])
         instance.save()
@@ -548,7 +548,7 @@ class TestMACAddressFieldArray(TestCase):
     def test_save_multiple_items(self):
         MACArrayTestModel(field=['00:aa:2b:c3:dd:44', '00:aa:2b:c3:dd:45']).save()
 
-    @skipIf(VERSION < (1, 9, 6), 'ArrayField does not return correct types in Django < 1.9.6. https://code.djangoproject.com/ticket/25143')
+    @skipIf(VERSION < (1, 10), 'ArrayField does not return correct types in Django < 1.10. https://code.djangoproject.com/ticket/25143')
     def test_retrieves_eui_type(self):
         instance = MACArrayTestModel(field=['00:aa:2b:c3:dd:44'])
         instance.save()

@@ -1,6 +1,7 @@
 from django.core.exceptions import FieldError
 from django.db.models import Lookup, Transform, IntegerField
 from django.db.models.lookups import EndsWith, IEndsWith, StartsWith, IStartsWith, Regex, IRegex
+import ipaddress
 from netfields.fields import InetAddressField, CidrAddressField
 
 
@@ -57,7 +58,21 @@ class IRegex(NetFieldDecoratorMixin, IRegex):
     pass
 
 
-class NetContains(Lookup):
+class NetworkLookup(object):
+    def get_prep_lookup(self):
+        if isinstance(self.rhs, ipaddress._BaseNetwork):
+            return str(self.rhs)
+        return str(ipaddress.ip_network(self.rhs))
+
+
+class AddressLookup(object):
+    def get_prep_lookup(self):
+        if isinstance(self.rhs, ipaddress._BaseAddress):
+            return str(self.rhs)
+        return str(ipaddress.ip_interface(self.rhs))
+
+
+class NetContains(AddressLookup, Lookup):
     lookup_name = 'net_contains'
 
     def as_sql(self, qn, connection):
@@ -67,7 +82,7 @@ class NetContains(Lookup):
         return '%s >> %s' % (lhs, rhs), params
 
 
-class NetContained(Lookup):
+class NetContained(NetworkLookup, Lookup):
     lookup_name = 'net_contained'
 
     def as_sql(self, qn, connection):
@@ -77,7 +92,7 @@ class NetContained(Lookup):
         return '%s << %s' % (lhs, rhs), params
 
 
-class NetContainsOrEquals(Lookup):
+class NetContainsOrEquals(AddressLookup, Lookup):
     lookup_name = 'net_contains_or_equals'
 
     def as_sql(self, qn, connection):
@@ -87,7 +102,7 @@ class NetContainsOrEquals(Lookup):
         return '%s >>= %s' % (lhs, rhs), params
 
 
-class NetContainedOrEqual(Lookup):
+class NetContainedOrEqual(NetworkLookup, Lookup):
     lookup_name = 'net_contained_or_equal'
 
     def as_sql(self, qn, connection):
@@ -115,6 +130,9 @@ class _PrefixlenMixin(object):
         lhs_string, lhs_params = qn.compile(lhs)
         lhs_string = 'MASKLEN(%s)' % lhs_string
         return lhs_string, lhs_params
+
+    def get_prep_lookup(self):
+        return str(int(self.rhs))
 
 
 class MaxPrefixlen(_PrefixlenMixin, Lookup):
