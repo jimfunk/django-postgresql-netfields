@@ -299,6 +299,12 @@ class BaseCidrFieldTestCase(BaseInetTestCase):
             self.select + 'WHERE masklen("table"."field") >= %s'
         )
 
+    def test_prefixlen(self):
+        self.assertSqlEquals(
+            self.qs.filter(field__prefixlen='16'),
+            self.select + 'WHERE masklen("table"."field") = %s'
+        )
+
 
 class TestInetField(BaseInetFieldTestCase, TestCase):
     def setUp(self):
