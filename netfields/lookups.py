@@ -135,6 +135,15 @@ class Family(Transform):
 
 
 class _PrefixlenMixin(object):
+    format_string = None
+
+    def as_sql(self, qn, connection):
+        assert self.format_string is not None, "Prefixlen lookups must specify a format_string"
+        lhs, lhs_params = self.process_lhs(qn, connection)
+        rhs, rhs_params = self.process_rhs(qn, connection)
+        params = lhs_params + rhs_params
+        return self.format_string % (lhs, rhs), params
+
     def process_lhs(self, qn, connection, lhs=None):
         lhs = lhs or self.lhs
         lhs_string, lhs_params = qn.compile(lhs)
@@ -147,19 +156,14 @@ class _PrefixlenMixin(object):
 
 class MaxPrefixlen(_PrefixlenMixin, Lookup):
     lookup_name = 'max_prefixlen'
-
-    def as_sql(self, qn, connection):
-        lhs, lhs_params = self.process_lhs(qn, connection)
-        rhs, rhs_params = self.process_rhs(qn, connection)
-        params = lhs_params + rhs_params
-        return '%s <= %s' % (lhs, rhs), params
+    format_string = '%s <= %s'
 
 
 class MinPrefixlen(_PrefixlenMixin, Lookup):
     lookup_name = 'min_prefixlen'
+    format_string = '%s >= %s'
 
-    def as_sql(self, qn, connection):
-        lhs, lhs_params = self.process_lhs(qn, connection)
-        rhs, rhs_params = self.process_rhs(qn, connection)
-        params = lhs_params + rhs_params
-        return '%s >= %s' % (lhs, rhs), params
+
+class Prefixlen(_PrefixlenMixin, Lookup):
+    lookup_name = 'prefixlen'
+    format_string = '%s = %s'

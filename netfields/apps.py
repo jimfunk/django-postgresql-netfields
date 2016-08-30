@@ -18,6 +18,7 @@ from netfields.lookups import (
     NetContains,
     NetContainsOrEquals,
     NetOverlaps,
+    Prefixlen,
     Regex,
     StartsWith,
 )
@@ -51,6 +52,7 @@ class NetfieldsConfig(AppConfig):
     CidrAddressField.register_lookup(Family)
     CidrAddressField.register_lookup(MaxPrefixlen)
     CidrAddressField.register_lookup(MinPrefixlen)
+    CidrAddressField.register_lookup(Prefixlen)
 
     InetAddressField.register_lookup(EndsWith)
     InetAddressField.register_lookup(IEndsWith)
