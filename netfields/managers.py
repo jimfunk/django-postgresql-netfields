@@ -73,11 +73,3 @@ class NetManager(models.Manager):
     def get_queryset(self):
         q = NetQuery(self.model, NetWhere)
         return query.QuerySet(self.model, q)
-
-    def filter(self, *args, **kwargs):
-        for key, val in kwargs.items():
-            if isinstance(val, _BaseNetwork):
-                # Django will attempt to consume the _BaseNetwork iterator, which
-                # will convert it to a list of every address in the network
-                kwargs[key] = str(val)
-        return super(NetManager, self).filter(*args, **kwargs)
