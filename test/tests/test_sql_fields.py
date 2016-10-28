@@ -227,6 +227,9 @@ class BaseInetFieldTestCase(BaseInetTestCase):
     def test_query_filter_ipaddress(self):
         self.model.objects.filter(field=ip_interface('1.2.3.4'))
 
+    def test_query_filter_contains_ipnetwork(self):
+        self.model.objects.filter(field__net_contains=ip_network(u'2001::0/16'))
+
 
 class BaseCidrFieldTestCase(BaseInetTestCase):
     value1 = '10.0.0.1/32'

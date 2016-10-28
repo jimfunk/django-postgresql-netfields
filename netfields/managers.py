@@ -7,6 +7,12 @@ from django.db.backends.postgresql_psycopg2.base import DatabaseWrapper
 from django.db.models import sql, query
 from django.db.models.fields import DateTimeField
 
+try:
+    str_type = unicode
+except NameError:
+    str_type = str
+
+
 NET_OPERATORS = DatabaseWrapper.operators.copy()
 
 for operator in ['contains', 'startswith', 'endswith']:
@@ -79,5 +85,5 @@ class NetManager(models.Manager):
             if isinstance(val, _BaseNetwork):
                 # Django will attempt to consume the _BaseNetwork iterator, which
                 # will convert it to a list of every address in the network
-                kwargs[key] = str(val)
+                kwargs[key] = str_type(val)
         return super(NetManager, self).filter(*args, **kwargs)
