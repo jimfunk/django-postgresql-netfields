@@ -19,6 +19,9 @@ class _NetAddressField(models.Field):
         super(_NetAddressField, self).__init__(*args, **kwargs)
 
     def from_db_value(self, value, expression, connection, context):
+        if isinstance(value, list):
+            # Aggregation detected, return a list of values
+            return [self.to_python(v) for v in value if v is not None]
         return self.to_python(value)
 
     def to_python(self, value):
