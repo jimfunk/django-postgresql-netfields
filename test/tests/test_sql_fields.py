@@ -19,7 +19,6 @@ from django.db import IntegrityError
 from django.db.models.sql import EmptyResultSet
 from django.core.exceptions import FieldError
 from django.test import TestCase
-from django.contrib.postgres.aggregates import ArrayAgg
 from unittest import skipIf
 
 from test.models import (
@@ -581,7 +580,10 @@ class TestMACAddressFieldArray(TestCase):
 
 
 class TestAggegate(TestCase):
+    @skipIf(VERSION < (1, 9), 'Postgres aggregates not supported in Django < 1.9')
     def test_aggregate(self):
+        from django.contrib.postgres.aggregates import ArrayAgg
+
         network = IPv4Network('10.10.10.10/32')
         inet = IPv4Interface('10.20.30.20/32')
 
