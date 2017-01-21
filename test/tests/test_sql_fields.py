@@ -32,7 +32,9 @@ from test.models import (
     UniqueCidrTestModel,
     NoPrefixInetTestModel,
     MACArrayTestModel,
-    MACTestModel
+    MACTestModel,
+    AggregateTestModel,
+    AggregateTestChildModel
 )
 
 
@@ -575,3 +577,32 @@ class TestMACAddressFieldArray(TestCase):
         instance = MACArrayTestModel.objects.get(id=instance.id)
         self.assertEqual(instance.field, [EUI('00:aa:2b:c3:dd:44')])
         self.assertIsInstance(instance.field[0], EUI)
+
+
+class TestAggegate(TestCase):
+    @skipIf(VERSION < (1, 9), 'Postgres aggregates not supported in Django < 1.9')
+    def test_aggregate_inet(self):
+        from django.contrib.postgres.aggregates import ArrayAgg        
+        inet = IPv4Interface('10.20.30.20/32')
+        network = IPv4Network('10.10.10.10/32')
+        
+        parent = AggregateTestModel.objects.create()
+        inet_qs = AggregateTestModel.objects.annotate(agg_inet=ArrayAgg('children__inet'))
+        
+        self.assertEqual(inet_qs[0].agg_inet, [])
+
+        AggregateTestChildModel.objects.create(parent=parent, network=network, inet=inet)
+        self.assertEqual(inet_qs[0].agg_inet, [inet])
+        
+    @skipIf(VERSION < (1, 9), 'Postgres aggregates not supported in Django < 1.9')
+    def test_aggregate_network(self):
+        from django.contrib.postgres.aggregates import ArrayAgg  
+        inet = IPv4Interface('10.20.30.20/32')
+        network = IPv4Network('10.10.10.10/32')
+        
+        parent = AggregateTestModel.objects.create()
+        network_qs = AggregateTestModel.objects.annotate(agg_network=ArrayAgg('children__network'))
+        
+        self.assertEqual(network_qs[0].agg_network, [])
+        AggregateTestChildModel.objects.create(parent=parent, network=network, inet=inet)
+        self.assertEqual(network_qs[0].agg_network, [network])
