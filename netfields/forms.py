@@ -17,7 +17,14 @@ class NetInput(forms.Widget):
         # Default forms.Widget compares value != '' which breaks IP...
         if value is None:
             value = ''
-        final_attrs = self.build_attrs(attrs, type=self.input_type, name=name)
+        if attrs is None:
+            attrs = {}
+        base_attrs = {
+            "type": self.input_type,
+            "name": name
+        }
+        base_attrs.update(attrs)
+        final_attrs = self.build_attrs(base_attrs)
         if value:
             final_attrs['value'] = value
         return mark_safe(u'<input%s />' % flatatt(final_attrs))
