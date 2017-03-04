@@ -10,7 +10,7 @@ class Macaddr(Inet):
         obj = psycopg2.extensions.adapt(self.addr)
         if hasattr(obj, 'prepare'):
             obj.prepare(self._conn)
-        return obj.getquoted() + psycopg2.extensions.b("::macaddr")
+        return obj.getquoted() + b"::macaddr"
  
 
 # Register array types for CIDR and MACADDR (Django already registers INET) 
