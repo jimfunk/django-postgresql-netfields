@@ -1,3 +1,11 @@
+- 0.7.1
+  * Fix issue with recent psycopg2 releases (Jonas Genannt)
+  * Add a lookup for exact CIDR prefix length (Joey Wilhelm)
+  * Use proper unicode type when casting ipaddress/ipnetwork objects for
+    queries
+  * Support array aggregation with netfields (orf)
+  * compatibility with template based widgets (Leo Honkanen)
+
 - 0.7
   * Added support for Django 1.10
   * Added __overlaps lookup (Emre Hasegeli)
