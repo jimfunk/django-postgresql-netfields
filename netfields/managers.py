@@ -7,6 +7,12 @@ from django.db.backends.postgresql_psycopg2.base import DatabaseWrapper
 from django.db.models import sql, query
 from django.db.models.fields import DateTimeField
 
+try:
+    str_type = unicode
+except NameError:
+    str_type = str
+
+
 NET_OPERATORS = DatabaseWrapper.operators.copy()
 
 for operator in ['contains', 'startswith', 'endswith']:
@@ -19,6 +25,7 @@ NET_OPERATORS['net_contained'] = '<< %s'
 NET_OPERATORS['net_contained_or_equal'] = '<<= %s'
 NET_OPERATORS['net_contains'] = '>> %s'
 NET_OPERATORS['net_contains_or_equals'] = '>>= %s'
+NET_OPERATORS['net_overlaps'] = '&& %s'
 NET_OPERATORS['max_prefixlen'] = '%s'
 NET_OPERATORS['min_prefixlen'] = '%s'
 
@@ -78,5 +85,5 @@ class NetManager(models.Manager):
             if isinstance(val, _BaseNetwork):
                 # Django will attempt to consume the _BaseNetwork iterator, which
                 # will convert it to a list of every address in the network
-                kwargs[key] = str(val)
+                kwargs[key] = str_type(val)
         return super(NetManager, self).filter(*args, **kwargs)

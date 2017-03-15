@@ -19,6 +19,9 @@ class _NetAddressField(models.Field):
         super(_NetAddressField, self).__init__(*args, **kwargs)
 
     def from_db_value(self, value, expression, connection, context):
+        if isinstance(value, list):
+            # Aggregation detected, return a list of values
+            return [self.to_python(v) for v in value if v is not None]
         return self.to_python(value)
 
     def to_python(self, value):
@@ -34,6 +37,7 @@ class _NetAddressField(models.Field):
             raise ValidationError(e)
 
     def get_prep_lookup(self, lookup_type, value):
+
         if (lookup_type in NET_OPERATORS and
                     NET_OPERATORS[lookup_type] not in NET_TEXT_OPERATORS):
             if (lookup_type.startswith('net_contained') or

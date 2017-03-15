@@ -1,5 +1,5 @@
 from django.contrib.postgres.fields import ArrayField
-from django.db.models import Model
+from django.db.models import Model, ForeignKey
 
 from netfields import InetAddressField, CidrAddressField, MACAddressField, \
         NetManager
@@ -88,3 +88,13 @@ class MACArrayTestModel(Model):
 
     class Meta:
         db_table = 'macarray'
+
+
+class AggregateTestModel(Model):
+    pass
+
+
+class AggregateTestChildModel(Model):
+    parent = ForeignKey('AggregateTestModel', related_name='children')
+    network = CidrAddressField()
+    inet = InetAddressField()

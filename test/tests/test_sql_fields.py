@@ -16,6 +16,7 @@ from ipaddress import (
 from netaddr import EUI
 
 from django.db import IntegrityError
+from django.db.models.sql import EmptyResultSet
 from django.core.exceptions import FieldError
 from django.test import TestCase
 from unittest import skipIf
@@ -31,7 +32,9 @@ from test.models import (
     UniqueCidrTestModel,
     NoPrefixInetTestModel,
     MACArrayTestModel,
-    MACTestModel
+    MACTestModel,
+    AggregateTestModel,
+    AggregateTestChildModel
 )
 
 
@@ -89,6 +92,10 @@ class BaseSqlTestCase(object):
             self.qs.filter(field__in=[self.value1]),
             self.select + 'WHERE "table"."field" IN (%s)'
         )
+
+    def test_in_empty_lookup(self):
+        with self.assertRaises(EmptyResultSet):
+            self.qs.filter(field__in=[]).query.get_compiler(self.qs.db).as_sql()
 
     def test_gt_lookup(self):
         self.assertSqlEquals(
@@ -152,14 +159,20 @@ class BaseInetTestCase(BaseSqlTestCase):
 
     def test_net_contained(self):
         self.assertSqlEquals(
-            self.qs.filter(field__net_contained='10.0.0.1/24'),
+            self.qs.filter(field__net_contained='10.0.0.0/24'),
             self.select + 'WHERE "table"."field" << %s'
         )
 
     def test_net_contained_or_equals(self):
         self.assertSqlEquals(
-            self.qs.filter(field__net_contained_or_equal='10.0.0.1/24'),
+            self.qs.filter(field__net_contained_or_equal='10.0.0.0/24'),
             self.select + 'WHERE "table"."field" <<= %s'
+        )
+
+    def test_net_overlaps(self):
+        self.assertSqlEquals(
+            self.qs.filter(field__net_overlaps='10.0.0.0/24'),
+            self.select + 'WHERE "table"."field" && %s',
         )
 
     def test_family_lookup(self):
@@ -215,6 +228,9 @@ class BaseInetFieldTestCase(BaseInetTestCase):
 
     def test_query_filter_ipaddress(self):
         self.model.objects.filter(field=ip_interface('1.2.3.4'))
+
+    def test_query_filter_contains_ipnetwork(self):
+        self.model.objects.filter(field__net_contains=ip_network(u'2001::0/16'))
 
 
 class BaseCidrFieldTestCase(BaseInetTestCase):
@@ -288,6 +304,12 @@ class BaseCidrFieldTestCase(BaseInetTestCase):
             self.select + 'WHERE masklen("table"."field") >= %s'
         )
 
+    def test_prefixlen(self):
+        self.assertSqlEquals(
+            self.qs.filter(field__prefixlen='16'),
+            self.select + 'WHERE masklen("table"."field") = %s'
+        )
+
 
 class TestInetField(BaseInetFieldTestCase, TestCase):
     def setUp(self):
@@ -311,12 +333,12 @@ class TestInetField(BaseInetFieldTestCase, TestCase):
         instance = self.model.objects.create(field='10.1.2.3/24')
         instance = self.model.objects.get(pk=instance.pk)
         self.assertIsInstance(instance.field, IPv4Interface)
-        
+
     def test_retrieves_ipv6_ipinterface_type(self):
         instance = self.model.objects.create(field='2001:db8::1/32')
         instance = self.model.objects.get(pk=instance.pk)
         self.assertIsInstance(instance.field, IPv6Interface)
-        
+
     def test_save_preserves_prefix_length(self):
         instance = self.model.objects.create(field='10.1.2.3/24')
         instance = self.model.objects.get(pk=instance.pk)
@@ -365,7 +387,7 @@ class TestInetFieldNoPrefix(BaseInetFieldTestCase, TestCase):
         instance = self.model.objects.create(field='10.1.2.3/24')
         instance = self.model.objects.get(pk=instance.pk)
         self.assertIsInstance(instance.field, IPv4Address)
-        
+
     def test_retrieves_ipv6_ipaddress_type(self):
         instance = self.model.objects.create(field='2001:db8::1/32')
         instance = self.model.objects.get(pk=instance.pk)
@@ -391,12 +413,12 @@ class TestCidrField(BaseCidrFieldTestCase, TestCase):
         instance = self.model.objects.create(field='10.1.2.0/24')
         instance = self.model.objects.get(pk=instance.pk)
         self.assertIsInstance(instance.field, IPv4Network)
-        
+
     def test_retrieves_ipv6_ipnetwork_type(self):
         instance = self.model.objects.create(field='2001:db8::0/32')
         instance = self.model.objects.get(pk=instance.pk)
         self.assertIsInstance(instance.field, IPv6Network)
-        
+
 
 class TestCidrFieldNullable(BaseCidrFieldTestCase, TestCase):
     def setUp(self):
@@ -510,7 +532,7 @@ class TestInetAddressFieldArray(TestCase):
     def test_save_multiple_items(self):
         InetArrayTestModel(field=['10.1.1.1', '10.1.1.2']).save()
 
-    @skipIf(VERSION < (1, 9, 6), 'ArrayField does not return correct types in Django < 1.9.6. https://code.djangoproject.com/ticket/25143')
+    @skipIf(VERSION < (1, 10), 'ArrayField does not return correct types in Django < 1.10. https://code.djangoproject.com/ticket/25143')
     def test_retrieves_ipv4_ipinterface_type(self):
         instance = InetArrayTestModel(field=['10.1.1.1/24'])
         instance.save()
@@ -529,7 +551,7 @@ class TestCidrAddressFieldArray(TestCase):
     def test_save_multiple_items(self):
         CidrArrayTestModel(field=['10.1.1.0/24', '10.1.2.0/24']).save()
 
-    @skipIf(VERSION < (1, 9, 6), 'ArrayField does not return correct types in Django < 1.9.6. https://code.djangoproject.com/ticket/25143')
+    @skipIf(VERSION < (1, 10), 'ArrayField does not return correct types in Django < 1.10. https://code.djangoproject.com/ticket/25143')
     def test_retrieves_ipv4_ipnetwork_type(self):
         instance = CidrArrayTestModel(field=['10.1.1.0/24'])
         instance.save()
@@ -548,10 +570,39 @@ class TestMACAddressFieldArray(TestCase):
     def test_save_multiple_items(self):
         MACArrayTestModel(field=['00:aa:2b:c3:dd:44', '00:aa:2b:c3:dd:45']).save()
 
-    @skipIf(VERSION < (1, 9, 6), 'ArrayField does not return correct types in Django < 1.9.6. https://code.djangoproject.com/ticket/25143')
+    @skipIf(VERSION < (1, 10), 'ArrayField does not return correct types in Django < 1.10. https://code.djangoproject.com/ticket/25143')
     def test_retrieves_eui_type(self):
         instance = MACArrayTestModel(field=['00:aa:2b:c3:dd:44'])
         instance.save()
         instance = MACArrayTestModel.objects.get(id=instance.id)
         self.assertEqual(instance.field, [EUI('00:aa:2b:c3:dd:44')])
         self.assertIsInstance(instance.field[0], EUI)
+
+
+class TestAggegate(TestCase):
+    @skipIf(VERSION < (1, 9), 'Postgres aggregates not supported in Django < 1.9')
+    def test_aggregate_inet(self):
+        from django.contrib.postgres.aggregates import ArrayAgg        
+        inet = IPv4Interface('10.20.30.20/32')
+        network = IPv4Network('10.10.10.10/32')
+        
+        parent = AggregateTestModel.objects.create()
+        inet_qs = AggregateTestModel.objects.annotate(agg_inet=ArrayAgg('children__inet'))
+        
+        self.assertEqual(inet_qs[0].agg_inet, [])
+
+        AggregateTestChildModel.objects.create(parent=parent, network=network, inet=inet)
+        self.assertEqual(inet_qs[0].agg_inet, [inet])
+        
+    @skipIf(VERSION < (1, 9), 'Postgres aggregates not supported in Django < 1.9')
+    def test_aggregate_network(self):
+        from django.contrib.postgres.aggregates import ArrayAgg  
+        inet = IPv4Interface('10.20.30.20/32')
+        network = IPv4Network('10.10.10.10/32')
+        
+        parent = AggregateTestModel.objects.create()
+        network_qs = AggregateTestModel.objects.annotate(agg_network=ArrayAgg('children__network'))
+        
+        self.assertEqual(network_qs[0].agg_network, [])
+        AggregateTestChildModel.objects.create(parent=parent, network=network, inet=inet)
+        self.assertEqual(network_qs[0].agg_network, [network])

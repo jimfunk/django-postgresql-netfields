@@ -1,6 +1,7 @@
 from django.core.exceptions import FieldError
 from django.db.models import Lookup, Transform, IntegerField
 from django.db.models.lookups import EndsWith, IEndsWith, StartsWith, IStartsWith, Regex, IRegex
+import ipaddress
 from netfields.fields import InetAddressField, CidrAddressField
 
 
@@ -57,7 +58,21 @@ class IRegex(NetFieldDecoratorMixin, IRegex):
     pass
 
 
-class NetContains(Lookup):
+class NetworkLookup(object):
+    def get_prep_lookup(self):
+        if isinstance(self.rhs, ipaddress._BaseNetwork):
+            return str(self.rhs)
+        return str(ipaddress.ip_network(self.rhs))
+
+
+class AddressLookup(object):
+    def get_prep_lookup(self):
+        if isinstance(self.rhs, ipaddress._BaseAddress):
+            return str(self.rhs)
+        return str(ipaddress.ip_interface(self.rhs))
+
+
+class NetContains(AddressLookup, Lookup):
     lookup_name = 'net_contains'
 
     def as_sql(self, qn, connection):
@@ -67,7 +82,7 @@ class NetContains(Lookup):
         return '%s >> %s' % (lhs, rhs), params
 
 
-class NetContained(Lookup):
+class NetContained(NetworkLookup, Lookup):
     lookup_name = 'net_contained'
 
     def as_sql(self, qn, connection):
@@ -77,7 +92,7 @@ class NetContained(Lookup):
         return '%s << %s' % (lhs, rhs), params
 
 
-class NetContainsOrEquals(Lookup):
+class NetContainsOrEquals(AddressLookup, Lookup):
     lookup_name = 'net_contains_or_equals'
 
     def as_sql(self, qn, connection):
@@ -87,7 +102,7 @@ class NetContainsOrEquals(Lookup):
         return '%s >>= %s' % (lhs, rhs), params
 
 
-class NetContainedOrEqual(Lookup):
+class NetContainedOrEqual(NetworkLookup, Lookup):
     lookup_name = 'net_contained_or_equal'
 
     def as_sql(self, qn, connection):
@@ -95,6 +110,16 @@ class NetContainedOrEqual(Lookup):
         rhs, rhs_params = self.process_rhs(qn, connection)
         params = lhs_params + rhs_params
         return '%s <<= %s' % (lhs, rhs), params
+
+
+class NetOverlaps(NetworkLookup, Lookup):
+    lookup_name = 'net_overlaps'
+
+    def as_sql(self, qn, connection):
+        lhs, lhs_params = self.process_lhs(qn, connection)
+        rhs, rhs_params = self.process_rhs(qn, connection)
+        params = lhs_params + rhs_params
+        return '%s && %s' % (lhs, rhs), params
 
 
 class Family(Transform):
@@ -110,28 +135,35 @@ class Family(Transform):
 
 
 class _PrefixlenMixin(object):
+    format_string = None
+
+    def as_sql(self, qn, connection):
+        assert self.format_string is not None, "Prefixlen lookups must specify a format_string"
+        lhs, lhs_params = self.process_lhs(qn, connection)
+        rhs, rhs_params = self.process_rhs(qn, connection)
+        params = lhs_params + rhs_params
+        return self.format_string % (lhs, rhs), params
+
     def process_lhs(self, qn, connection, lhs=None):
         lhs = lhs or self.lhs
         lhs_string, lhs_params = qn.compile(lhs)
         lhs_string = 'MASKLEN(%s)' % lhs_string
         return lhs_string, lhs_params
 
+    def get_prep_lookup(self):
+        return str(int(self.rhs))
+
 
 class MaxPrefixlen(_PrefixlenMixin, Lookup):
     lookup_name = 'max_prefixlen'
-
-    def as_sql(self, qn, connection):
-        lhs, lhs_params = self.process_lhs(qn, connection)
-        rhs, rhs_params = self.process_rhs(qn, connection)
-        params = lhs_params + rhs_params
-        return '%s <= %s' % (lhs, rhs), params
+    format_string = '%s <= %s'
 
 
 class MinPrefixlen(_PrefixlenMixin, Lookup):
     lookup_name = 'min_prefixlen'
+    format_string = '%s >= %s'
 
-    def as_sql(self, qn, connection):
-        lhs, lhs_params = self.process_lhs(qn, connection)
-        rhs, rhs_params = self.process_rhs(qn, connection)
-        params = lhs_params + rhs_params
-        return '%s >= %s' % (lhs, rhs), params
+
+class Prefixlen(_PrefixlenMixin, Lookup):
+    lookup_name = 'prefixlen'
+    format_string = '%s = %s'
