@@ -56,8 +56,9 @@ class _NetAddressField(models.Field):
         return str(self.to_python(value))
 
     def get_db_prep_value(self, value, connection, prepared=False):
-        if not prepared:
-            return super(_NetAddressField, self).get_db_prep_value(value, connection, prepared)
+        base_field = self.model._meta.get_field(self.name).get_internal_type()
+        if prepared is False and base_field != 'ArrayField':
+            return self.get_prep_value(value)
 
         return Inet(self.get_prep_value(value))
 
@@ -153,8 +154,10 @@ class MACAddressField(models.Field):
         return text_type(self.to_python(value))
 
     def get_db_prep_value(self, value, connection, prepared=False):
-        if not prepared:
-            return super(MACAddressField, self).get_db_prep_value(value, connection, prepared)
+        base_field = self.model._meta.get_field(self.name).get_internal_type()
+
+        if prepared is False and base_field != 'ArrayField':
+            return self.get_prep_value(value)
 
         return Macaddr(self.get_prep_value(value))
 
