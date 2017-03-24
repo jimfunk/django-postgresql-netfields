@@ -56,8 +56,14 @@ class _NetAddressField(models.Field):
         return str(self.to_python(value))
 
     def get_db_prep_value(self, value, connection, prepared=False):
-        base_field = self.model._meta.get_field(self.name).get_internal_type()
-        if prepared is False and base_field != 'ArrayField':
+        # Django <= 1.8, ArrayField does not pass model to the base_field so we have to check for existance
+        model = getattr(self, 'model', None)
+        if model is None or model._meta.get_field(self.name).get_internal_type() == 'ArrayField':
+            is_array_field = True
+        else:
+            is_array_field = False
+
+        if prepared is False and is_array_field is False:
             return self.get_prep_value(value)
 
         return Inet(self.get_prep_value(value))
@@ -154,9 +160,14 @@ class MACAddressField(models.Field):
         return text_type(self.to_python(value))
 
     def get_db_prep_value(self, value, connection, prepared=False):
-        base_field = self.model._meta.get_field(self.name).get_internal_type()
+        # Django <= 1.8, ArrayField does not pass model to the base_field so we have to check for existance
+        model = getattr(self, 'model', None)
+        if model is None or model._meta.get_field(self.name).get_internal_type() == 'ArrayField':
+            is_array_field = True
+        else:
+            is_array_field = False
 
-        if prepared is False and base_field != 'ArrayField':
+        if prepared is False and is_array_field is False:
             return self.get_prep_value(value)
 
         return Macaddr(self.get_prep_value(value))
