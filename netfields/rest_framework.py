@@ -16,8 +16,8 @@ class NetfieldsField(serializers.CharField):
         """
         try:
             self.netfields_type(value).to_python(value)
-        except DjangoValidationError:
-            raise serializers.ValidationError("Invalid {} address.".format(self.address_type))
+        except DjangoValidationError as e:
+            raise serializers.ValidationError("Invalid {} address: {}".format(self.address_type, e.message))
 
 
 class InetAddressField(NetfieldsField):
