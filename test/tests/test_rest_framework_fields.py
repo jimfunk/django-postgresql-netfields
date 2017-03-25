@@ -1,4 +1,4 @@
-from __future__ import absolute_import
+from __future__ import absolute_import, unicode_literals
 
 from rest_framework import serializers
 
@@ -12,30 +12,36 @@ class FieldsTestCase(unittest.TestCase):
         class TestSerializer(serializers.Serializer):
             ip = fields.InetAddressField()
 
-        serializer = TestSerializer(data={'ip': '10.0.0.'})
+        address = '10.0.0.'
+        serializer = TestSerializer(data={'ip': address})
         with self.assertRaises(serializers.ValidationError) as e:
             serializer.is_valid(raise_exception=True)
-        self.assertEqual(e.exception.detail['ip'], ['Invalid IP address.'])
+        self.assertEqual(e.exception.detail['ip'],
+                         ["Invalid IP address: %r does not appear to be an IPv4 or IPv6 interface" % address])
+
 
     def test_validation_cidr_field(self):
 
         class TestSerializer(serializers.Serializer):
             cidr = fields.CidrAddressField()
 
-        serializer = TestSerializer(data={'cidr': '10.0.0.'})
+        address = '10.0.0.'
+        serializer = TestSerializer(data={'cidr': address})
         with self.assertRaises(serializers.ValidationError) as e:
             serializer.is_valid(raise_exception=True)
-        self.assertEqual(e.exception.detail['cidr'], ['Invalid CIDR address.'])
+        self.assertEqual(e.exception.detail['cidr'],
+                         ["Invalid CIDR address: %r does not appear to be an IPv4 or IPv6 network" % address])
 
     def test_validation_mac_field(self):
 
         class TestSerializer(serializers.Serializer):
             mac = fields.MACAddressField()
 
-        serializer = TestSerializer(data={'mac': 'de:'})
+        address = 'de:'
+        serializer = TestSerializer(data={'mac': address})
         with self.assertRaises(serializers.ValidationError) as e:
             serializer.is_valid(raise_exception=True)
-        self.assertEqual(e.exception.detail['mac'], ['Invalid MAC address.'])
+        self.assertEqual(e.exception.detail['mac'], ["Invalid MAC address: failed to detect EUI version: %r" % address])
 
     def test_validation_additional_validators(self):
         def validate(value):
@@ -44,7 +50,10 @@ class FieldsTestCase(unittest.TestCase):
         class TestSerializer(serializers.Serializer):
             ip = fields.InetAddressField(validators=[validate])
 
-        serializer = TestSerializer(data={'ip': 'de:'})
+        address = 'de:'
+        serializer = TestSerializer(data={'ip': address})
         with self.assertRaises(serializers.ValidationError) as e:
             serializer.is_valid(raise_exception=True)
-        self.assertItemsEqual(e.exception.detail['ip'], ['Invalid IP address.', 'Invalid.'])
+        self.assertItemsEqual(e.exception.detail['ip'],
+                              ["Invalid IP address: %r does not appear to be an IPv4 or IPv6 interface" % address,
+                               'Invalid.'])
