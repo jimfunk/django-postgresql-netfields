@@ -5,6 +5,7 @@ from django import forms
 import django
 from django.forms.utils import flatatt
 from django.utils.safestring import mark_safe
+from django.utils.six import text_type
 from django.core.exceptions import ValidationError
 
 from netfields.mac import mac_unix_common
@@ -46,6 +47,9 @@ class InetAddressFormField(forms.Field):
         if isinstance(value, _IPAddressBase):
             return value
 
+        if isinstance(value, text_type):
+            value = value.strip()
+
         try:
             return ip_interface(value)
         except ValueError as e:
@@ -67,6 +71,9 @@ class CidrAddressFormField(forms.Field):
 
         if isinstance(value, _BaseNetwork):
             network = value
+
+        if isinstance(value, text_type):
+            value = value.strip()
 
         try:
             network = ip_network(value)
@@ -90,6 +97,9 @@ class MACAddressFormField(forms.Field):
 
         if isinstance(value, EUI):
             return value
+
+        if isinstance(value, text_type):
+            value = value.strip()
 
         try:
             return EUI(value, dialect=mac_unix_common)

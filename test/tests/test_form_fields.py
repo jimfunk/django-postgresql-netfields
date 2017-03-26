@@ -34,6 +34,11 @@ class TestInetAddressFormField(TestCase):
         form = self.form_class({'field': '10.0.0.1.2'})
         self.assertFalse(form.is_valid())
 
+    def test_form_ipv4_strip(self):
+        form = self.form_class({'field': ' 10.0.0.1 '})
+        self.assertTrue(form.is_valid())
+        self.assertEqual(form.cleaned_data['field'], ip_interface('10.0.0.1'))
+
     def test_form_ipv4_change(self):
         instance = InetTestModel.objects.create(field='10.1.2.3/24')
         form = self.form_class({'field': '10.1.2.4/24'}, instance=instance)
@@ -42,7 +47,7 @@ class TestInetAddressFormField(TestCase):
         instance = InetTestModel.objects.get(pk=instance.pk)
         self.assertEqual(instance.field, ip_interface('10.1.2.4/24'))
 
-    def test_form_ipv6(self):
+    def test_form_ipv6_valid(self):
         form = self.form_class({'field': '2001:0:1::2'})
         self.assertTrue(form.is_valid())
         self.assertEqual(form.cleaned_data['field'], ip_interface('2001:0:1::2'))
@@ -50,6 +55,11 @@ class TestInetAddressFormField(TestCase):
     def test_form_ipv6_invalid(self):
         form = self.form_class({'field': '2001:0::1::2'})
         self.assertFalse(form.is_valid())
+
+    def test_form_ipv6_strip(self):
+        form = self.form_class({'field': ' 2001:0:1::2 '})
+        self.assertTrue(form.is_valid())
+        self.assertEqual(form.cleaned_data['field'], ip_interface('2001:0:1::2'))
 
     def test_form_ipv6_change(self):
         instance = InetTestModel.objects.create(field='2001:0:1::2/64')
@@ -79,6 +89,12 @@ class TestNoPrefixInetAddressFormField(TestCase):
         form = self.form_class({'field': '10.0.0.1.2'})
         self.assertFalse(form.is_valid())
 
+    def test_form_ipv4_strip(self):
+        form = self.form_class({'field': ' 10.0.0.1 '})
+        self.assertTrue(form.is_valid())
+        # Form always passes ip_interface. Model field will return the requested type
+        self.assertEqual(form.cleaned_data['field'], ip_interface('10.0.0.1'))
+
     def test_form_ipv4_change(self):
         instance = NoPrefixInetTestModel.objects.create(field='10.1.2.3/24')
         form = self.form_class({'field': '10.1.2.4/24'}, instance=instance)
@@ -87,7 +103,7 @@ class TestNoPrefixInetAddressFormField(TestCase):
         instance = NoPrefixInetTestModel.objects.get(pk=instance.pk)
         self.assertEqual(instance.field, ip_address('10.1.2.4'))
 
-    def test_form_ipv6(self):
+    def test_form_ipv6_valid(self):
         form = self.form_class({'field': '2001:0:1::2'})
         self.assertTrue(form.is_valid())
         # Form always passes ip_interface. Model field will return the requested type
@@ -96,6 +112,12 @@ class TestNoPrefixInetAddressFormField(TestCase):
     def test_form_ipv6_invalid(self):
         form = self.form_class({'field': '2001:0::1::2'})
         self.assertFalse(form.is_valid())
+
+    def test_form_ipv6_strip(self):
+        form = self.form_class({'field': ' 2001:0:1::2 '})
+        self.assertTrue(form.is_valid())
+        # Form always passes ip_interface. Model field will return the requested type
+        self.assertEqual(form.cleaned_data['field'], ip_interface('2001:0:1::2'))
 
     def test_form_ipv6_change(self):
         instance = NoPrefixInetTestModel.objects.create(field='2001:0:1::2/64')
@@ -134,11 +156,16 @@ class TestCidrAddressFormField(TestCase):
         form = self.form_class({'field': '10.0.0.1.2/32'})
         self.assertFalse(form.is_valid())
 
+    def test_form_ipv4_strip(self):
+        form = self.form_class({'field': ' 10.0.1.0/24 '})
+        self.assertTrue(form.is_valid())
+        self.assertEqual(form.cleaned_data['field'], ip_network('10.0.1.0/24'))
+
     def test_form_ipv4_bits_to_right_of_mask(self):
         form = self.form_class({'field': '10.0.0.1.2/24'})
         self.assertFalse(form.is_valid())
 
-    def test_form_ipv6(self):
+    def test_form_ipv6_valid(self):
         form = self.form_class({'field': '2001:0:1::/64'})
         self.assertTrue(form.is_valid())
         self.assertEqual(form.cleaned_data['field'], ip_network('2001:0:1::/64'))
@@ -146,6 +173,11 @@ class TestCidrAddressFormField(TestCase):
     def test_form_ipv6_invalid(self):
         form = self.form_class({'field': '2001:0::1::2/128'})
         self.assertFalse(form.is_valid())
+
+    def test_form_ipv6_strip(self):
+        form = self.form_class({'field': ' 2001:0:1::/64 '})
+        self.assertTrue(form.is_valid())
+        self.assertEqual(form.cleaned_data['field'], ip_network('2001:0:1::/64'))
 
     def test_form_ipv6_bits_to_right_of_mask(self):
         form = self.form_class({'field': '2001:0::1::2/64'})
@@ -204,6 +236,11 @@ class TestMacAddressFormField(TestCase):
 
     def test_bare(self):
         form = MacAddressTestModelForm({'field': '00aa2b:c3dd44'})
+        self.assertTrue(form.is_valid())
+        self.assertEqual(form.cleaned_data['field'], self.mac)
+
+    def test_strip(self):
+        form = MacAddressTestModelForm({'field': ' 00:aa:2b:c3:dd:44 '})
         self.assertTrue(form.is_valid())
         self.assertEqual(form.cleaned_data['field'], self.mac)
 
