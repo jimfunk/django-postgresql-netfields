@@ -1,3 +1,9 @@
+- 0.7.2
+  * Fix issue where prefetch_related returns empty querysets (Jay McEntire)
+  * Improve validation error messages to include the underlying error (Diego
+    Gaustein)
+  * Strip extraneous whitespace around form inputs
+
 - 0.7.1
   * Fix issue with recent psycopg2 releases (Jonas Genannt)
   * Add a lookup for exact CIDR prefix length (Joey Wilhelm)
