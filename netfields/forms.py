@@ -1,38 +1,14 @@
 from ipaddress import ip_interface, ip_network, _IPAddressBase, _BaseNetwork
 from netaddr import EUI, AddrFormatError
 
-from django import forms
-import django
-from django.forms.utils import flatatt
-from django.utils.safestring import mark_safe
 from django.utils.six import text_type
 from django.core.exceptions import ValidationError
 
 from netfields.mac import mac_unix_common
 
 
-class NetInput(forms.Widget):
-    input_type = 'text'
-
-    def render(self, name, value, attrs=None):
-        # Default forms.Widget compares value != '' which breaks IP...
-        if value is None:
-            value = ''
-        if attrs is None:
-            attrs = {}
-        base_attrs = {
-            "type": self.input_type,
-            "name": name
-        }
-        base_attrs.update(attrs)
-        final_attrs = self.build_attrs(base_attrs)
-        if value:
-            final_attrs['value'] = value
-        return mark_safe(u'<input%s />' % flatatt(final_attrs))
-
-
 class InetAddressFormField(forms.Field):
-    widget = NetInput
+    widget = forms.TextInput
     default_error_messages = {
         'invalid': u'Enter a valid IP address.',
     }
@@ -57,7 +33,7 @@ class InetAddressFormField(forms.Field):
 
 
 class CidrAddressFormField(forms.Field):
-    widget = NetInput
+    widget = forms.TextInput
     default_error_messages = {
         'invalid': u'Enter a valid CIDR address.',
     }
