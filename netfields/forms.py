@@ -1,6 +1,7 @@
 from ipaddress import ip_interface, ip_network, _IPAddressBase, _BaseNetwork
 from netaddr import EUI, AddrFormatError
 
+from django import forms
 from django.utils.six import text_type
 from django.core.exceptions import ValidationError
 
