@@ -1,5 +1,5 @@
 from django.contrib.postgres.fields import ArrayField
-from django.db.models import Model, ForeignKey
+from django.db.models import Model, ForeignKey, CASCADE
 
 from netfields import InetAddressField, CidrAddressField, MACAddressField, \
         NetManager
@@ -95,6 +95,6 @@ class AggregateTestModel(Model):
 
 
 class AggregateTestChildModel(Model):
-    parent = ForeignKey('AggregateTestModel', related_name='children', on_delete=models.CASCADE)
+    parent = ForeignKey('AggregateTestModel', related_name='children', on_delete=CASCADE)
     network = CidrAddressField()
     inet = InetAddressField()
