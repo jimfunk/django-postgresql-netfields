@@ -7,7 +7,7 @@ from django.db.backends.postgresql_psycopg2.base import DatabaseWrapper
 from django.db.models import sql, query
 from django.db.models.sql import constants
 from django.db.models.fields import DateTimeField
-from django.
+
 try:
     str_type = unicode
 except NameError:
