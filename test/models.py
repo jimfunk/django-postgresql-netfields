@@ -95,6 +95,6 @@ class AggregateTestModel(Model):
 
 
 class AggregateTestChildModel(Model):
-    parent = ForeignKey('AggregateTestModel', related_name='children')
+    parent = ForeignKey('AggregateTestModel', related_name='children', on_delete=models.CASCADE)
     network = CidrAddressField()
     inet = InetAddressField()
