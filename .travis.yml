@@ -1,5 +1,6 @@
 language: python
 sudo: false
+cache: pip
 
 matrix:
   include:
@@ -23,6 +24,12 @@ matrix:
       env: TOX_ENV=py34-django110
     - python: 3.5
       env: TOX_ENV=py35-django110
+    - python: 3.4
+      env: TOX_ENV=py34-django20
+    - python: 3.5
+      env: TOX_ENV=py35-django20
+    - python: 3.6
+      env: TOX_ENV=py36-django20
 
 install:
   - pip install tox

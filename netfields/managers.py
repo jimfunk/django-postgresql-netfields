@@ -5,6 +5,7 @@ from django import VERSION
 from django.db import models
 from django.db.backends.postgresql_psycopg2.base import DatabaseWrapper
 from django.db.models import sql, query
+from django.db.models.sql import constants
 from django.db.models.fields import DateTimeField
 
 try:
@@ -31,10 +32,10 @@ NET_OPERATORS['min_prefixlen'] = '%s'
 
 NET_TEXT_OPERATORS = ['ILIKE %s', '~* %s']
 
+constants.QUERY_TERMS.update(NET_OPERATORS)
 
 class NetQuery(sql.Query):
-    query_terms = sql.Query.query_terms.copy()
-    query_terms.update(NET_OPERATORS)
+    pass
 
 
 if VERSION < (1, 9):
