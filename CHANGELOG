@@ -1,3 +1,6 @@
+- 0.8
+  * Added support for Django 2.0
+
 - 0.7.2
   * Fix issue where prefetch_related returns empty querysets (Jay McEntire)
   * Improve validation error messages to include the underlying error (Diego

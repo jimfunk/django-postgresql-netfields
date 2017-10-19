@@ -12,6 +12,7 @@ def get_long_description():
     with open(path) as f:
         return f.read()
 
+
 requirements = [
     'netaddr',
     'django>=1.8',
@@ -22,7 +23,7 @@ if sys.version_info.major == 2:
 
 setup(
     name='django-netfields',
-    version='0.7.2',
+    version='0.8',
     license='BSD',
     description='Django PostgreSQL netfields implementation',
     long_description=get_long_description(),

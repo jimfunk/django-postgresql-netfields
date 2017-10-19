@@ -1,5 +1,6 @@
 from django.core.exceptions import ValidationError
 from django.db import models
+from django.db.backends.postgresql_psycopg2.base import DatabaseWrapper
 from django.utils.six import with_metaclass, text_type
 from ipaddress import ip_interface, ip_network
 from netaddr import EUI
@@ -7,8 +8,26 @@ from netaddr.core import AddrFormatError
 
 from netfields.forms import InetAddressFormField, CidrAddressFormField, MACAddressFormField
 from netfields.mac import mac_unix_common
-from netfields.managers import NET_OPERATORS, NET_TEXT_OPERATORS
 from netfields.psycopg2_types import Inet, Macaddr
+
+
+NET_OPERATORS = DatabaseWrapper.operators.copy()
+
+for operator in ['contains', 'startswith', 'endswith']:
+    NET_OPERATORS[operator] = 'ILIKE %s'
+    NET_OPERATORS['i%s' % operator] = 'ILIKE %s'
+
+NET_OPERATORS['iexact'] = NET_OPERATORS['exact']
+NET_OPERATORS['regex'] = NET_OPERATORS['iregex']
+NET_OPERATORS['net_contained'] = '<< %s'
+NET_OPERATORS['net_contained_or_equal'] = '<<= %s'
+NET_OPERATORS['net_contains'] = '>> %s'
+NET_OPERATORS['net_contains_or_equals'] = '>>= %s'
+NET_OPERATORS['net_overlaps'] = '&& %s'
+NET_OPERATORS['max_prefixlen'] = '%s'
+NET_OPERATORS['min_prefixlen'] = '%s'
+
+NET_TEXT_OPERATORS = ['ILIKE %s', '~* %s']
 
 
 class _NetAddressField(models.Field):
