@@ -142,7 +142,12 @@ class BaseInetTestCase(BaseSqlTestCase):
         )
 
     def test_search_lookup_fails(self):
-        with self.assertRaises(NotImplementedError):
+        if VERSION >= (2, 0):
+            expected = FieldError
+        else:
+            expected = NotImplementedError
+
+        with self.assertRaises(expected):
             self.compile_queryset(self.qs.filter(field__search='10'))
 
     def test_year_lookup_fails(self):
@@ -582,27 +587,27 @@ class TestMACAddressFieldArray(TestCase):
 class TestAggegate(TestCase):
     @skipIf(VERSION < (1, 9), 'Postgres aggregates not supported in Django < 1.9')
     def test_aggregate_inet(self):
-        from django.contrib.postgres.aggregates import ArrayAgg        
+        from django.contrib.postgres.aggregates import ArrayAgg
         inet = IPv4Interface('10.20.30.20/32')
         network = IPv4Network('10.10.10.10/32')
-        
+
         parent = AggregateTestModel.objects.create()
         inet_qs = AggregateTestModel.objects.annotate(agg_inet=ArrayAgg('children__inet'))
-        
+
         self.assertEqual(inet_qs[0].agg_inet, [])
 
         AggregateTestChildModel.objects.create(parent=parent, network=network, inet=inet)
         self.assertEqual(inet_qs[0].agg_inet, [inet])
-        
+
     @skipIf(VERSION < (1, 9), 'Postgres aggregates not supported in Django < 1.9')
     def test_aggregate_network(self):
-        from django.contrib.postgres.aggregates import ArrayAgg  
+        from django.contrib.postgres.aggregates import ArrayAgg
         inet = IPv4Interface('10.20.30.20/32')
         network = IPv4Network('10.10.10.10/32')
-        
+
         parent = AggregateTestModel.objects.create()
         network_qs = AggregateTestModel.objects.annotate(agg_network=ArrayAgg('children__network'))
-        
+
         self.assertEqual(network_qs[0].agg_network, [])
         AggregateTestChildModel.objects.create(parent=parent, network=network, inet=inet)
         self.assertEqual(network_qs[0].agg_network, [network])
