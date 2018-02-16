@@ -37,6 +37,8 @@ representing an IP address and netmask/prefix length pair unless the
 ``store_prefix_length`` argument is set to `False``, in which case the value
 will be represented as an ``ipaddress.ip_address`` object.
 
+.. code-block:: python
+
  from netfields import InetAddressField, NetManager
 
  class Example(models.Model):
@@ -47,6 +49,8 @@ will be represented as an ``ipaddress.ip_address`` object.
 
 ``CidrAddressField`` will store values in PostgreSQL as type ``CIDR``. In
 Python, the value will be represented as an ``ipaddress.ip_network`` object.
+
+.. code-block:: python
 
  from netfields import CidrAddressField, NetManager
 
@@ -61,6 +65,8 @@ Python, the value will be represented as a ``netaddr.EUI`` object. Note that
 the default text representation of EUI objects is not the same as that of the
 ``netaddr`` module. It is represented in a format that is more commonly used
 in network utilities and by network administrators (``00:11:22:aa:bb:cc``).
+
+.. code-block:: python
 
  from netfields import MACAddressField, NetManager
 
