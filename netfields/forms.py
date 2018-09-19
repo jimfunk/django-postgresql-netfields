@@ -30,7 +30,7 @@ class InetAddressFormField(forms.Field):
         try:
             return ip_interface(value)
         except ValueError as e:
-            raise ValidationError(self.default_error_messages['invalid'])
+            raise ValidationError(self.error_messages['invalid'])
 
 
 class CidrAddressFormField(forms.Field):
@@ -55,7 +55,7 @@ class CidrAddressFormField(forms.Field):
         try:
             network = ip_network(value)
         except ValueError as e:
-            raise ValidationError(self.default_error_messages['invalid'])
+            raise ValidationError(self.error_messages['invalid'])
 
         return network
 
