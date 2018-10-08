@@ -594,7 +594,7 @@ class TestAggegate(TestCase):
         parent = AggregateTestModel.objects.create()
         inet_qs = AggregateTestModel.objects.annotate(agg_inet=ArrayAgg('children__inet'))
 
-        self.assertEqual(inet_qs[0].agg_inet, [])
+        self.assertEqual(inet_qs[0].agg_inet, [None])
 
         AggregateTestChildModel.objects.create(parent=parent, network=network, inet=inet)
         self.assertEqual(inet_qs[0].agg_inet, [inet])
@@ -608,6 +608,6 @@ class TestAggegate(TestCase):
         parent = AggregateTestModel.objects.create()
         network_qs = AggregateTestModel.objects.annotate(agg_network=ArrayAgg('children__network'))
 
-        self.assertEqual(network_qs[0].agg_network, [])
+        self.assertEqual(network_qs[0].agg_network, [None])
         AggregateTestChildModel.objects.create(parent=parent, network=network, inet=inet)
         self.assertEqual(network_qs[0].agg_network, [network])

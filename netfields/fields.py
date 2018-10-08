@@ -37,10 +37,11 @@ class _NetAddressField(models.Field):
         kwargs['max_length'] = self.max_length
         super(_NetAddressField, self).__init__(*args, **kwargs)
 
-    def from_db_value(self, value, expression, connection, context):
+    def from_db_value(self, value, expression, connection, context=None):
         if isinstance(value, list):
-            # Aggregation detected, return a list of values
-            return [self.to_python(v) for v in value if v is not None]
+            # Aggregation detected, return a list of values. This is no longer
+            # necessary in Django 2.1
+            return [self.to_python(v) for v in value]
         return self.to_python(value)
 
     def to_python(self, value):
@@ -160,7 +161,7 @@ class MACAddressField(models.Field):
     def db_type(self, connection):
         return 'macaddr'
 
-    def from_db_value(self, value, expression, connection, context):
+    def from_db_value(self, value, expression, connection, context=None):
         return self.to_python(value)
 
     def to_python(self, value):

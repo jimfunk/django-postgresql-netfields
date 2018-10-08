@@ -23,7 +23,7 @@ if sys.version_info.major == 2:
 
 setup(
     name='django-netfields',
-    version='0.8',
+    version='0.9.0',
     license='BSD',
     description='Django PostgreSQL netfields implementation',
     long_description=get_long_description(),
