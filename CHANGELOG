@@ -6,6 +6,8 @@
     the None values were filtered out, but that appears to have been a mistake
     in the implementation. If your application depends on the filtered None
     values, it will need to be updated accordingly
+  * Prefer "error_messages" rather than "default_error_messages" in form
+    fields (Shintaro Kojima)
 
 - 0.8
   * Added support for Django 2.0
