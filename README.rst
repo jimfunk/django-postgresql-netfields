@@ -110,6 +110,12 @@ http://www.postgresql.org/docs/9.4/interactive/functions-net.html
 ``__min_prefixlen``
     Minimum value (inclusive) for ``CIDR`` prefix, does not distinguish between IPv4 and IPv6
 
+Errata
+------
+
+* In Django < 1.9.6 types returned in ArrayFields are strings and not ipaddress types. See
+  https://code.djangoproject.com/ticket/25143
+
 Related Django bugs
 -------------------
 
