@@ -186,6 +186,12 @@ class BaseInetTestCase(BaseSqlTestCase):
             self.select + 'WHERE family("table"."field") = %s'
         )
 
+    def test_host_lookup_sql(self):
+        self.assertSqlEquals(
+            self.qs.filter(field__host="10.0.0.1"),
+            self.select + 'WHERE HOST("table"."field") = HOST(%s)'
+        )
+
 
 class BaseInetFieldTestCase(BaseInetTestCase):
     value1 = '10.0.0.1'
@@ -349,6 +355,13 @@ class TestInetField(BaseInetFieldTestCase, TestCase):
         instance = self.model.objects.get(pk=instance.pk)
         self.assertEqual(str(instance.field), '10.1.2.3/24')
 
+    def test_host(self):
+        instance = self.model.objects.create(field='10.1.2.3/24')
+        instance = self.model.objects.get(field__host='10.1.2.3')
+        self.assertEqual(str(instance.field), '10.1.2.3/24')
+        instance = self.model.objects.get(field__host='10.1.2.3/27')
+        self.assertEqual(str(instance.field), '10.1.2.3/24')
+
 
 class TestInetFieldNullable(BaseInetFieldTestCase, TestCase):
     def setUp(self):
@@ -423,6 +436,13 @@ class TestCidrField(BaseCidrFieldTestCase, TestCase):
         instance = self.model.objects.create(field='2001:db8::0/32')
         instance = self.model.objects.get(pk=instance.pk)
         self.assertIsInstance(instance.field, IPv6Network)
+
+    def test_host(self):
+        instance = self.model.objects.create(field='10.1.2.0/24')
+        instance = self.model.objects.get(field__host='10.1.2.0')
+        self.assertEqual(str(instance.field), '10.1.2.0/24')
+        instance = self.model.objects.get(field__host='10.1.2.0/27')
+        self.assertEqual(str(instance.field), '10.1.2.0/24')
 
 
 class TestCidrFieldNullable(BaseCidrFieldTestCase, TestCase):

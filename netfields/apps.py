@@ -21,6 +21,7 @@ from netfields.lookups import (
     Prefixlen,
     Regex,
     StartsWith,
+    HostMatches,
 )
 
 
@@ -53,6 +54,7 @@ class NetfieldsConfig(AppConfig):
     CidrAddressField.register_lookup(MaxPrefixlen)
     CidrAddressField.register_lookup(MinPrefixlen)
     CidrAddressField.register_lookup(Prefixlen)
+    CidrAddressField.register_lookup(HostMatches)
 
     InetAddressField.register_lookup(EndsWith)
     InetAddressField.register_lookup(IEndsWith)
@@ -66,3 +68,4 @@ class NetfieldsConfig(AppConfig):
     InetAddressField.register_lookup(NetContainsOrEquals)
     InetAddressField.register_lookup(NetOverlaps)
     InetAddressField.register_lookup(Family)
+    InetAddressField.register_lookup(HostMatches)
