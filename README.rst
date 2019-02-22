@@ -99,6 +99,9 @@ added:
 ``__family``
     matches the given address family
 
+``__host``
+    matches the host part of an address regardless of prefix length
+
 These correspond with the operators and functions from
 http://www.postgresql.org/docs/9.4/interactive/functions-net.html
 
