@@ -1,3 +1,12 @@
+- 1.0.0
+  * Rewrote the REST framework fields to conform to recommendations
+    + The proper types are now set on unsaved models and passed to validators.
+      Any validators or pre-save code that assumes the values are strings may
+      need to be adjusted
+    + Simplified the validation error messages
+  * Fix deprecation warnings (Mike Lane)
+  * Test against Django 2.2 (Øyvind Kolbu)
+
 - 0.10.0
   * Added support for __host lookups, for matching the host part of an address
     regardless of prefix length
