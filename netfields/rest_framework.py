@@ -1,35 +1,72 @@
 from __future__ import absolute_import
 
-from django.core.exceptions import ValidationError as DjangoValidationError
+from django.utils.six import text_type
+from ipaddress import ip_interface, ip_network
+from netaddr import EUI
+from netaddr.core import AddrFormatError
 from rest_framework import serializers
 
-from netfields import fields
+from netfields.mac import mac_unix_common
 
 
-class NetfieldsField(serializers.CharField):
-    def __init__(self, *args, **kwargs):
-        super(NetfieldsField, self).__init__(*args, **kwargs)
-        self.validators.append(self._validate_netaddr)
+class InetAddressField(serializers.Field):
+    default_error_messages = {
+        'invalid': 'Invalid IP address.'
+    }
 
-    def _validate_netaddr(self, value):
-        """Convert Django validation errors to DRF validation errors.
-        """
+    def __init__(self, store_prefix=True, *args, **kwargs):
+        self.store_prefix = store_prefix
+        super(InetAddressField, self).__init__(*args, **kwargs)
+
+    def to_representation(self, value):
+        if value is None:
+            return value
+        if not self.store_prefix:
+            return text_type(value.ip)
+        return text_type(value)
+
+    def to_internal_value(self, data):
+        if data is None:
+            return data
         try:
-            self.netfields_type(value).to_python(value)
-        except DjangoValidationError as e:
-            raise serializers.ValidationError("Invalid {} address: {}".format(self.address_type, e.message))
+            return ip_interface(data)
+        except ValueError:
+            self.fail('invalid')
 
 
-class InetAddressField(NetfieldsField):
-    netfields_type = fields.InetAddressField
-    address_type = "IP"
+class CidrAddressField(serializers.Field):
+    default_error_messages = {
+        'invalid': 'Invalid CIDR address.'
+    }
+
+    def to_representation(self, value):
+        if value is None:
+            return value
+        return text_type(value)
+
+    def to_internal_value(self, data):
+        if data is None:
+            return data
+        try:
+            return ip_network(data)
+        except ValueError:
+            self.fail('invalid')
 
 
-class CidrAddressField(NetfieldsField):
-    netfields_type = fields.CidrAddressField
-    address_type = "CIDR"
+class MACAddressField(serializers.Field):
+    default_error_messages = {
+        'invalid': 'Invalid MAC address.'
+    }
 
+    def to_representation(self, value):
+        if value is None:
+            return value
+        return text_type(value)
 
-class MACAddressField(NetfieldsField):
-    netfields_type = fields.MACAddressField
-    address_type = "MAC"
+    def to_internal_value(self, data):
+        if data is None:
+            return data
+        try:
+            return EUI(data, dialect=mac_unix_common)
+        except AddrFormatError:
+            self.fail('invalid')

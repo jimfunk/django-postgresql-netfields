@@ -17,7 +17,7 @@ class FieldsTestCase(unittest.TestCase):
         with self.assertRaises(serializers.ValidationError) as e:
             serializer.is_valid(raise_exception=True)
         self.assertEqual(e.exception.detail['ip'],
-                         ["Invalid IP address: %r does not appear to be an IPv4 or IPv6 interface" % address])
+                         ["Invalid IP address."])
 
 
     def test_validation_cidr_field(self):
@@ -30,7 +30,7 @@ class FieldsTestCase(unittest.TestCase):
         with self.assertRaises(serializers.ValidationError) as e:
             serializer.is_valid(raise_exception=True)
         self.assertEqual(e.exception.detail['cidr'],
-                         ["Invalid CIDR address: %r does not appear to be an IPv4 or IPv6 network" % address])
+                         ["Invalid CIDR address."])
 
     def test_validation_mac_field(self):
 
@@ -41,19 +41,43 @@ class FieldsTestCase(unittest.TestCase):
         serializer = TestSerializer(data={'mac': address})
         with self.assertRaises(serializers.ValidationError) as e:
             serializer.is_valid(raise_exception=True)
-        self.assertEqual(e.exception.detail['mac'], ["Invalid MAC address: failed to detect EUI version: %r" % address])
+        self.assertEqual(e.exception.detail['mac'], ["Invalid MAC address."])
 
-    def test_validation_additional_validators(self):
+    def test_inet_validation_additional_validators(self):
         def validate(value):
             raise serializers.ValidationError('Invalid.')
 
         class TestSerializer(serializers.Serializer):
             ip = fields.InetAddressField(validators=[validate])
 
-        address = 'de:'
+        address = '1.2.3.4/24'
         serializer = TestSerializer(data={'ip': address})
         with self.assertRaises(serializers.ValidationError) as e:
             serializer.is_valid(raise_exception=True)
-        self.assertItemsEqual(e.exception.detail['ip'],
-                              ["Invalid IP address: %r does not appear to be an IPv4 or IPv6 interface" % address,
-                               'Invalid.'])
+        self.assertItemsEqual(e.exception.detail['ip'], ['Invalid.'])
+
+    def test_cidr_validation_additional_validators(self):
+        def validate(value):
+            raise serializers.ValidationError('Invalid.')
+
+        class TestSerializer(serializers.Serializer):
+            ip = fields.CidrAddressField(validators=[validate])
+
+        address = '1.2.3.0/24'
+        serializer = TestSerializer(data={'ip': address})
+        with self.assertRaises(serializers.ValidationError) as e:
+            serializer.is_valid(raise_exception=True)
+        self.assertItemsEqual(e.exception.detail['ip'], ['Invalid.'])
+
+    def test_mac_validation_additional_validators(self):
+        def validate(value):
+            raise serializers.ValidationError('Invalid.')
+
+        class TestSerializer(serializers.Serializer):
+            ip = fields.MACAddressField(validators=[validate])
+
+        address = '01:23:45:67:89:ab'
+        serializer = TestSerializer(data={'ip': address})
+        with self.assertRaises(serializers.ValidationError) as e:
+            serializer.is_valid(raise_exception=True)
+        self.assertItemsEqual(e.exception.detail['ip'], ['Invalid.'])
