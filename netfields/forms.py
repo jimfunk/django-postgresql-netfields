@@ -37,6 +37,7 @@ class CidrAddressFormField(forms.Field):
     widget = forms.TextInput
     default_error_messages = {
         'invalid': u'Enter a valid CIDR address.',
+        'network': u'Must be a network address.',
     }
 
     def __init__(self, *args, **kwargs):
@@ -55,6 +56,8 @@ class CidrAddressFormField(forms.Field):
         try:
             network = ip_network(value)
         except ValueError as e:
+            if 'has host bits' in e.args[0]:
+                raise ValidationError(self.error_messages['network'])
             raise ValidationError(self.error_messages['invalid'])
 
         return network

@@ -36,7 +36,8 @@ class InetAddressField(serializers.Field):
 
 class CidrAddressField(serializers.Field):
     default_error_messages = {
-        'invalid': 'Invalid CIDR address.'
+        'invalid': 'Invalid CIDR address.',
+        'network': 'Must be a network address.',
     }
 
     def to_representation(self, value):
@@ -49,7 +50,9 @@ class CidrAddressField(serializers.Field):
             return data
         try:
             return ip_network(data)
-        except ValueError:
+        except ValueError as e:
+            if 'has host bits' in e.args[0]:
+                self.fail('network')
             self.fail('invalid')
 
 

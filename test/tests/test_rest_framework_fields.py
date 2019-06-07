@@ -32,6 +32,18 @@ class FieldsTestCase(unittest.TestCase):
         self.assertEqual(e.exception.detail['cidr'],
                          ["Invalid CIDR address."])
 
+    def test_network_validation_cidr_field(self):
+
+        class TestSerializer(serializers.Serializer):
+            cidr = fields.CidrAddressField()
+
+        address = '10.0.0.1/24'
+        serializer = TestSerializer(data={'cidr': address})
+        with self.assertRaises(serializers.ValidationError) as e:
+            serializer.is_valid(raise_exception=True)
+        self.assertEqual(e.exception.detail['cidr'],
+                         ["Must be a network address."])
+
     def test_validation_mac_field(self):
 
         class TestSerializer(serializers.Serializer):
