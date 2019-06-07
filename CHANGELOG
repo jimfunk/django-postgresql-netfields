@@ -1,3 +1,7 @@
+- 1.0.1
+  * Added a specific error to form and REST framework fields for host addresses
+    passed to network fields
+
 - 1.0.0
   * Rewrote the REST framework fields to conform to recommendations
     + The proper types are now set on unsaved models and passed to validators.
