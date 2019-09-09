@@ -1,7 +1,7 @@
 from __future__ import absolute_import
 
 from django.utils.six import text_type
-from ipaddress import ip_interface, ip_network
+from ipaddress import ip_interface, ip_network, ip_address
 from netaddr import EUI
 from netaddr.core import AddrFormatError
 from rest_framework import serializers
@@ -21,15 +21,16 @@ class InetAddressField(serializers.Field):
     def to_representation(self, value):
         if value is None:
             return value
-        if not self.store_prefix:
-            return text_type(value.ip)
         return text_type(value)
 
     def to_internal_value(self, data):
         if data is None:
             return data
         try:
-            return ip_interface(data)
+            if self.store_prefix:
+                return ip_interface(data)
+            else:
+                return ip_address(data)
         except ValueError:
             self.fail('invalid')
 
