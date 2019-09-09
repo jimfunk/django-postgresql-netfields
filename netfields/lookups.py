@@ -59,14 +59,26 @@ class IRegex(NetFieldDecoratorMixin, IRegex):
 
 
 class NetworkLookup(object):
+    prepare_rhs = True
+
     def get_prep_lookup(self):
+        if hasattr(self.rhs, 'resolve_expression'):
+            return self.rhs
+        if self.prepare_rhs and hasattr(self.lhs.output_field, 'get_prep_value'):
+            return self.lhs.output_field.get_prep_value(self.rhs)
         if isinstance(self.rhs, ipaddress._BaseNetwork):
             return str(self.rhs)
         return str(ipaddress.ip_network(self.rhs))
 
 
 class AddressLookup(object):
+    prepare_rhs = True
+
     def get_prep_lookup(self):
+        if hasattr(self.rhs, 'resolve_expression'):
+            return self.rhs
+        if self.prepare_rhs and hasattr(self.lhs.output_field, 'get_prep_value'):
+            return self.lhs.output_field.get_prep_value(self.rhs)
         if isinstance(self.rhs, ipaddress._BaseAddress):
             return str(self.rhs)
         return str(ipaddress.ip_interface(self.rhs))

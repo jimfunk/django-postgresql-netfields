@@ -2,6 +2,9 @@ language: python
 sudo: false
 cache: pip
 
+services:
+  - postgresql
+
 matrix:
   include:
     - python: 2.7
@@ -12,6 +15,8 @@ matrix:
       env: TOX_ENV=py35-django18
     - python: 3.6
       env: TOX_ENV=py36-django18
+    - python: 3.7
+      env: TOX_ENV=py37-django18
     - python: 2.7
       env: TOX_ENV=py27-django19
     - python: 3.4
@@ -20,6 +25,8 @@ matrix:
       env: TOX_ENV=py35-django19
     - python: 3.6
       env: TOX_ENV=py36-django19
+    - python: 3.7
+      env: TOX_ENV=py37-django19
     - python: 2.7
       env: TOX_ENV=py27-django110
     - python: 3.4
@@ -28,6 +35,8 @@ matrix:
       env: TOX_ENV=py35-django110
     - python: 3.6
       env: TOX_ENV=py36-django110
+    - python: 3.7
+      env: TOX_ENV=py37-django110
     - python: 2.7
       env: TOX_ENV=py27-django111
     - python: 3.4
@@ -36,20 +45,28 @@ matrix:
       env: TOX_ENV=py35-django111
     - python: 3.6
       env: TOX_ENV=py36-django111
+    - python: 3.7
+      env: TOX_ENV=py37-django111
     - python: 3.4
       env: TOX_ENV=py34-django20
     - python: 3.5
       env: TOX_ENV=py35-django20
     - python: 3.6
       env: TOX_ENV=py36-django20
+    - python: 3.7
+      env: TOX_ENV=py37-django20
     - python: 3.5
       env: TOX_ENV=py35-django21
     - python: 3.6
       env: TOX_ENV=py36-django21
+    - python: 3.7
+      env: TOX_ENV=py37-django21
     - python: 3.5
       env: TOX_ENV=py35-django22
     - python: 3.6
       env: TOX_ENV=py36-django22
+    - python: 3.7
+      env: TOX_ENV=py37-django22
 
 install:
   - pip install tox
