@@ -113,6 +113,42 @@ http://www.postgresql.org/docs/9.4/interactive/functions-net.html
 ``__min_prefixlen``
     Minimum value (inclusive) for ``CIDR`` prefix, does not distinguish between IPv4 and IPv6
 
+As of Django 2.2, indexes can be created for ``InetAddressField`` and ``CidrAddressField`` extra lookups directly on the model.
+
+.. code-block:: python
+
+ from django.contrib.postgres.indexes import GistIndex
+ from netfields import CidrAddressField, NetManager
+
+ class Example(models.Model):
+     inet = CidrAddressField()
+     # ...
+
+     class Meta:
+         indexes = (
+             GistIndex(
+                 fields=('inet',), opclasses=('inet_ops',),
+                 name='app_example_inet_idx'
+             ),
+         )
+
+For earlier versions of Django, a custom migration can be used to install an index.
+
+.. code-block:: python
+
+ from django.db import migrations
+
+ class Migration(migrations.Migration):
+     # ...
+
+     operations = [
+         # ...
+         migrations.RunSQL(
+             "CREATE INDEX app_example_inet_idx ON app_example USING GIST (inet inet_ops);"
+         ),
+         # ...
+     ]
+
 Errata
 ------
 
@@ -142,6 +178,6 @@ number in its implementation.
 History
 -------
 
-Main repo was originaly kept https://github.com/adamcik/django-postgresql-netfields
+Main repo was originally kept https://github.com/adamcik/django-postgresql-netfields
 Late April 2013 the project was moved to https://github.com/jimfunk/django-postgresql-netfields
 to pass the torch on to someone who actually uses this code actively :-)
