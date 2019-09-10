@@ -1,3 +1,8 @@
+- 1.1.0
+  * Add rhs lookup expression support (Christopher Aubut)
+  * Update REST Framework InetAddressField to avoid using the wrong type when
+    store_prefix is True (Nick Huber)
+
 - 1.0.1
   * Added a specific error to form and REST framework fields for host addresses
     passed to network fields
