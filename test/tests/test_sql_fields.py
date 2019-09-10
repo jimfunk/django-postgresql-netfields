@@ -16,6 +16,7 @@ from ipaddress import (
 from netaddr import EUI
 
 from django.db import IntegrityError
+from django.db.models import F
 from django.db.models.sql import EmptyResultSet
 from django.core.exceptions import FieldError
 from django.test import TestCase
@@ -240,6 +241,22 @@ class BaseInetFieldTestCase(BaseInetTestCase):
     def test_query_filter_ipaddress(self):
         self.model.objects.filter(field=ip_interface('1.2.3.4'))
 
+    def test_query_filter_f_expression(self):
+        self.model.objects.filter(field=F('field'))
+
+    @skipIf(VERSION < (1, 11), 'Subquery added in Django 1.11. https://docs.djangoproject.com/en/1.11/ref/models/expressions/#subquery-expressions')
+    def test_query_filter_subquery(self):
+        from django.db.models import OuterRef, Subquery
+        self.model.objects.annotate(
+            samefield=Subquery(
+                self.model.objects
+                .filter(
+                    field=OuterRef('field')
+                )
+                .values('field')[:1]
+            )
+        )
+
     def test_query_filter_contains_ipnetwork(self):
         self.model.objects.filter(field__net_contains=ip_network(u'2001::0/16'))
 
@@ -302,6 +319,22 @@ class BaseCidrFieldTestCase(BaseInetTestCase):
 
     def test_query_filter_ipnetwork(self):
         self.model.objects.filter(field=ip_network('1.2.3.0/24'))
+
+    def test_query_filter_f_expression(self):
+        self.model.objects.filter(field=F('field'))
+
+    @skipIf(VERSION < (1, 11), 'Subquery added in Django 1.11. https://docs.djangoproject.com/en/1.11/ref/models/expressions/#subquery-expressions')
+    def test_query_filter_subquery(self):
+        from django.db.models import OuterRef, Subquery
+        self.model.objects.annotate(
+            samefield=Subquery(
+                self.model.objects
+                .filter(
+                    field=OuterRef('field')
+                )
+                .values('field')[:1]
+            )
+        )
 
     def test_max_prefixlen(self):
         self.assertSqlEquals(
@@ -520,6 +553,22 @@ class BaseMacTestCase(BaseSqlTestCase):
         self.assertSqlEquals(
             self.qs.filter(field__iregex='00'),
             self.select + 'WHERE "table"."field"::text ~* %s'
+        )
+
+    def test_query_filter_f_expression(self):
+        self.model.objects.filter(field=F('field'))
+
+    @skipIf(VERSION < (1, 11), 'Subquery added in Django 1.11. https://docs.djangoproject.com/en/1.11/ref/models/expressions/#subquery-expressions')
+    def test_query_filter_subquery(self):
+        from django.db.models import OuterRef, Subquery
+        self.model.objects.annotate(
+            samefield=Subquery(
+                self.model.objects
+                .filter(
+                    field=OuterRef('field')
+                )
+                .values('field')[:1]
+            )
         )
 
 

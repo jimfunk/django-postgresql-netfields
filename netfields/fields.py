@@ -57,7 +57,13 @@ class _NetAddressField(models.Field):
             raise ValidationError(e)
 
     def get_prep_lookup(self, lookup_type, value):
-
+        if hasattr(value, '_prepare'):
+            try:
+                # Django 1.8
+                return value._prepare()
+            except TypeError:
+                # Django 1.9
+                return value._prepare(self)
         if (lookup_type in NET_OPERATORS and
                     NET_OPERATORS[lookup_type] not in NET_TEXT_OPERATORS):
             if (lookup_type.startswith('net_contained') or
