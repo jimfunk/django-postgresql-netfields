@@ -66,9 +66,8 @@ class _NetAddressField(models.Field):
                 return value._prepare(self)
         if (lookup_type in NET_OPERATORS and
                     NET_OPERATORS[lookup_type] not in NET_TEXT_OPERATORS):
-            if (lookup_type.startswith('net_contained') or
+            if (lookup_type.startswith('net_') or
                     lookup_type.endswith('prefixlen')) and value is not None:
-                # Argument will be CIDR
                 return str(value)
             return self.get_prep_value(value)
 
@@ -101,7 +100,12 @@ class _NetAddressField(models.Field):
 
         if (lookup_type in NET_OPERATORS and
                     NET_OPERATORS[lookup_type] not in NET_TEXT_OPERATORS):
-            return [value] if prepared else [self.get_prep_value(value)]
+            if prepared:
+                return [value]
+            if (lookup_type.startswith('net_') or
+                    lookup_type.endswith('prefixlen')) and value is not None:
+                return str(value)
+            return [self.get_prep_value(value)]
 
         return super(_NetAddressField, self).get_db_prep_lookup(
             lookup_type, value, connection=connection, prepared=prepared)

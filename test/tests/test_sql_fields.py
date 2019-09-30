@@ -444,6 +444,12 @@ class TestInetFieldNoPrefix(BaseInetFieldTestCase, TestCase):
         instance = self.model.objects.get(pk=instance.pk)
         self.assertIsInstance(instance.field, IPv6Address)
 
+    def test_net_contained_network(self):
+        self.model.objects.create(field='10.1.2.1')
+        self.model.objects.create(field='10.1.3.1')
+        query = self.model.objects.filter(field__net_contained='10.1.2.0/24')
+        self.assertEqual(query.count(), 1)
+        self.assertEqual(query[0].field, ip_address('10.1.2.1'))
 
 class TestCidrField(BaseCidrFieldTestCase, TestCase):
     def setUp(self):
