@@ -1,6 +1,13 @@
 from django.core.exceptions import ValidationError
 from django.db import models
-from django.db.backends.postgresql_psycopg2.base import DatabaseWrapper
+
+from django import VERSION
+
+if VERSION[0] <= 2:
+    from django.db.backends.postgresql_psycopg2.base import DatabaseWrapper
+else:
+    from django.db.backends.postgresql.base import DatabaseWrapper
+
 from django.utils.six import with_metaclass, text_type
 from ipaddress import ip_interface, ip_network
 from netaddr import EUI
