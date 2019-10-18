@@ -113,6 +113,71 @@ http://www.postgresql.org/docs/9.4/interactive/functions-net.html
 ``__min_prefixlen``
     Minimum value (inclusive) for ``CIDR`` prefix, does not distinguish between IPv4 and IPv6
 
+Database Functions
+''''''''''''''''''
+
+Postgres network address functions are exposed via the ``netfields.functions`` module.  They can be used to extract additional information from these fields or to construct complex queries.
+
+.. code-block:: python
+
+ from django.db.models import F
+
+ from netfields import CidrAddressField, NetManager
+ from netfields.functions import Family, Masklen
+
+ class Example(models.Model):
+     inet = CidrAddressField()
+     # ...
+
+ ipv4_with_num_ips = (
+     Example.objects.annotate(
+         family=Family(F('inet')),
+         num_ips=2 ** (32 - Masklen(F('inet')))  # requires Django >2.0 to resolve
+     )
+     .filter(family=4)
+ )
+
+**CidrAddressField and InetAddressField Functions**
+
++--------------------------------+------------------+----------------------+----------------------------------------------------------------+
+| Postgres Function              | Django Function  | Return Type          | Description                                                    |
++================================+==================+======================+================================================================+
+| abbrev(``T``)                  | Abbrev           | ``TextField``        | abbreviated display format as text                             |
++--------------------------------+------------------+----------------------+----------------------------------------------------------------+
+| broadcast(``T``)               | Broadcast        | ``InetAddressField`` | broadcast address for network                                  |
++--------------------------------+------------------+----------------------+----------------------------------------------------------------+
+| family(``T``)                  | Family           | ``IntegerField``     | extract family of address; 4 for IPv4, 6 for IPv6              |
++--------------------------------+------------------+----------------------+----------------------------------------------------------------+
+| host(``T``)                    | Host             | ``TextField``        | extract IP address as text                                     |
++--------------------------------+------------------+----------------------+----------------------------------------------------------------+
+| hostmask(``T``)                | Hostmask         | ``InetAddressField`` | construct host mask for network                                |
++--------------------------------+------------------+----------------------+----------------------------------------------------------------+
+| masklen(``T``)                 | Masklen          | ``IntegerField``     | extract netmask length                                         |
++--------------------------------+------------------+----------------------+----------------------------------------------------------------+
+| netmask(``T``)                 | Netmask          | ``InetAddressField`` | construct netmask for network                                  |
++--------------------------------+------------------+----------------------+----------------------------------------------------------------+
+| network(``T``)                 | Network          | ``CidrAddressField`` | extract network part of address                                |
++--------------------------------+------------------+----------------------+----------------------------------------------------------------+
+| set_masklen(``T``)             | SetMasklen       | ``T``                | set netmask length for inet value                              |
++--------------------------------+------------------+----------------------+----------------------------------------------------------------+
+| text(``T``)                    | AsText           | ``TextField``        | extract IP address and netmask length as text                  |
++--------------------------------+------------------+----------------------+----------------------------------------------------------------+
+| inet_same_family(``T``, ``T``) | IsSameFamily     | ``BooleanField``     | are the addresses from the same family?                        |
++--------------------------------+------------------+----------------------+----------------------------------------------------------------+
+| inet_merge(``T``, ``T``)       | Merge            | ``CidrAddressField`` | the smallest network which includes both of the given networks |
++--------------------------------+------------------+----------------------+----------------------------------------------------------------+
+
+**MACAddressField Functions**
+
++--------------------------------+------------------+----------------------+----------------------------------------------------------------+
+| Postgres Function              | Django Function  | Return Type          | Description                                                    |
++================================+==================+======================+================================================================+
+| trunc(``T``)                   | Trunc            | ``T``                | set last 3 bytes to zero                                       |
++--------------------------------+------------------+----------------------+----------------------------------------------------------------+
+
+Indexes
+'''''''
+
 As of Django 2.2, indexes can be created for ``InetAddressField`` and ``CidrAddressField`` extra lookups directly on the model.
 
 .. code-block:: python

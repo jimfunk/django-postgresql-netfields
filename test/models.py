@@ -91,7 +91,8 @@ class MACArrayTestModel(Model):
 
 
 class AggregateTestModel(Model):
-    pass
+    network = CidrAddressField(blank=True, null=True, default=None)
+    inet = InetAddressField(blank=True, null=True, default=None)
 
 
 class AggregateTestChildModel(Model):
