@@ -116,7 +116,7 @@ http://www.postgresql.org/docs/9.4/interactive/functions-net.html
 Database Functions
 ''''''''''''''''''
 
-Postgres network address functions are exposed via the ``netfields.functions`` module.  They can be used to extract additional information from these fields or to construct complex queries.
+`Postgres network address functions <https://www.postgresql.org/docs/11/functions-net.html>`_ are exposed via the ``netfields.functions`` module.  They can be used to extract additional information from these fields or to construct complex queries.
 
 .. code-block:: python
 
