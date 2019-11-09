@@ -158,7 +158,7 @@ Postgres network address functions are exposed via the ``netfields.functions`` m
 +--------------------------------+------------------+----------------------+----------------------------------------------------------------+
 | network(``T``)                 | Network          | ``CidrAddressField`` | extract network part of address                                |
 +--------------------------------+------------------+----------------------+----------------------------------------------------------------+
-| set_masklen(``T``)             | SetMasklen       | ``T``                | set netmask length for inet value                              |
+| set_masklen(``T``, int)             | SetMasklen       | ``T``                | set netmask length for inet value                              |
 +--------------------------------+------------------+----------------------+----------------------------------------------------------------+
 | text(``T``)                    | AsText           | ``TextField``        | extract IP address and netmask length as text                  |
 +--------------------------------+------------------+----------------------+----------------------------------------------------------------+
