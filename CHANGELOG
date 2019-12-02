@@ -1,3 +1,8 @@
+- 1.2.0
+  * Django 3.0 support (Erik de Wildt)
+  * Expose INET related PostgreSQL functions. See README.rst for usage
+    (Christopher Aubut)
+
 - 1.1.1
   * Fix improper conversion of networks to addresses in net lookups. Bug
     introduced in 1.1.0
