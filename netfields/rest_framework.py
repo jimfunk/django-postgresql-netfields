@@ -1,11 +1,11 @@
 from __future__ import absolute_import
 
-from django.utils.six import text_type
 from ipaddress import ip_interface, ip_network, ip_address
 from netaddr import EUI
 from netaddr.core import AddrFormatError
 from rest_framework import serializers
 
+from netfields.compat import text_type
 from netfields.mac import mac_unix_common
 
 

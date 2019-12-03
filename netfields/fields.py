@@ -1,20 +1,11 @@
 from django.core.exceptions import ValidationError
 from django.db import models
 
-from django import VERSION
-
-if VERSION[0] <= 2:
-    from django.db.backends.postgresql_psycopg2.base import DatabaseWrapper
-    from django.utils.six import with_metaclass, text_type
-else:
-    from django.db.backends.postgresql.base import DatabaseWrapper
-    from six import with_metaclass, text_type
-
-from django.utils.six import with_metaclass, text_type
 from ipaddress import ip_interface, ip_network
 from netaddr import EUI
 from netaddr.core import AddrFormatError
 
+from netfields.compat import DatabaseWrapper, with_metaclass, text_type
 from netfields.forms import InetAddressFormField, CidrAddressFormField, MACAddressFormField
 from netfields.mac import mac_unix_common
 from netfields.psycopg2_types import Inet, Macaddr
