@@ -155,7 +155,7 @@ class _PrefixlenMixin(object):
     def as_sql(self, qn, connection):
         warnings.warn(
             'min_prefixlen and max_prefixlen will be depreciated in the future; '
-            'use __prefixlen__gte and __prefixlen__lte respectively',
+            'use prefixlen__gte and prefixlen__lte respectively',
             DeprecationWarning
         )
         assert self.format_string is not None, "Prefixlen lookups must specify a format_string"
