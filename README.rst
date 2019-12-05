@@ -102,6 +102,9 @@ added:
 ``__host``
     matches the host part of an address regardless of prefix length
 
+``__prefixlen``
+    matches the prefix length part of an address
+
 These correspond with the operators and functions from
 http://www.postgresql.org/docs/9.4/interactive/functions-net.html
 
