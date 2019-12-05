@@ -178,6 +178,13 @@ class MinPrefixlen(_PrefixlenMixin, Lookup):
     format_string = '%s >= %s'
 
 
-class Prefixlen(_PrefixlenMixin, Lookup):
+class Prefixlen(Transform):
     lookup_name = 'prefixlen'
-    format_string = '%s = %s'
+
+    def as_sql(self, compiler, connection):
+        lhs, params = compiler.compile(self.lhs)
+        return "masklen(%s)" % lhs, params
+
+    @property
+    def output_field(self):
+        return IntegerField()
