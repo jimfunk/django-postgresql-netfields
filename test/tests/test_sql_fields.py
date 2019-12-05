@@ -1,4 +1,5 @@
 from __future__ import unicode_literals
+import warnings
 import django
 from django import VERSION
 from django.core.exceptions import ValidationError
@@ -367,16 +368,24 @@ class BaseCidrFieldTestCase(BaseInetTestCase):
         self.model.objects.filter(field=ip_network('1.2.3.0/24'))
 
     def test_max_prefixlen(self):
-        self.assertSqlEquals(
-            self.qs.filter(field__max_prefixlen='16'),
-            self.select + 'WHERE masklen("table"."field") <= %s'
-        )
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("always")
+            self.assertSqlEquals(
+                self.qs.filter(field__max_prefixlen='16'),
+                self.select + 'WHERE masklen("table"."field") <= %s'
+            )
+            assert len(w) == 1
+            assert issubclass(w[-1].category, DeprecationWarning)
 
     def test_min_prefixlen(self):
-        self.assertSqlEquals(
-            self.qs.filter(field__min_prefixlen='16'),
-            self.select + 'WHERE masklen("table"."field") >= %s'
-        )
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("always")
+            self.assertSqlEquals(
+                self.qs.filter(field__min_prefixlen='16'),
+                self.select + 'WHERE masklen("table"."field") >= %s'
+            )
+            assert len(w) == 1
+            assert issubclass(w[-1].category, DeprecationWarning)
 
 
 class TestInetField(BaseInetFieldTestCase, TestCase):
