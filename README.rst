@@ -26,6 +26,13 @@ Dependencies
 Current version of code is targeting Django >= 1.8 support, as this relies
 heavily on ORM internals and supporting multiple versions is especially tricky.
 
+Installation
+------------
+
+.. code-block:: bash
+
+ $ pip install django-netfields
+
 Getting started
 ---------------
 
