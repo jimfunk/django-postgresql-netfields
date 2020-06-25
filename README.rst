@@ -34,7 +34,7 @@ Make sure ``netfields`` is in your ``PYTHONPATH`` and in ``INSTALLED_APPS``.
 ``InetAddressField`` will store values in PostgreSQL as type ``INET``. In
 Python, the value will be represented as an ``ipaddress.ip_interface`` object
 representing an IP address and netmask/prefix length pair unless the
-``store_prefix_length`` argument is set to `False``, in which case the value
+``store_prefix_length`` argument is set to ``False``, in which case the value
 will be represented as an ``ipaddress.ip_address`` object.
 
 .. code-block:: python
