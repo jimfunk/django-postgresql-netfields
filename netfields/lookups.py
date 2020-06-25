@@ -1,3 +1,4 @@
+import warnings
 from django.core.exceptions import FieldError
 from django.db.models import Lookup, Transform, IntegerField
 from django.db.models.lookups import EndsWith, IEndsWith, StartsWith, IStartsWith, Regex, IRegex
@@ -152,6 +153,11 @@ class _PrefixlenMixin(object):
     format_string = None
 
     def as_sql(self, qn, connection):
+        warnings.warn(
+            'min_prefixlen and max_prefixlen will be depreciated in the future; '
+            'use prefixlen__gte and prefixlen__lte respectively',
+            DeprecationWarning
+        )
         assert self.format_string is not None, "Prefixlen lookups must specify a format_string"
         lhs, lhs_params = self.process_lhs(qn, connection)
         rhs, rhs_params = self.process_rhs(qn, connection)
@@ -178,6 +184,13 @@ class MinPrefixlen(_PrefixlenMixin, Lookup):
     format_string = '%s >= %s'
 
 
-class Prefixlen(_PrefixlenMixin, Lookup):
+class Prefixlen(Transform):
     lookup_name = 'prefixlen'
-    format_string = '%s = %s'
+
+    def as_sql(self, compiler, connection):
+        lhs, params = compiler.compile(self.lhs)
+        return "masklen(%s)" % lhs, params
+
+    @property
+    def output_field(self):
+        return IntegerField()

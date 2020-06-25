@@ -68,4 +68,5 @@ class NetfieldsConfig(AppConfig):
     InetAddressField.register_lookup(NetContainsOrEquals)
     InetAddressField.register_lookup(NetOverlaps)
     InetAddressField.register_lookup(Family)
+    InetAddressField.register_lookup(Prefixlen)
     InetAddressField.register_lookup(HostMatches)
