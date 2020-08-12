@@ -1,4 +1,4 @@
-from ipaddress import ip_interface, ip_network, _IPAddressBase, _BaseNetwork
+from ipaddress import _IPAddressBase, _BaseNetwork
 from netaddr import EUI, AddrFormatError
 
 from django import forms
@@ -6,6 +6,7 @@ from django.core.exceptions import ValidationError
 
 from netfields.compat import text_type
 from netfields.mac import mac_unix_common
+from netfields.protocols import BOTH_PROTOCOLS, get_interface_type_by_protocol, get_network_type_by_protocol
 
 
 class InetAddressFormField(forms.Field):
@@ -14,7 +15,8 @@ class InetAddressFormField(forms.Field):
         'invalid': u'Enter a valid IP address.',
     }
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, protocol=BOTH_PROTOCOLS, *args, **kwargs):
+        self.protocol = protocol
         super(InetAddressFormField, self).__init__(*args, **kwargs)
 
     def to_python(self, value):
@@ -28,7 +30,7 @@ class InetAddressFormField(forms.Field):
             value = value.strip()
 
         try:
-            return ip_interface(value)
+            return get_interface_type_by_protocol(self.protocol)(value)
         except ValueError as e:
             raise ValidationError(self.error_messages['invalid'])
 
@@ -40,7 +42,8 @@ class CidrAddressFormField(forms.Field):
         'network': u'Must be a network address.',
     }
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, protocol=BOTH_PROTOCOLS, *args, **kwargs):
+        self.protocol = protocol
         super(CidrAddressFormField, self).__init__(*args, **kwargs)
 
     def to_python(self, value):
@@ -54,7 +57,7 @@ class CidrAddressFormField(forms.Field):
             value = value.strip()
 
         try:
-            network = ip_network(value)
+            network = get_network_type_by_protocol(self.protocol)(value)
         except ValueError as e:
             if 'has host bits' in e.args[0]:
                 raise ValidationError(self.error_messages['network'])

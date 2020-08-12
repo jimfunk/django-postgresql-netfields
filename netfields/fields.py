@@ -1,13 +1,14 @@
 from django.core.exceptions import ValidationError
 from django.db import models
 
-from ipaddress import ip_interface, ip_network
+from ipaddress import ip_network
 from netaddr import EUI
 from netaddr.core import AddrFormatError
 
-from netfields.compat import DatabaseWrapper, with_metaclass, text_type
+from netfields.compat import DatabaseWrapper, text_type
 from netfields.forms import InetAddressFormField, CidrAddressFormField, MACAddressFormField
 from netfields.mac import mac_unix_common
+from netfields.protocols import BOTH_PROTOCOLS, get_interface_type_by_protocol, get_network_type_by_protocol
 from netfields.psycopg2_types import Inet, Macaddr
 
 
@@ -33,8 +34,9 @@ NET_TEXT_OPERATORS = ['ILIKE %s', '~* %s']
 class _NetAddressField(models.Field):
     empty_strings_allowed = False
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, protocol=BOTH_PROTOCOLS, *args, **kwargs):
         kwargs['max_length'] = self.max_length
+        self.protocol = protocol
         super(_NetAddressField, self).__init__(*args, **kwargs)
 
     def from_db_value(self, value, expression, connection, *args):
@@ -134,7 +136,7 @@ class InetAddressField(_NetAddressField):
         return 'inet'
 
     def python_type(self):
-        return ip_interface
+        return get_interface_type_by_protocol(self.protocol)
 
     def to_python(self, value):
         value = super(InetAddressField, self).to_python(value)
@@ -158,7 +160,7 @@ class CidrAddressField(_NetAddressField):
         return 'cidr'
 
     def python_type(self):
-        return ip_network
+        return get_network_type_by_protocol(self.protocol)
 
     def form_class(self):
         return CidrAddressFormField
