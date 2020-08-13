@@ -15,9 +15,9 @@ class InetAddressFormField(forms.Field):
         'invalid': u'Enter a valid IP address.',
     }
 
-    def __init__(self, protocol=BOTH_PROTOCOLS, *args, **kwargs):
+    def __init__(self, protocol=BOTH_PROTOCOLS, **kwargs):
         self.protocol = protocol
-        super(InetAddressFormField, self).__init__(*args, **kwargs)
+        super(InetAddressFormField, self).__init__(**kwargs)
 
     def to_python(self, value):
         if not value:

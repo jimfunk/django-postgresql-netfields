@@ -49,9 +49,9 @@ class CidrAddressField(serializers.Field):
         'network': 'Must be a network address.',
     }
 
-    def __init__(self, protocol=BOTH_PROTOCOLS, *args, **kwargs):
+    def __init__(self, protocol=BOTH_PROTOCOLS, **kwargs):
         self.protocol = protocol
-        super(CidrAddressField, self).__init__(*args, **kwargs)
+        super(CidrAddressField, self).__init__(**kwargs)
 
     def to_representation(self, value):
         if value is None:

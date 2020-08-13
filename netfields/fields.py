@@ -34,10 +34,10 @@ NET_TEXT_OPERATORS = ['ILIKE %s', '~* %s']
 class _NetAddressField(models.Field):
     empty_strings_allowed = False
 
-    def __init__(self, protocol=BOTH_PROTOCOLS, *args, **kwargs):
+    def __init__(self, protocol=BOTH_PROTOCOLS, **kwargs):
         kwargs['max_length'] = self.max_length
         self.protocol = protocol
-        super(_NetAddressField, self).__init__(*args, **kwargs)
+        super(_NetAddressField, self).__init__(**kwargs)
 
     def from_db_value(self, value, expression, connection, *args):
         if isinstance(value, list):
