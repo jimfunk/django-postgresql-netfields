@@ -489,7 +489,7 @@ class TestIPv4InetField(BaseInetFieldTestCase, TestCase):
     def setUp(self):
         self.model = IPv4InetTestModel
         self.qs = self.model.objects.all()
-        self.table = 'ipv4inet'
+        self.table = self.model.Meta.db_table
 
     def test_save_ipv4_address_type(self):
         instance = self.model.objects.create(field='10.1.2.3/24')
@@ -508,7 +508,7 @@ class TestIPv6InetField(BaseInetFieldTestCase, TestCase):
     def setUp(self):
         self.model = IPv6InetTestModel
         self.qs = self.model.objects.all()
-        self.table = 'ipv6inet'
+        self.table = self.model.Meta.db_table
 
     def test_save_ipv4_address_type_fails(self):
         self.assertRaises(ValidationError, self.model(field='10.1.2.3/24').save)
@@ -583,7 +583,7 @@ class TestIPv4CidrField(BaseCidrFieldTestCase, TestCase):
     def setUp(self):
         self.model = IPv4CidrTestModel
         self.qs = self.model.objects.all()
-        self.table = 'ipv4cidr'
+        self.table = self.model.Meta.db_table
 
     def test_save_ipv4_address_type(self):
         instance = self.model.objects.create(field='10.1.2.0/24')
@@ -602,7 +602,7 @@ class TestIPv6CidrField(BaseCidrFieldTestCase, TestCase):
     def setUp(self):
         self.model = IPv6CidrTestModel
         self.qs = self.model.objects.all()
-        self.table = 'ipv6cidr'
+        self.table = self.model.Meta.db_table
 
     def test_save_ipv4_address_type_fails(self):
         self.assertRaises(ValidationError, self.model(field='10.1.2.0/24').save)
