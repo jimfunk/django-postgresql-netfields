@@ -1,7 +1,7 @@
 from django.core.exceptions import ValidationError
 from django.db import models
 
-from ipaddress import ip_network
+from ipaddress import ip_network, AddressValueError
 from netaddr import EUI
 from netaddr.core import AddrFormatError
 
@@ -56,6 +56,13 @@ class _NetAddressField(models.Field):
         try:
             return self.python_type()(value)
         except ValueError as e:
+            raise ValidationError(e)
+
+    def validate(self, value, model_instance):
+        super(_NetAddressField, self).validate(value, model_instance)
+        try:
+            self.to_python(value)
+        except AddressValueError as e:
             raise ValidationError(e)
 
     def get_prep_lookup(self, lookup_type, value):
