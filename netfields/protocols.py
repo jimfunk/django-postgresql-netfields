@@ -8,33 +8,39 @@ PROTOCOLS = [BOTH_PROTOCOLS, IPV4_PROTOCOL, IPV6_PROTOCOL]
 
 
 def get_interface_type_by_protocol(protocol):
-    if protocol == BOTH_PROTOCOLS:
-        return ip_interface
-    elif protocol == IPV4_PROTOCOL:
-        return IPv4Interface
-    elif protocol == IPV6_PROTOCOL:
-        return IPv6Interface
+    protocol_to_interface_type = {
+        BOTH_PROTOCOLS: ip_interface,
+        IPV4_PROTOCOL: IPv4Interface,
+        IPV6_PROTOCOL: IPv6Interface,
+    }
+
+    if protocol in protocol_to_interface_type:
+        return protocol_to_interface_type[protocol]
 
     raise ValueError('%s is not a supported protocol' % protocol)
 
 
 def get_network_type_by_protocol(protocol):
-    if protocol == BOTH_PROTOCOLS:
-        return ip_network
-    elif protocol == IPV4_PROTOCOL:
-        return IPv4Network
-    elif protocol == IPV6_PROTOCOL:
-        return IPv6Network
+    protocol_to_network_type = {
+        BOTH_PROTOCOLS: ip_network,
+        IPV4_PROTOCOL: IPv4Network,
+        IPV6_PROTOCOL: IPv6Network,
+    }
+
+    if protocol in protocol_to_network_type:
+        return protocol_to_network_type[protocol]
 
     raise ValueError('%s is not a supported protocol' % protocol)
 
 
 def get_address_type_by_protocol(protocol):
-    if protocol == BOTH_PROTOCOLS:
-        return ip_address
-    elif protocol == IPV4_PROTOCOL:
-        return IPv4Address
-    elif protocol == IPV6_PROTOCOL:
-        return IPv6Address
+    protocol_to_address_type = {
+        BOTH_PROTOCOLS: ip_address,
+        IPV4_PROTOCOL: IPv4Address,
+        IPV6_PROTOCOL: IPv6Address,
+    }
+
+    if protocol in protocol_to_address_type:
+        return protocol_to_address_type[protocol]
 
     raise ValueError('%s is not a supported protocol' % protocol)
