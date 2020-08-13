@@ -299,10 +299,10 @@ class BaseInetFieldTestCase(BaseInetTestCase):
         )
 
     def test_query_filter_str(self):
-        self.model.objects.filter(field='1.2.3.4')
+        self.model.objects.filter(field=self.value1)
 
     def test_query_filter_ipaddress(self):
-        self.model.objects.filter(field=ip_interface('1.2.3.4'))
+        self.model.objects.filter(field=ip_interface(self.value1))
 
     def test_query_filter_contains_ipnetwork(self):
         self.model.objects.filter(field__net_contains=ip_network(u'2001::0/16'))
@@ -362,10 +362,10 @@ class BaseCidrFieldTestCase(BaseInetTestCase):
         )
 
     def test_query_filter_str(self):
-        self.model.objects.filter(field='1.2.3.0/24')
+        self.model.objects.filter(field=self.value1)
 
     def test_query_filter_ipnetwork(self):
-        self.model.objects.filter(field=ip_network('1.2.3.0/24'))
+        self.model.objects.filter(field=ip_network(self.value1))
 
     def test_max_prefixlen(self):
         with warnings.catch_warnings(record=True) as w:
@@ -516,7 +516,7 @@ class TestIPv6InetField(BaseInetFieldTestCase, TestCase):
     def test_save_ipv6_address_type(self):
         instance = self.model.objects.create(field='2001:db8::1/32')
         instance = self.model.objects.get(pk=instance.pk)
-        self.assertIsInstance(instance.field, IPv4Interface)
+        self.assertIsInstance(instance.field, IPv6Interface)
 
 
 class TestCidrField(BaseCidrFieldTestCase, TestCase):
@@ -588,7 +588,7 @@ class TestIPv4CidrField(BaseCidrFieldTestCase, TestCase):
     def test_save_ipv4_address_type(self):
         instance = self.model.objects.create(field='10.1.2.0/24')
         instance = self.model.objects.get(pk=instance.pk)
-        self.assertIsInstance(instance.field, IPv4Interface)
+        self.assertIsInstance(instance.field, IPv4Network)
 
     def test_save_ipv6_address_type_fails(self):
         self.assertRaises(ValidationError, self.model(field='2001:db8::/32').save)
@@ -610,7 +610,7 @@ class TestIPv6CidrField(BaseCidrFieldTestCase, TestCase):
     def test_save_ipv6_address_type(self):
         instance = self.model.objects.create(field='2001:db8::/32')
         instance = self.model.objects.get(pk=instance.pk)
-        self.assertIsInstance(instance.field, IPv4Interface)
+        self.assertIsInstance(instance.field, IPv6Network)
 
 
 class BaseMacTestCase(BaseSqlTestCase):
