@@ -36,7 +36,7 @@ from test.models import (
     MACArrayTestModel,
     MACTestModel,
     AggregateTestModel,
-    AggregateTestChildModel
+    AggregateTestChildModel, IPv4InetTestModel, IPv6InetTestModel, IPv4CidrTestModel, IPv6CidrTestModel
 )
 
 
@@ -485,6 +485,36 @@ class TestInetFieldNoPrefix(BaseInetFieldTestCase, TestCase):
         self.assertEqual(query[0].field, ip_address('10.1.2.1'))
 
 
+class TestIPv4InetField(BaseInetFieldTestCase, TestCase):
+    def setUp(self):
+        self.model = IPv4InetTestModel
+        self.qs = self.model.objects.all()
+        self.table = 'ipv4inet'
+
+    def test_save_ipv4_address_type(self):
+        instance = self.model.objects.create(field='10.1.2.3/24')
+        instance = self.model.objects.get(pk=instance.pk)
+        self.assertIsInstance(instance.field, IPv4Interface)
+
+    def test_save_ipv6_address_type_fails(self):
+        self.assertRaises(ValidationError, self.model(field='2001:db8::1/32').save)
+
+
+class TestIPv6InetField(BaseInetFieldTestCase, TestCase):
+    def setUp(self):
+        self.model = IPv6InetTestModel
+        self.qs = self.model.objects.all()
+        self.table = 'ipv6inet'
+
+    def test_save_ipv4_address_type_fails(self):
+        self.assertRaises(ValidationError, self.model(field='10.1.2.3/24').save)
+
+    def test_save_ipv6_address_type(self):
+        instance = self.model.objects.create(field='2001:db8::1/32')
+        instance = self.model.objects.get(pk=instance.pk)
+        self.assertIsInstance(instance.field, IPv4Interface)
+
+
 class TestCidrField(BaseCidrFieldTestCase, TestCase):
     def setUp(self):
         self.model = CidrTestModel
@@ -543,6 +573,36 @@ class TestCidrFieldUnique(BaseCidrFieldTestCase, TestCase):
     def test_save_nonunique(self):
         self.model(field='1.2.3.0/24').save()
         self.assertRaises(IntegrityError, self.model(field='1.2.3.0/24').save)
+
+
+class TestIPv4CidrField(BaseInetFieldTestCase, TestCase):
+    def setUp(self):
+        self.model = IPv4CidrTestModel
+        self.qs = self.model.objects.all()
+        self.table = 'ipv4cidr'
+
+    def test_save_ipv4_address_type(self):
+        instance = self.model.objects.create(field='10.1.2.0/24')
+        instance = self.model.objects.get(pk=instance.pk)
+        self.assertIsInstance(instance.field, IPv4Interface)
+
+    def test_save_ipv6_address_type_fails(self):
+        self.assertRaises(ValidationError, self.model(field='2001:db8::/32').save)
+
+
+class TestIPv6CidrField(BaseInetFieldTestCase, TestCase):
+    def setUp(self):
+        self.model = IPv6CidrTestModel
+        self.qs = self.model.objects.all()
+        self.table = 'ipv6cidr'
+
+    def test_save_ipv4_address_type_fails(self):
+        self.assertRaises(ValidationError, self.model(field='10.1.2.0/24').save)
+
+    def test_save_ipv6_address_type(self):
+        instance = self.model.objects.create(field='2001:db8::/32')
+        instance = self.model.objects.get(pk=instance.pk)
+        self.assertIsInstance(instance.field, IPv4Interface)
 
 
 class BaseMacTestCase(BaseSqlTestCase):
