@@ -575,7 +575,7 @@ class TestCidrFieldUnique(BaseCidrFieldTestCase, TestCase):
         self.assertRaises(IntegrityError, self.model(field='1.2.3.0/24').save)
 
 
-class TestIPv4CidrField(BaseInetFieldTestCase, TestCase):
+class TestIPv4CidrField(BaseCidrFieldTestCase, TestCase):
     def setUp(self):
         self.model = IPv4CidrTestModel
         self.qs = self.model.objects.all()
@@ -590,7 +590,7 @@ class TestIPv4CidrField(BaseInetFieldTestCase, TestCase):
         self.assertRaises(ValidationError, self.model(field='2001:db8::/32').save)
 
 
-class TestIPv6CidrField(BaseInetFieldTestCase, TestCase):
+class TestIPv6CidrField(BaseCidrFieldTestCase, TestCase):
     def setUp(self):
         self.model = IPv6CidrTestModel
         self.qs = self.model.objects.all()
