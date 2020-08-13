@@ -501,6 +501,10 @@ class TestIPv4InetField(BaseInetFieldTestCase, TestCase):
 
 
 class TestIPv6InetField(BaseInetFieldTestCase, TestCase):
+    value1 = 'ead3:b1a8:cd90:9980:593b:b334:32bd:ebfb'
+    value2 = '2479:9d:fc54:3f3c:d539:b44d:a41:ccf6/64'
+    value3 = '8640:b41:8059:91f8:a14a:d728:9119:d710'
+
     def setUp(self):
         self.model = IPv6InetTestModel
         self.qs = self.model.objects.all()
@@ -591,6 +595,10 @@ class TestIPv4CidrField(BaseCidrFieldTestCase, TestCase):
 
 
 class TestIPv6CidrField(BaseCidrFieldTestCase, TestCase):
+    value1 = 'ead3:b1a8:cd90:9980:593b:b334:32bd:ebfb/128'
+    value2 = '2020:db8:1243:baf6::/64'
+    value3 = '2001:db8::/32'
+
     def setUp(self):
         self.model = IPv6CidrTestModel
         self.qs = self.model.objects.all()
