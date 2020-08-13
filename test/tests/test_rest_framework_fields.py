@@ -4,6 +4,7 @@ from rest_framework import serializers
 
 import unittest2 as unittest
 from netfields import rest_framework as fields
+from netfields.protocols import IPV4_PROTOCOL, IPV6_PROTOCOL
 
 
 class FieldsTestCase(unittest.TestCase):
@@ -19,6 +20,29 @@ class FieldsTestCase(unittest.TestCase):
         self.assertEqual(e.exception.detail['ip'],
                          ["Invalid IP address."])
 
+    def test_validation_inet_ipv4_field(self):
+
+        class TestSerializer(serializers.Serializer):
+            ip = fields.InetAddressField(protocol=IPV4_PROTOCOL)
+
+        address = '6c5b:de87:7a15:5eba:67b5:69ae:f454:ce1'
+        serializer = TestSerializer(data={'ip': address})
+        with self.assertRaises(serializers.ValidationError) as e:
+            serializer.is_valid(raise_exception=True)
+        self.assertEqual(e.exception.detail['ip'],
+                         ["Invalid {} address.".format(IPV4_PROTOCOL)])
+
+    def test_validation_inet_ipv6_field(self):
+
+        class TestSerializer(serializers.Serializer):
+            ip = fields.InetAddressField(protocol=IPV6_PROTOCOL)
+
+        address = '1.2.3.4'
+        serializer = TestSerializer(data={'ip': address})
+        with self.assertRaises(serializers.ValidationError) as e:
+            serializer.is_valid(raise_exception=True)
+        self.assertEqual(e.exception.detail['ip'],
+                         ["Invalid {} address.".format(IPV6_PROTOCOL)])
 
     def test_validation_cidr_field(self):
 
@@ -31,6 +55,30 @@ class FieldsTestCase(unittest.TestCase):
             serializer.is_valid(raise_exception=True)
         self.assertEqual(e.exception.detail['cidr'],
                          ["Invalid CIDR address."])
+
+    def test_validation_cidr_ipv4_field(self):
+
+        class TestSerializer(serializers.Serializer):
+            cidr = fields.CidrAddressField(protocol=IPV4_PROTOCOL)
+
+        address = '2001:db8::/32'
+        serializer = TestSerializer(data={'cidr': address})
+        with self.assertRaises(serializers.ValidationError) as e:
+            serializer.is_valid(raise_exception=True)
+        self.assertEqual(e.exception.detail['cidr'],
+                         ["Invalid {} CIDR address.".format(IPV4_PROTOCOL)])
+
+    def test_validation_cidr_ipv6_field(self):
+
+        class TestSerializer(serializers.Serializer):
+            cidr = fields.CidrAddressField(protocol=IPV6_PROTOCOL)
+
+        address = '10.0.0.0/24'
+        serializer = TestSerializer(data={'cidr': address})
+        with self.assertRaises(serializers.ValidationError) as e:
+            serializer.is_valid(raise_exception=True)
+        self.assertEqual(e.exception.detail['cidr'],
+                         ["Invalid {} CIDR address.".format(IPV6_PROTOCOL)])
 
     def test_network_validation_cidr_field(self):
 

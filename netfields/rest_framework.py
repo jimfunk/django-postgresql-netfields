@@ -1,5 +1,7 @@
 from __future__ import absolute_import
 
+from ipaddress import AddressValueError
+
 from netaddr import EUI
 from netaddr.core import AddrFormatError
 from rest_framework import serializers
@@ -12,7 +14,8 @@ from netfields.protocols import BOTH_PROTOCOLS, get_interface_type_by_protocol, 
 
 class InetAddressField(serializers.Field):
     default_error_messages = {
-        'invalid': 'Invalid IP address.'
+        'invalid': 'Invalid IP address.',
+        'invalid_protocol': 'Invalid {protocol} address.',
     }
 
     def __init__(self, store_prefix=True, protocol=BOTH_PROTOCOLS, *args, **kwargs):
@@ -33,13 +36,16 @@ class InetAddressField(serializers.Field):
                 return get_interface_type_by_protocol(self.protocol)(data)
             else:
                 return get_address_type_by_protocol(self.protocol)(data)
-        except ValueError:
+        except (ValueError, AddressValueError):
+            if self.protocol != BOTH_PROTOCOLS:
+                self.fail('invalid_protocol', protocol=self.protocol)
             self.fail('invalid')
 
 
 class CidrAddressField(serializers.Field):
     default_error_messages = {
         'invalid': 'Invalid CIDR address.',
+        'invalid_protocol': 'Invalid {protocol} CIDR address.',
         'network': 'Must be a network address.',
     }
 
@@ -57,9 +63,11 @@ class CidrAddressField(serializers.Field):
             return data
         try:
             return get_network_type_by_protocol(self.protocol)(data)
-        except ValueError as e:
+        except (ValueError, AddressValueError) as e:
             if 'has host bits' in e.args[0]:
                 self.fail('network')
+            if self.protocol != BOTH_PROTOCOLS:
+                self.fail('invalid_protocol', protocol=self.protocol)
             self.fail('invalid')
 
 
