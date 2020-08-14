@@ -11,7 +11,11 @@ from test.models import (
     UniqueInetTestModel,
     UniqueCidrTestModel,
     NoPrefixInetTestModel,
-    MACTestModel, IPv4InetTestModel, IPv6InetTestModel, IPv4CidrTestModel, IPv6CidrTestModel
+    MACTestModel,
+    IPv4InetTestModel,
+    IPv6InetTestModel,
+    IPv4CidrTestModel,
+    IPv6CidrTestModel,
 )
 from netfields.mac import mac_unix_common
 
