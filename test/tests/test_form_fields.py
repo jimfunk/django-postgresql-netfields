@@ -1,5 +1,5 @@
 from __future__ import unicode_literals
-from ipaddress import ip_address, ip_interface, ip_network
+from ipaddress import ip_address, ip_interface, ip_network, IPv4Network, IPv4Address, IPv6Address
 from netaddr import EUI
 
 from django.forms import ModelForm
@@ -11,7 +11,7 @@ from test.models import (
     UniqueInetTestModel,
     UniqueCidrTestModel,
     NoPrefixInetTestModel,
-    MACTestModel
+    MACTestModel, IPv4InetTestModel, IPv6InetTestModel, IPv4CidrTestModel, IPv6CidrTestModel
 )
 from netfields.mac import mac_unix_common
 
@@ -138,6 +138,44 @@ class TestUniqueInetAddressFormField(TestInetAddressFormField):
     form_class = UniqueInetAddressTestModelForm
 
 
+class IPv4InetAddressTestModelForm(ModelForm):
+    class Meta:
+        model = IPv4InetTestModel
+        exclude = []
+
+
+class TestIPv4InetAddressFormField(TestCase):
+    form_class = IPv4InetAddressTestModelForm
+
+    def test_form_ipv4_valid(self):
+        form = self.form_class({'field': '10.0.0.1'})
+        self.assertTrue(form.is_valid())
+        self.assertEqual(form.cleaned_data['field'], IPv4Address('10.0.0.1'))
+
+    def test_form_ipv6_invalid(self):
+        form = self.form_class({'field': '2001:0:1::2'})
+        self.assertFalse(form.is_valid())
+
+
+class IPv6InetAddressTestModelForm(ModelForm):
+    class Meta:
+        model = IPv6InetTestModel
+        exclude = []
+
+
+class TestIPv6InetAddressFormField(TestCase):
+    form_class = IPv6InetAddressTestModelForm
+
+    def test_form_ipv4_invalid(self):
+        form = self.form_class({'field': '10.0.0.1'})
+        self.assertFalse(form.is_valid())
+
+    def test_form_ipv6_valid(self):
+        form = self.form_class({'field': '2001:0:1::2'})
+        self.assertTrue(form.is_valid())
+        self.assertEqual(form.cleaned_data['field'], IPv6Address('2001:0:1::2'))
+
+
 class CidrAddressTestModelForm(ModelForm):
     class Meta:
         model = CidrTestModel
@@ -192,6 +230,44 @@ class UniqueCidrAddressTestModelForm(ModelForm):
 
 class TestUniqueCidrAddressFormField(TestCidrAddressFormField):
     form_class = UniqueCidrAddressTestModelForm
+
+
+class IPv4CidrAddressTestModelForm(ModelForm):
+    class Meta:
+        model = IPv4CidrTestModel
+        exclude = []
+
+
+class TestIPv4CidrAddressFormField(TestCase):
+    form_class = IPv4CidrAddressTestModelForm
+
+    def test_form_ipv4_valid(self):
+        form = self.form_class({'field': '10.0.1.0/24'})
+        self.assertTrue(form.is_valid())
+        self.assertEqual(form.cleaned_data['field'], ip_network('10.0.1.0/24'))
+
+    def test_form_ipv6_invalid(self):
+        form = self.form_class({'field': '2001:0:1::/64'})
+        self.assertFalse(form.is_valid())
+
+
+class IPv6CidrAddressTestModelForm(ModelForm):
+    class Meta:
+        model = IPv6CidrTestModel
+        exclude = []
+
+
+class TestIPv6CidrAddressFormField(TestCase):
+    form_class = IPv6CidrAddressTestModelForm
+
+    def test_form_ipv4_invalid(self):
+        form = self.form_class({'field': '10.0.1.0/24'})
+        self.assertFalse(form.is_valid())
+
+    def test_form_ipv6_valid(self):
+        form = self.form_class({'field': '2001:0:1::/64'})
+        self.assertTrue(form.is_valid())
+        self.assertEqual(form.cleaned_data['field'], ip_network('2001:0:1::/64'))
 
 
 class MacAddressTestModelForm(ModelForm):
