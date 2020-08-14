@@ -1,5 +1,5 @@
 from __future__ import unicode_literals
-from ipaddress import ip_address, ip_interface, ip_network, IPv4Network, IPv4Address, IPv6Address
+from ipaddress import ip_address, ip_interface, ip_network, IPv4Interface, IPv6Interface
 from netaddr import EUI
 
 from django.forms import ModelForm
@@ -150,7 +150,7 @@ class TestIPv4InetAddressFormField(TestCase):
     def test_form_ipv4_valid(self):
         form = self.form_class({'field': '10.0.0.1'})
         self.assertTrue(form.is_valid())
-        self.assertEqual(form.cleaned_data['field'], IPv4Address('10.0.0.1'))
+        self.assertEqual(form.cleaned_data['field'], IPv4Interface('10.0.0.1'))
 
     def test_form_ipv6_invalid(self):
         form = self.form_class({'field': '2001:0:1::2'})
@@ -173,7 +173,7 @@ class TestIPv6InetAddressFormField(TestCase):
     def test_form_ipv6_valid(self):
         form = self.form_class({'field': '2001:0:1::2'})
         self.assertTrue(form.is_valid())
-        self.assertEqual(form.cleaned_data['field'], IPv6Address('2001:0:1::2'))
+        self.assertEqual(form.cleaned_data['field'], IPv6Interface('2001:0:1::2'))
 
 
 class CidrAddressTestModelForm(ModelForm):
