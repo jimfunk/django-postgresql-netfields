@@ -55,14 +55,7 @@ class _NetAddressField(models.Field):
 
         try:
             return self.python_type()(value)
-        except ValueError as e:
-            raise ValidationError(e)
-
-    def validate(self, value, model_instance):
-        super(_NetAddressField, self).validate(value, model_instance)
-        try:
-            self.to_python(value)
-        except AddressValueError as e:
+        except (ValueError, AddressValueError) as e:
             raise ValidationError(e)
 
     def get_prep_lookup(self, lookup_type, value):
