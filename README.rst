@@ -123,6 +123,12 @@ http://www.postgresql.org/docs/9.4/interactive/functions-net.html
 ``__min_prefixlen``
     Minimum value (inclusive) for ``CIDR`` prefix, does not distinguish between IPv4 and IPv6
 
+Options
+'''''''
+
+``protocol``
+    Specify explicit protocol version for `InetAddressField` or `CidrAddressField`. This will only allow setting a value matching the given protocol (enforced in python-level). Options are: `netfields.protocols.IPV4_PROTOCOL`, `netfields.protocols.IPV6_PROTOCOL` and `netfields.protocols.BOTH_PROTOCOLS`.
+
 Database Functions
 ''''''''''''''''''
 
