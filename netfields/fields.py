@@ -8,7 +8,8 @@ from netaddr.core import AddrFormatError
 from netfields.compat import DatabaseWrapper, text_type
 from netfields.forms import InetAddressFormField, CidrAddressFormField, MACAddressFormField
 from netfields.mac import mac_unix_common
-from netfields.protocols import BOTH_PROTOCOLS, get_interface_type_by_protocol, get_network_type_by_protocol
+from netfields.address_families import BOTH_FAMILIES, get_interface_type_by_address_family, \
+    get_network_type_by_address_family
 from netfields.psycopg2_types import Inet, Macaddr
 
 
@@ -34,9 +35,9 @@ NET_TEXT_OPERATORS = ['ILIKE %s', '~* %s']
 class _NetAddressField(models.Field):
     empty_strings_allowed = False
 
-    def __init__(self, protocol=BOTH_PROTOCOLS, **kwargs):
+    def __init__(self, address_family=BOTH_FAMILIES, **kwargs):
         kwargs['max_length'] = self.max_length
-        self.protocol = protocol
+        self.address_family = address_family
         super(_NetAddressField, self).__init__(**kwargs)
 
     def from_db_value(self, value, expression, connection, *args):
@@ -136,7 +137,7 @@ class InetAddressField(_NetAddressField):
         return 'inet'
 
     def python_type(self):
-        return get_interface_type_by_protocol(self.protocol)
+        return get_interface_type_by_address_family(self.address_family)
 
     def to_python(self, value):
         value = super(InetAddressField, self).to_python(value)
@@ -160,7 +161,7 @@ class CidrAddressField(_NetAddressField):
         return 'cidr'
 
     def python_type(self):
-        return get_network_type_by_protocol(self.protocol)
+        return get_network_type_by_address_family(self.address_family)
 
     def form_class(self):
         return CidrAddressFormField

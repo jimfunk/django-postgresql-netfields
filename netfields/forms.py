@@ -6,18 +6,18 @@ from django.core.exceptions import ValidationError
 
 from netfields.compat import text_type
 from netfields.mac import mac_unix_common
-from netfields.protocols import BOTH_PROTOCOLS, get_interface_type_by_protocol, get_network_type_by_protocol
+from netfields.address_families import BOTH_FAMILIES, get_interface_type_by_address_family, get_network_type_by_address_family
 
 
 class InetAddressFormField(forms.Field):
     widget = forms.TextInput
     default_error_messages = {
         'invalid': u'Enter a valid IP address.',
-        'invalid_protocol': u'Enter a valid %(protocol)s address.',
+        'invalid_address_family': u'Enter a valid %(address_family)s address.',
     }
 
-    def __init__(self, protocol=BOTH_PROTOCOLS, **kwargs):
-        self.protocol = protocol
+    def __init__(self, address_family=BOTH_FAMILIES, **kwargs):
+        self.address_family = address_family
         super(InetAddressFormField, self).__init__(**kwargs)
 
     def to_python(self, value):
@@ -31,10 +31,10 @@ class InetAddressFormField(forms.Field):
             value = value.strip()
 
         try:
-            return get_interface_type_by_protocol(self.protocol)(value)
+            return get_interface_type_by_address_family(self.address_family)(value)
         except (ValueError, AddressValueError) as e:
-            if self.protocol != BOTH_PROTOCOLS:
-                raise ValidationError(self.error_messages['invalid_protocol'], params={'protocol': self.protocol})
+            if self.address_family != BOTH_FAMILIES:
+                raise ValidationError(self.error_messages['invalid_address_family'], params={'address_family': self.address_family})
             raise ValidationError(self.error_messages['invalid'])
 
 
@@ -42,12 +42,12 @@ class CidrAddressFormField(forms.Field):
     widget = forms.TextInput
     default_error_messages = {
         'invalid': u'Enter a valid CIDR address.',
-        'invalid_protocol': u'Enter a valid %(protocol)s CIDR address.',
+        'invalid_address_family': u'Enter a valid %(address_family)s CIDR address.',
         'network': u'Must be a network address.',
     }
 
-    def __init__(self, protocol=BOTH_PROTOCOLS, *args, **kwargs):
-        self.protocol = protocol
+    def __init__(self, address_family=BOTH_FAMILIES, *args, **kwargs):
+        self.address_family = address_family
         super(CidrAddressFormField, self).__init__(*args, **kwargs)
 
     def to_python(self, value):
@@ -61,12 +61,12 @@ class CidrAddressFormField(forms.Field):
             value = value.strip()
 
         try:
-            network = get_network_type_by_protocol(self.protocol)(value)
+            network = get_network_type_by_address_family(self.address_family)(value)
         except (ValueError, AddressValueError) as e:
             if 'has host bits' in e.args[0]:
                 raise ValidationError(self.error_messages['network'])
-            if self.protocol != BOTH_PROTOCOLS:
-                raise ValidationError(self.error_messages['invalid_protocol'], params={'protocol': self.protocol})
+            if self.address_family != BOTH_FAMILIES:
+                raise ValidationError(self.error_messages['invalid_address_family'], params={'address_family': self.address_family})
             raise ValidationError(self.error_messages['invalid'])
 
         return network

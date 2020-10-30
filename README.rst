@@ -126,8 +126,8 @@ http://www.postgresql.org/docs/9.4/interactive/functions-net.html
 Options
 '''''''
 
-``protocol``
-    Specify an explicit protocol version for ``InetAddressField`` or ``CidrAddressField``. This will only allow setting a value matching the given protocol (enforced in python-level). Options are: ``netfields.protocols.IPV4_PROTOCOL``, ``netfields.protocols.IPV6_PROTOCOL`` and ``netfields.protocols.BOTH_PROTOCOLS``.
+``address_family``
+    Specify an explicit address family for ``InetAddressField`` or ``CidrAddressField``. This will only allow setting a value matching the given address family (enforced in python-level). Options are: ``netfields.address_families.IPV4_FAMILY``, ``netfields.address_families.IPV6_FAMILY`` and ``netfields.address_families.BOTH_FAMILIES``.
 
 Database Functions
 ''''''''''''''''''
