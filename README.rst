@@ -26,6 +26,13 @@ Dependencies
 Current version of code is targeting Django >= 1.8 support, as this relies
 heavily on ORM internals and supporting multiple versions is especially tricky.
 
+Installation
+------------
+
+.. code-block:: bash
+
+ $ pip install django-netfields
+
 Getting started
 ---------------
 
@@ -34,7 +41,7 @@ Make sure ``netfields`` is in your ``PYTHONPATH`` and in ``INSTALLED_APPS``.
 ``InetAddressField`` will store values in PostgreSQL as type ``INET``. In
 Python, the value will be represented as an ``ipaddress.ip_interface`` object
 representing an IP address and netmask/prefix length pair unless the
-``store_prefix_length`` argument is set to `False``, in which case the value
+``store_prefix_length`` argument is set to ``False``, in which case the value
 will be represented as an ``ipaddress.ip_address`` object.
 
 .. code-block:: python
@@ -102,10 +109,13 @@ added:
 ``__host``
     matches the host part of an address regardless of prefix length
 
+``__prefixlen``
+    matches the prefix length part of an address
+
 These correspond with the operators and functions from
 http://www.postgresql.org/docs/9.4/interactive/functions-net.html
 
-``CidrAddressField`` includes two extra lookups:
+``CidrAddressField`` includes two extra lookups (these will be depreciated in the future by ``__prefixlen``):
 
 ``__max_prefixlen``
     Maximum value (inclusive) for ``CIDR`` prefix, does not distinguish between IPv4 and IPv6

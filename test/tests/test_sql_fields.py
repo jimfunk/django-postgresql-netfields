@@ -1,4 +1,5 @@
 from __future__ import unicode_literals
+import warnings
 import django
 from django import VERSION
 from django.core.exceptions import ValidationError
@@ -193,6 +194,68 @@ class BaseInetTestCase(BaseSqlTestCase):
             self.select + 'WHERE HOST("table"."field") = HOST(%s)'
         )
 
+    def test_prefixlen_exact_lookup_sql(self):
+        self.assertSqlEquals(
+            self.qs.filter(field__prefixlen='16'),
+            self.select + 'WHERE MASKLEN("table"."field") = %s'
+        )
+
+    def test_prefixlen_in_lookup_sql(self):
+        self.assertSqlEquals(
+            self.qs.filter(field__prefixlen__in=['16', '24']),
+            self.select + 'WHERE MASKLEN("table"."field") IN (%s, %s)'
+        )
+
+    def test_prefixlen_in_single_lookup_sql(self):
+        self.assertSqlEquals(
+            self.qs.filter(field__prefixlen__in=['16']),
+            self.select + 'WHERE MASKLEN("table"."field") IN (%s)'
+        )
+
+    def test_prefixlen_in_empty_lookup_sql(self):
+        with self.assertRaises(EmptyResultSet):
+            self.qs.filter(field__prefixlen__in=[]).query.get_compiler(self.qs.db).as_sql()
+
+    def test_prefixlen_gt_lookup_sql(self):
+        self.assertSqlEquals(
+            self.qs.filter(field__prefixlen__gt="16"),
+            self.select + 'WHERE MASKLEN("table"."field") > %s'
+        )
+
+    def test_prefixlen_gte_lookup_sql(self):
+        self.assertSqlEquals(
+            self.qs.filter(field__prefixlen__gte="16"),
+            self.select + 'WHERE MASKLEN("table"."field") >= %s'
+        )
+
+    def test_prefixlen_lt_lookup_sql(self):
+        self.assertSqlEquals(
+            self.qs.filter(field__prefixlen__lt="16"),
+            self.select + 'WHERE MASKLEN("table"."field") < %s'
+        )
+
+    def test_prefixlen_lte_lookup_sql(self):
+        self.assertSqlEquals(
+            self.qs.filter(field__prefixlen__lte="16"),
+            self.select + 'WHERE MASKLEN("table"."field") <= %s'
+        )
+
+    def test_query_filter_f_expression(self):
+        self.model.objects.filter(field=F('field'))
+
+    @skipIf(VERSION < (1, 11), 'Subquery added in Django 1.11. https://docs.djangoproject.com/en/1.11/ref/models/expressions/#subquery-expressions')
+    def test_query_filter_subquery(self):
+        from django.db.models import OuterRef, Subquery
+        self.model.objects.annotate(
+            samefield=Subquery(
+                self.model.objects
+                .filter(
+                    field=OuterRef('field')
+                )
+                .values('field')[:1]
+            )
+        )
+
 
 class BaseInetFieldTestCase(BaseInetTestCase):
     value1 = '10.0.0.1'
@@ -240,22 +303,6 @@ class BaseInetFieldTestCase(BaseInetTestCase):
 
     def test_query_filter_ipaddress(self):
         self.model.objects.filter(field=ip_interface('1.2.3.4'))
-
-    def test_query_filter_f_expression(self):
-        self.model.objects.filter(field=F('field'))
-
-    @skipIf(VERSION < (1, 11), 'Subquery added in Django 1.11. https://docs.djangoproject.com/en/1.11/ref/models/expressions/#subquery-expressions')
-    def test_query_filter_subquery(self):
-        from django.db.models import OuterRef, Subquery
-        self.model.objects.annotate(
-            samefield=Subquery(
-                self.model.objects
-                .filter(
-                    field=OuterRef('field')
-                )
-                .values('field')[:1]
-            )
-        )
 
     def test_query_filter_contains_ipnetwork(self):
         self.model.objects.filter(field__net_contains=ip_network(u'2001::0/16'))
@@ -320,39 +367,25 @@ class BaseCidrFieldTestCase(BaseInetTestCase):
     def test_query_filter_ipnetwork(self):
         self.model.objects.filter(field=ip_network('1.2.3.0/24'))
 
-    def test_query_filter_f_expression(self):
-        self.model.objects.filter(field=F('field'))
-
-    @skipIf(VERSION < (1, 11), 'Subquery added in Django 1.11. https://docs.djangoproject.com/en/1.11/ref/models/expressions/#subquery-expressions')
-    def test_query_filter_subquery(self):
-        from django.db.models import OuterRef, Subquery
-        self.model.objects.annotate(
-            samefield=Subquery(
-                self.model.objects
-                .filter(
-                    field=OuterRef('field')
-                )
-                .values('field')[:1]
-            )
-        )
-
     def test_max_prefixlen(self):
-        self.assertSqlEquals(
-            self.qs.filter(field__max_prefixlen='16'),
-            self.select + 'WHERE masklen("table"."field") <= %s'
-        )
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("always")
+            self.assertSqlEquals(
+                self.qs.filter(field__max_prefixlen='16'),
+                self.select + 'WHERE masklen("table"."field") <= %s'
+            )
+            assert len(w) == 1
+            assert issubclass(w[-1].category, DeprecationWarning)
 
     def test_min_prefixlen(self):
-        self.assertSqlEquals(
-            self.qs.filter(field__min_prefixlen='16'),
-            self.select + 'WHERE masklen("table"."field") >= %s'
-        )
-
-    def test_prefixlen(self):
-        self.assertSqlEquals(
-            self.qs.filter(field__prefixlen='16'),
-            self.select + 'WHERE masklen("table"."field") = %s'
-        )
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("always")
+            self.assertSqlEquals(
+                self.qs.filter(field__min_prefixlen='16'),
+                self.select + 'WHERE masklen("table"."field") >= %s'
+            )
+            assert len(w) == 1
+            assert issubclass(w[-1].category, DeprecationWarning)
 
 
 class TestInetField(BaseInetFieldTestCase, TestCase):
@@ -450,6 +483,7 @@ class TestInetFieldNoPrefix(BaseInetFieldTestCase, TestCase):
         query = self.model.objects.filter(field__net_contained='10.1.2.0/24')
         self.assertEqual(query.count(), 1)
         self.assertEqual(query[0].field, ip_address('10.1.2.1'))
+
 
 class TestCidrField(BaseCidrFieldTestCase, TestCase):
     def setUp(self):

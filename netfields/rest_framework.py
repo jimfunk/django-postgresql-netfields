@@ -7,6 +7,7 @@ from rest_framework import serializers
 
 from netfields.compat import text_type
 from netfields.mac import mac_unix_common
+from netfields import fields
 
 
 class InetAddressField(serializers.Field):
@@ -72,5 +73,14 @@ class MACAddressField(serializers.Field):
             return data
         try:
             return EUI(data, dialect=mac_unix_common)
-        except AddrFormatError:
+        except (AddrFormatError, TypeError):
             self.fail('invalid')
+
+
+class NetModelSerializer(serializers.ModelSerializer):
+    pass
+
+
+NetModelSerializer.serializer_field_mapping[fields.InetAddressField] = InetAddressField
+NetModelSerializer.serializer_field_mapping[fields.CidrAddressField] = CidrAddressField
+NetModelSerializer.serializer_field_mapping[fields.MACAddressField] = MACAddressField
