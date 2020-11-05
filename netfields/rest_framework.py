@@ -73,7 +73,7 @@ class MACAddressField(serializers.Field):
             return data
         try:
             return EUI(data, dialect=mac_unix_common)
-        except AddrFormatError:
+        except (AddrFormatError, TypeError):
             self.fail('invalid')
 
 
