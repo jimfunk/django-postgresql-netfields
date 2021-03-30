@@ -9,17 +9,17 @@ from rest_framework import serializers
 from netfields.compat import text_type
 from netfields.mac import mac_unix_common
 from netfields import fields
-from netfields.address_families import BOTH_FAMILIES, get_interface_type_by_address_family, \
+from netfields.address_families import UNSPECIFIED, get_interface_type_by_address_family, \
     get_address_type_by_address_family, get_network_type_by_address_family
 
 
 class InetAddressField(serializers.Field):
     default_error_messages = {
         'invalid': 'Invalid IP address.',
-        'invalid_address_family': 'Invalid {address_family} address.',
+        'invalid_address_family': 'Invalid IPv{address_family} address.',
     }
 
-    def __init__(self, store_prefix=True, address_family=BOTH_FAMILIES, *args, **kwargs):
+    def __init__(self, store_prefix=True, address_family=UNSPECIFIED, *args, **kwargs):
         self.store_prefix = store_prefix
         self.address_family = address_family
         super(InetAddressField, self).__init__(*args, **kwargs)
@@ -38,7 +38,7 @@ class InetAddressField(serializers.Field):
             else:
                 return get_address_type_by_address_family(self.address_family)(data)
         except (ValueError, AddressValueError):
-            if self.address_family != BOTH_FAMILIES:
+            if self.address_family != UNSPECIFIED:
                 self.fail('invalid_address_family', address_family=self.address_family)
             self.fail('invalid')
 
@@ -46,11 +46,11 @@ class InetAddressField(serializers.Field):
 class CidrAddressField(serializers.Field):
     default_error_messages = {
         'invalid': 'Invalid CIDR address.',
-        'invalid_address_family': 'Invalid {address_family} CIDR address.',
+        'invalid_address_family': 'Invalid IPv{address_family} CIDR address.',
         'network': 'Must be a network address.',
     }
 
-    def __init__(self, address_family=BOTH_FAMILIES, **kwargs):
+    def __init__(self, address_family=UNSPECIFIED, **kwargs):
         self.address_family = address_family
         super(CidrAddressField, self).__init__(**kwargs)
 
@@ -67,7 +67,7 @@ class CidrAddressField(serializers.Field):
         except (ValueError, AddressValueError) as e:
             if 'has host bits' in e.args[0]:
                 self.fail('network')
-            if self.address_family != BOTH_FAMILIES:
+            if self.address_family != UNSPECIFIED:
                 self.fail('invalid_address_family', address_family=self.address_family)
             self.fail('invalid')
 

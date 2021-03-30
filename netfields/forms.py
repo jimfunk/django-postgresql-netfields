@@ -6,7 +6,7 @@ from django.core.exceptions import ValidationError
 
 from netfields.compat import text_type
 from netfields.mac import mac_unix_common
-from netfields.address_families import BOTH_FAMILIES, get_interface_type_by_address_family, get_network_type_by_address_family
+from netfields.address_families import UNSPECIFIED, get_interface_type_by_address_family, get_network_type_by_address_family
 
 
 class InetAddressFormField(forms.Field):
@@ -16,7 +16,7 @@ class InetAddressFormField(forms.Field):
         'invalid_address_family': u'Enter a valid %(address_family)s address.',
     }
 
-    def __init__(self, address_family=BOTH_FAMILIES, **kwargs):
+    def __init__(self, address_family=UNSPECIFIED, **kwargs):
         self.address_family = address_family
         super(InetAddressFormField, self).__init__(**kwargs)
 
@@ -33,8 +33,8 @@ class InetAddressFormField(forms.Field):
         try:
             return get_interface_type_by_address_family(self.address_family)(value)
         except (ValueError, AddressValueError) as e:
-            if self.address_family != BOTH_FAMILIES:
-                raise ValidationError(self.error_messages['invalid_address_family'], params={'address_family': self.address_family})
+            if self.address_family != UNSPECIFIED:
+                raise ValidationError(self.error_messages['invalid_address_family'], params={'address_family': f'IPv{self.address_family}')
             raise ValidationError(self.error_messages['invalid'])
 
 
@@ -46,7 +46,7 @@ class CidrAddressFormField(forms.Field):
         'network': u'Must be a network address.',
     }
 
-    def __init__(self, address_family=BOTH_FAMILIES, *args, **kwargs):
+    def __init__(self, address_family=UNSPECIFIED, *args, **kwargs):
         self.address_family = address_family
         super(CidrAddressFormField, self).__init__(*args, **kwargs)
 
@@ -65,8 +65,8 @@ class CidrAddressFormField(forms.Field):
         except (ValueError, AddressValueError) as e:
             if 'has host bits' in e.args[0]:
                 raise ValidationError(self.error_messages['network'])
-            if self.address_family != BOTH_FAMILIES:
-                raise ValidationError(self.error_messages['invalid_address_family'], params={'address_family': self.address_family})
+            if self.address_family != UNSPECIFIED:
+                raise ValidationError(self.error_messages['invalid_address_family'], params={'address_family': f'IPv{self.address_family}'})
             raise ValidationError(self.error_messages['invalid'])
 
         return network

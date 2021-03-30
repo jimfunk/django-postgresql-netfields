@@ -3,7 +3,7 @@ from django.db.models import Model, ForeignKey, CASCADE
 
 from netfields import InetAddressField, CidrAddressField, MACAddressField, \
         NetManager
-from netfields.address_families import IPV4_FAMILY, IPV6_FAMILY
+from netfields.address_families import IPV4, IPV6
 
 
 class InetTestModel(Model):
@@ -39,7 +39,7 @@ class NoPrefixInetTestModel(Model):
 
 
 class IPv4InetTestModel(Model):
-    field = InetAddressField(address_family=IPV4_FAMILY)
+    field = InetAddressField(address_family=IPV4)
     objects = NetManager()
 
     class Meta:
@@ -47,7 +47,7 @@ class IPv4InetTestModel(Model):
 
 
 class IPv6InetTestModel(Model):
-    field = InetAddressField(address_family=IPV6_FAMILY)
+    field = InetAddressField(address_family=IPV6)
     objects = NetManager()
 
     class Meta:
@@ -79,7 +79,7 @@ class UniqueCidrTestModel(Model):
 
 
 class IPv4CidrTestModel(Model):
-    field = CidrAddressField(address_family=IPV4_FAMILY)
+    field = CidrAddressField(address_family=IPV4)
     objects = NetManager()
 
     class Meta:
@@ -87,7 +87,7 @@ class IPv4CidrTestModel(Model):
 
 
 class IPv6CidrTestModel(Model):
-    field = CidrAddressField(address_family=IPV6_FAMILY)
+    field = CidrAddressField(address_family=IPV6)
     objects = NetManager()
 
     class Meta:
