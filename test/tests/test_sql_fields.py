@@ -18,8 +18,7 @@ from netaddr import EUI
 
 from django.db import IntegrityError
 from django.db.models import F
-from django.db.models.sql import EmptyResultSet
-from django.core.exceptions import FieldError
+from django.core.exceptions import EmptyResultSet, FieldError
 from django.test import TestCase
 from unittest import skipIf
 
