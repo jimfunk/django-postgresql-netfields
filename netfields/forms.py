@@ -34,7 +34,8 @@ class InetAddressFormField(forms.Field):
             return get_interface_type_by_address_family(self.address_family)(value)
         except (ValueError, AddressValueError) as e:
             if self.address_family != UNSPECIFIED:
-                raise ValidationError(self.error_messages['invalid_address_family'], params={'address_family': f'IPv{self.address_family}')
+                raise ValidationError(self.error_messages['invalid_address_family'],
+                                      params={'address_family': 'IPv{}'.format(self.address_family)})
             raise ValidationError(self.error_messages['invalid'])
 
 
@@ -66,7 +67,8 @@ class CidrAddressFormField(forms.Field):
             if 'has host bits' in e.args[0]:
                 raise ValidationError(self.error_messages['network'])
             if self.address_family != UNSPECIFIED:
-                raise ValidationError(self.error_messages['invalid_address_family'], params={'address_family': f'IPv{self.address_family}'})
+                raise ValidationError(self.error_messages['invalid_address_family'],
+                                      params={'address_family': 'IPv{}'.format(self.address_family)})
             raise ValidationError(self.error_messages['invalid'])
 
         return network
