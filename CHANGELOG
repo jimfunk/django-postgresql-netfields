@@ -1,3 +1,12 @@
+- 1.2.3
+  * Change __prefixlen to be a Transform instead of a Lookup (Christopher
+    Aubut)
+  * Add package name to README installation section (Yuval Adam)
+  * Fix formatting error in README (Gil Forcada Codinachs)
+  * Add NetModelSerializer to rest_framework (Devid)
+  * Handle more invalid macs in DRF MACAddressField (Étienne Noss)
+  * Avoid deprecation warning on Django 2.x
+
 - 1.2.2
   * Additional Django 3 compatibility (Étienne Noss)
 
