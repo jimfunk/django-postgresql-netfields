@@ -1,3 +1,6 @@
+- 1.2.4
+  * Change InetAddressField form value based on prefix parameter (Travis MacDonald)
+
 - 1.2.3
   * Change __prefixlen to be a Transform instead of a Lookup (Christopher
     Aubut)
