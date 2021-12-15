@@ -108,7 +108,7 @@ class MACAddressFormField(forms.Field):
 
         try:
             return EUI(value, dialect=mac_unix_common)
-        except (AddrFormatError, TypeError):
+        except (AddrFormatError, IndexError, TypeError):
             raise ValidationError(self.error_messages['invalid'])
 
     def widget_attrs(self, widget):
