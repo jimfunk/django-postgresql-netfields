@@ -86,50 +86,30 @@ class TestNoPrefixInetAddressFormField(TestCase):
     def test_form_ipv4_valid(self):
         form = self.form_class({'field': '10.0.0.1'})
         self.assertTrue(form.is_valid())
-        # Form always passes ip_interface. Model field will return the requested type
-        self.assertEqual(form.cleaned_data['field'], ip_interface('10.0.0.1'))
+        self.assertEqual(form.cleaned_data['field'], ip_address('10.0.0.1'))
 
     def test_form_ipv4_invalid(self):
         form = self.form_class({'field': '10.0.0.1.2'})
         self.assertFalse(form.is_valid())
 
-    def test_form_ipv4_strip(self):
-        form = self.form_class({'field': ' 10.0.0.1 '})
-        self.assertTrue(form.is_valid())
-        # Form always passes ip_interface. Model field will return the requested type
-        self.assertEqual(form.cleaned_data['field'], ip_interface('10.0.0.1'))
-
-    def test_form_ipv4_change(self):
+    def test_form_ipv4_prefix_invalid(self):
         instance = NoPrefixInetTestModel.objects.create(field='10.1.2.3/24')
         form = self.form_class({'field': '10.1.2.4/24'}, instance=instance)
-        self.assertTrue(form.is_valid())
-        form.save()
-        instance = NoPrefixInetTestModel.objects.get(pk=instance.pk)
-        self.assertEqual(instance.field, ip_address('10.1.2.4'))
+        self.assertFalse(form.is_valid())
 
     def test_form_ipv6_valid(self):
         form = self.form_class({'field': '2001:0:1::2'})
         self.assertTrue(form.is_valid())
-        # Form always passes ip_interface. Model field will return the requested type
-        self.assertEqual(form.cleaned_data['field'], ip_interface('2001:0:1::2'))
+        self.assertEqual(form.cleaned_data['field'], ip_address('2001:0:1::2'))
 
     def test_form_ipv6_invalid(self):
         form = self.form_class({'field': '2001:0::1::2'})
         self.assertFalse(form.is_valid())
 
-    def test_form_ipv6_strip(self):
-        form = self.form_class({'field': ' 2001:0:1::2 '})
-        self.assertTrue(form.is_valid())
-        # Form always passes ip_interface. Model field will return the requested type
-        self.assertEqual(form.cleaned_data['field'], ip_interface('2001:0:1::2'))
-
-    def test_form_ipv6_change(self):
+    def test_form_ipv6_prefix_invalid(self):
         instance = NoPrefixInetTestModel.objects.create(field='2001:0:1::2/64')
         form = self.form_class({'field': '2001:0:1::3/64'}, instance=instance)
-        self.assertTrue(form.is_valid())
-        form.save()
-        instance = NoPrefixInetTestModel.objects.get(pk=instance.pk)
-        self.assertEqual(instance.field, ip_address('2001:0:1::3'))
+        self.assertFalse(form.is_valid())
 
 
 class UniqueInetAddressTestModelForm(ModelForm):

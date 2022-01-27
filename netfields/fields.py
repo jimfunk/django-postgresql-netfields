@@ -6,7 +6,7 @@ from netaddr import EUI
 from netaddr.core import AddrFormatError
 
 from netfields.compat import DatabaseWrapper, text_type
-from netfields.forms import InetAddressFormField, CidrAddressFormField, MACAddressFormField
+from netfields.forms import InetAddressFormField, NoPrefixInetAddressFormField, CidrAddressFormField, MACAddressFormField
 from netfields.mac import mac_unix_common
 from netfields.address_families import UNSPECIFIED, get_interface_type_by_address_family, \
     get_network_type_by_address_family
@@ -149,7 +149,9 @@ class InetAddressField(_NetAddressField):
         return value
 
     def form_class(self):
-        return InetAddressFormField
+        if self.store_prefix_length:
+            return InetAddressFormField
+        return NoPrefixInetAddressFormField
 
 
 class CidrAddressField(_NetAddressField):
