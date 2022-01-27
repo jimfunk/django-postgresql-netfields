@@ -1,4 +1,4 @@
-from ipaddress import ip_address, ip_interface, ip_network, _IPAddressBase, _BaseNetwork
+from ipaddress import _IPAddressBase, _BaseNetwork, AddressValueError
 from netaddr import EUI, AddrFormatError
 
 from django import forms
@@ -6,16 +6,20 @@ from django.core.exceptions import ValidationError
 
 from netfields.compat import text_type
 from netfields.mac import mac_unix_common
+from netfields.address_families import UNSPECIFIED, get_interface_type_by_address_family, \
+    get_network_type_by_address_family, get_address_type_by_address_family
 
 
 class InetAddressFormField(forms.Field):
     widget = forms.TextInput
     default_error_messages = {
         'invalid': u'Enter a valid IP address.',
+        'invalid_address_family': u'Enter a valid %(address_family)s address.',
     }
 
-    def __init__(self, *args, **kwargs):
-        super(InetAddressFormField, self).__init__(*args, **kwargs)
+    def __init__(self, address_family=UNSPECIFIED, **kwargs):
+        self.address_family = address_family
+        super(InetAddressFormField, self).__init__(**kwargs)
 
     def to_python(self, value):
         if not value:
@@ -28,8 +32,11 @@ class InetAddressFormField(forms.Field):
             value = value.strip()
 
         try:
-            return ip_interface(value)
-        except ValueError:
+            return get_interface_type_by_address_family(self.address_family)(value)
+        except (ValueError, AddressValueError):
+            if self.address_family != UNSPECIFIED:
+                raise ValidationError(self.error_messages['invalid_address_family'],
+                                      params={'address_family': 'IPv{}'.format(self.address_family)})
             raise ValidationError(self.error_messages['invalid'])
 
 
@@ -37,9 +44,11 @@ class NoPrefixInetAddressFormField(forms.Field):
     widget = forms.TextInput
     default_error_messages = {
         'invalid': u'Enter a valid IP address.',
+        'invalid_address_family': u'Enter a valid %(address_family)s address.',
     }
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, address_family=UNSPECIFIED, **kwargs):
+        self.address_family = address_family
         super(NoPrefixInetAddressFormField, self).__init__(*args, **kwargs)
 
     def to_python(self, value):
@@ -53,8 +62,11 @@ class NoPrefixInetAddressFormField(forms.Field):
             value = value.strip()
 
         try:
-            return ip_address(value)
-        except ValueError:
+            return get_address_type_by_address_family(self.address_family)(value)
+        except (ValueError, AddressValueError):
+            if self.address_family != UNSPECIFIED:
+                raise ValidationError(self.error_messages['invalid_address_family'],
+                                      params={'address_family': 'IPv{}'.format(self.address_family)})
             raise ValidationError(self.error_messages['invalid'])
 
 
@@ -62,10 +74,12 @@ class CidrAddressFormField(forms.Field):
     widget = forms.TextInput
     default_error_messages = {
         'invalid': u'Enter a valid CIDR address.',
+        'invalid_address_family': u'Enter a valid %(address_family)s CIDR address.',
         'network': u'Must be a network address.',
     }
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, address_family=UNSPECIFIED, *args, **kwargs):
+        self.address_family = address_family
         super(CidrAddressFormField, self).__init__(*args, **kwargs)
 
     def to_python(self, value):
@@ -79,10 +93,13 @@ class CidrAddressFormField(forms.Field):
             value = value.strip()
 
         try:
-            network = ip_network(value)
-        except ValueError as e:
+            network = get_network_type_by_address_family(self.address_family)(value)
+        except (ValueError, AddressValueError) as e:
             if 'has host bits' in e.args[0]:
                 raise ValidationError(self.error_messages['network'])
+            if self.address_family != UNSPECIFIED:
+                raise ValidationError(self.error_messages['invalid_address_family'],
+                                      params={'address_family': 'IPv{}'.format(self.address_family)})
             raise ValidationError(self.error_messages['invalid'])
 
         return network

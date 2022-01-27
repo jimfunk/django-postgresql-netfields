@@ -1,13 +1,15 @@
 from django.core.exceptions import ValidationError
 from django.db import models
 
-from ipaddress import ip_interface, ip_network
+from ipaddress import ip_network, AddressValueError
 from netaddr import EUI
 from netaddr.core import AddrFormatError
 
-from netfields.compat import DatabaseWrapper, with_metaclass, text_type
+from netfields.compat import DatabaseWrapper, text_type
 from netfields.forms import InetAddressFormField, NoPrefixInetAddressFormField, CidrAddressFormField, MACAddressFormField
 from netfields.mac import mac_unix_common
+from netfields.address_families import UNSPECIFIED, get_interface_type_by_address_family, \
+    get_network_type_by_address_family
 from netfields.psycopg2_types import Inet, Macaddr
 
 
@@ -33,9 +35,10 @@ NET_TEXT_OPERATORS = ['ILIKE %s', '~* %s']
 class _NetAddressField(models.Field):
     empty_strings_allowed = False
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, address_family=UNSPECIFIED, **kwargs):
         kwargs['max_length'] = self.max_length
-        super(_NetAddressField, self).__init__(*args, **kwargs)
+        self.address_family = address_family
+        super(_NetAddressField, self).__init__(**kwargs)
 
     def from_db_value(self, value, expression, connection, *args):
         if isinstance(value, list):
@@ -53,7 +56,7 @@ class _NetAddressField(models.Field):
 
         try:
             return self.python_type()(value)
-        except ValueError as e:
+        except (ValueError, AddressValueError) as e:
             raise ValidationError(e)
 
     def get_prep_lookup(self, lookup_type, value):
@@ -134,7 +137,7 @@ class InetAddressField(_NetAddressField):
         return 'inet'
 
     def python_type(self):
-        return ip_interface
+        return get_interface_type_by_address_family(self.address_family)
 
     def to_python(self, value):
         value = super(InetAddressField, self).to_python(value)
@@ -160,7 +163,7 @@ class CidrAddressField(_NetAddressField):
         return 'cidr'
 
     def python_type(self):
-        return ip_network
+        return get_network_type_by_address_family(self.address_family)
 
     def form_class(self):
         return CidrAddressFormField

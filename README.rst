@@ -123,6 +123,12 @@ http://www.postgresql.org/docs/9.4/interactive/functions-net.html
 ``__min_prefixlen``
     Minimum value (inclusive) for ``CIDR`` prefix, does not distinguish between IPv4 and IPv6
 
+Options
+'''''''
+
+``address_family``
+    Specify an explicit address family for ``InetAddressField`` or ``CidrAddressField``. This will only allow setting a value matching the given address family (enforced in python-level). Options are: ``netfields.address_families.IPV4``, ``netfields.address_families.IPV6`` and ``netfields.address_families.UNSPECIFIED``, defaulting to unspecified.
+
 Database Functions
 ''''''''''''''''''
 
