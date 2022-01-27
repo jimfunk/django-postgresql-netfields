@@ -1,4 +1,4 @@
-from ipaddress import ip_interface, ip_network, _IPAddressBase, _BaseNetwork
+from ipaddress import ip_address, ip_interface, ip_network, _IPAddressBase, _BaseNetwork
 from netaddr import EUI, AddrFormatError
 
 from django import forms
@@ -29,7 +29,32 @@ class InetAddressFormField(forms.Field):
 
         try:
             return ip_interface(value)
-        except ValueError as e:
+        except ValueError:
+            raise ValidationError(self.error_messages['invalid'])
+
+
+class NoPrefixInetAddressFormField(forms.Field):
+    widget = forms.TextInput
+    default_error_messages = {
+        'invalid': u'Enter a valid IP address.',
+    }
+
+    def __init__(self, *args, **kwargs):
+        super(NoPrefixInetAddressFormField, self).__init__(*args, **kwargs)
+
+    def to_python(self, value):
+        if not value:
+            return None
+
+        if isinstance(value, _IPAddressBase):
+            return value
+
+        if isinstance(value, text_type):
+            value = value.strip()
+
+        try:
+            return ip_address(value)
+        except ValueError:
             raise ValidationError(self.error_messages['invalid'])
 
 
@@ -83,7 +108,7 @@ class MACAddressFormField(forms.Field):
 
         try:
             return EUI(value, dialect=mac_unix_common)
-        except (AddrFormatError, TypeError):
+        except (AddrFormatError, IndexError, TypeError):
             raise ValidationError(self.error_messages['invalid'])
 
     def widget_attrs(self, widget):
