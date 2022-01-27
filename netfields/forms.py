@@ -1,4 +1,4 @@
-from ipaddress import ip_address, _IPAddressBase, _BaseNetwork, AddressValueError
+from ipaddress import _IPAddressBase, _BaseNetwork, AddressValueError
 from netaddr import EUI, AddrFormatError
 
 from django import forms
