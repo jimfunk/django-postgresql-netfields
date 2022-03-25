@@ -1,8 +1,7 @@
 from django.contrib.postgres.fields import ArrayField
-from django.db.models import Model, ForeignKey, CASCADE
+from django.db.models import CASCADE, ForeignKey, Model
 
-from netfields import InetAddressField, CidrAddressField, MACAddressField, \
-        NetManager
+from netfields import CidrAddressField, InetAddressField, MACAddress8Field, MACAddressField, NetManager
 
 
 class InetTestModel(Model):
@@ -69,6 +68,14 @@ class MACTestModel(Model):
         db_table = 'mac'
 
 
+class MAC8TestModel(Model):
+    field = MACAddress8Field(null=True)
+    objects = NetManager()
+
+    class Meta:
+        db_table = 'mac8'
+
+
 class InetArrayTestModel(Model):
     field = ArrayField(InetAddressField(), blank=True, null=True)
 
@@ -88,6 +95,13 @@ class MACArrayTestModel(Model):
 
     class Meta:
         db_table = 'macarray'
+
+
+class MAC8ArrayTestModel(Model):
+    field = ArrayField(MACAddress8Field(), blank=True, null=True)
+
+    class Meta:
+        db_table = 'mac8array'
 
 
 class AggregateTestModel(Model):

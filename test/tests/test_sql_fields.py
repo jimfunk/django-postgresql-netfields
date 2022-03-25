@@ -33,7 +33,9 @@ from test.models import (
     UniqueCidrTestModel,
     NoPrefixInetTestModel,
     MACArrayTestModel,
+    MAC8ArrayTestModel,
     MACTestModel,
+    MAC8TestModel,
     AggregateTestModel,
     AggregateTestChildModel
 )
@@ -545,9 +547,9 @@ class TestCidrFieldUnique(BaseCidrFieldTestCase, TestCase):
 
 
 class BaseMacTestCase(BaseSqlTestCase):
-    value1 = '00:aa:2b:c3:dd:44'
-    value2 = '00:aa:2b:c3:dd:45'
-    value3 = '00:aa:2b:c3:dd:ff'
+    value1 = NotImplemented
+    value2 = NotImplemented
+    value3 = NotImplemented
 
     def test_save_object(self):
         self.model(field=EUI(self.value1)).save()
@@ -612,6 +614,10 @@ class BaseMacTestCase(BaseSqlTestCase):
 
 
 class TestMacAddressField(BaseMacTestCase, TestCase):
+    value1 = '00:aa:2b:c3:dd:44'
+    value2 = '00:aa:2b:c3:dd:45'
+    value3 = '00:aa:2b:c3:dd:ff'
+
     def setUp(self):
         self.model = MACTestModel
         self.qs = self.model.objects.all()
@@ -631,6 +637,34 @@ class TestMacAddressField(BaseMacTestCase, TestCase):
 
     def test_retrieves_eui_type(self):
         instance = self.model.objects.create(field='00:aa:2b:c3:dd:44')
+        instance = self.model.objects.get(pk=instance.pk)
+        self.assertIsInstance(instance.field, EUI)
+
+
+class TestMacAddress8Field(BaseMacTestCase, TestCase):
+    value1 = '00:aa:2b:c3:dd:44:56:74'
+    value2 = '00:aa:2b:c3:dd:45:98:63'
+    value3 = '00:aa:2b:c3:dd:ff:a5:b6'
+
+    def setUp(self):
+        self.model = MAC8TestModel
+        self.qs = self.model.objects.all()
+        self.table = 'mac8'
+
+    def test_save_blank(self):
+        self.model().save()
+
+    def test_save_none(self):
+        self.model(field=None).save()
+
+    def test_save_nothing_fails(self):
+        self.model().save()
+
+    def test_invalid_fails(self):
+        self.assertRaises(ValidationError, lambda: self.model(field='foobar').save())
+
+    def test_retrieves_eui_type(self):
+        instance = self.model.objects.create(field='00:aa:2b:c3:dd:44:55:66')
         instance = self.model.objects.get(pk=instance.pk)
         self.assertIsInstance(instance.field, EUI)
 
@@ -692,7 +726,26 @@ class TestMACAddressFieldArray(TestCase):
         self.assertIsInstance(instance.field[0], EUI)
 
 
-class TestAggegate(TestCase):
+class TestMACAddress8FieldArray(TestCase):
+    def test_save_null(self):
+        MAC8ArrayTestModel().save()
+
+    def test_save_single_item(self):
+        MAC8ArrayTestModel(field=['00:aa:2b:c3:dd:44:55:ff']).save()
+
+    def test_save_multiple_items(self):
+        MAC8ArrayTestModel(field=['00:aa:2b:c3:dd:44:55:ff', '00:aa:2b:c3:dd:45:7e:6b']).save()
+
+    @skipIf(VERSION < (1, 10), 'ArrayField does not return correct types in Django < 1.10. https://code.djangoproject.com/ticket/25143')
+    def test_retrieves_eui_type(self):
+        instance = MAC8ArrayTestModel(field=['00:aa:2b:c3:dd:44:55:67'])
+        instance.save()
+        instance = MACArrayTestModel.objects.get(id=instance.id)
+        self.assertEqual(instance.field, [EUI('00:aa:2b:c3:dd:44:55:67')])
+        self.assertIsInstance(instance.field[0], EUI)
+
+
+class TestAggregate(TestCase):
     @skipIf(VERSION < (1, 9), 'Postgres aggregates not supported in Django < 1.9')
     def test_aggregate_inet(self):
         from django.contrib.postgres.aggregates import ArrayAgg

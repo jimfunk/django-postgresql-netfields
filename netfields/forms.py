@@ -5,7 +5,7 @@ from django import forms
 from django.core.exceptions import ValidationError
 
 from netfields.compat import text_type
-from netfields.mac import mac_unix_common
+from netfields.mac import mac_unix_common, mac_eui64
 
 
 class InetAddressFormField(forms.Field):
@@ -114,4 +114,33 @@ class MACAddressFormField(forms.Field):
     def widget_attrs(self, widget):
         attrs = super(MACAddressFormField, self).widget_attrs(widget)
         attrs.update({'maxlength': '17'})
+        return attrs
+
+
+class MACAddress8FormField(forms.Field):
+    default_error_messages = {
+        'invalid': u'Enter a valid MAC address 8.',
+    }
+
+    def __init__(self, *args, **kwargs):
+        super(MACAddress8FormField, self).__init__(*args, **kwargs)
+
+    def to_python(self, value):
+        if not value:
+            return None
+
+        if isinstance(value, EUI):
+            return value
+
+        if isinstance(value, text_type):
+            value = value.strip()
+
+        try:
+            return EUI(value, dialect=mac_eui64)
+        except (AddrFormatError, IndexError, TypeError):
+            raise ValidationError(self.error_messages['invalid'])
+
+    def widget_attrs(self, widget):
+        attrs = super(MACAddress8FormField, self).widget_attrs(widget)
+        attrs.update({'maxlength': '23'})
         return attrs

@@ -28,7 +28,8 @@ from test.models import (
     AggregateTestModel,
     CidrTestModel,
     InetTestModel,
-    MACTestModel
+    MACTestModel,
+    MAC8TestModel
 )
 
 
@@ -256,3 +257,12 @@ class TestMacFieldFunctions(TestCase):
     def test_trunc(self):
         qs = MACTestModel.objects.annotate(trunc=Trunc(F('field')))
         self.assertEqual(qs[0].trunc, EUI('aa:bb:cc:00:00:00'))
+
+
+class TestMac8FieldFunctions(TestCase):
+    def setUp(self):
+        MAC8TestModel.objects.create(field='88:99:aa:bb:cc:dd:ee:ff')
+
+    def test_trunc(self):
+        qs = MAC8TestModel.objects.annotate(trunc=Trunc(F('field')))
+        self.assertEqual(qs[0].trunc, EUI('88:99:aa:bb:cc:00:00:00'))
