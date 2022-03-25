@@ -5,7 +5,7 @@ https://www.postgresql.org/docs/11/functions-net.html
 
 from django.db.models import BooleanField, Func, IntegerField, TextField
 
-from .fields import CidrAddressField, InetAddressField
+from .fields import CidrAddressField, InetAddressField, MACAddress8Field
 
 
 class Abbrev(Func):
@@ -26,7 +26,7 @@ class Broadcast(Func):
 
 class Family(Func):
     """Function to extract family of address; 4 for IPv4, 6 for IPv6."""
-    
+
     arity = 1
     function = 'FAMILY'
     output_field = IntegerField()
@@ -77,6 +77,7 @@ class SetMasklen(Func):
 
     arity = 2
     function = 'SET_MASKLEN'
+    output_field = InetAddressField()
 
 
 class AsText(Func):
@@ -109,3 +110,10 @@ class Trunc(Func):
 
     arity = 1
     function = 'TRUNC'
+
+
+class Macaddr8Set7bit(Func):
+    """Function that sets 7th bit to one, also known as modified EUI-64, for inclusion in an IPv6 address"""
+    arity = 1
+    function = 'MACADDR8_SET7BIT'
+    output_field = MACAddress8Field()

@@ -270,26 +270,6 @@ class TestMacAddress8FormField(TestCase):
         self.assertTrue(form.is_valid())
         self.assertEqual(form.cleaned_data['field'], self.mac)
 
-    def test_24bit_colon(self):
-        form = MacAddress8TestModelForm({'field': '00aa2b:c3dd4455ff'})
-        self.assertTrue(form.is_valid())
-        self.assertEqual(form.cleaned_data['field'], self.mac)
-
-    def test_24bit_hyphen(self):
-        form = MacAddress8TestModelForm({'field': '00aa2b-c3dd4455ff'})
-        self.assertTrue(form.is_valid())
-        self.assertEqual(form.cleaned_data['field'], self.mac)
-
-    def test_32bit_colon(self):
-        form = MacAddress8TestModelForm({'field': '00aa2bc3:dd4455ff'})
-        self.assertTrue(form.is_valid())
-        self.assertEqual(form.cleaned_data['field'], self.mac)
-
-    def test_32bit_hyphen(self):
-        form = MacAddress8TestModelForm({'field': '00aa2bc3-dd4455ff'})
-        self.assertTrue(form.is_valid())
-        self.assertEqual(form.cleaned_data['field'], self.mac)
-
     def test_strip(self):
         form = MacAddress8TestModelForm({'field': ' 00:aa:2b:c3:dd:44:55:ff '})
         self.assertTrue(form.is_valid())

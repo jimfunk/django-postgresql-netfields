@@ -13,6 +13,7 @@ from netfields.functions import (
     Family,
     Host,
     Hostmask,
+    Macaddr8Set7bit,
     Masklen,
     Netmask,
     Network,
@@ -258,6 +259,10 @@ class TestMacFieldFunctions(TestCase):
         qs = MACTestModel.objects.annotate(trunc=Trunc(F('field')))
         self.assertEqual(qs[0].trunc, EUI('aa:bb:cc:00:00:00'))
 
+    def test_macaddr8_to7bit(self):
+        qs = MACTestModel.objects.annotate(eui64=Macaddr8Set7bit(F('field')))
+        self.assertEqual(qs[0].eui64, EUI('aa:bb:cc:ff:fe:dd:ee:ff'))
+
 
 class TestMac8FieldFunctions(TestCase):
     def setUp(self):
@@ -265,4 +270,8 @@ class TestMac8FieldFunctions(TestCase):
 
     def test_trunc(self):
         qs = MAC8TestModel.objects.annotate(trunc=Trunc(F('field')))
-        self.assertEqual(qs[0].trunc, EUI('88:99:aa:bb:cc:00:00:00'))
+        self.assertEqual(qs[0].trunc, EUI('88:99:aa:00:00:00:00:00'))
+
+    def test_macaddr8_to7bit(self):
+        qs = MAC8TestModel.objects.annotate(eui64=Macaddr8Set7bit(F('field')))
+        self.assertEqual(qs[0].eui64, EUI('8a:99:aa:bb:cc:dd:ee:ff'))
