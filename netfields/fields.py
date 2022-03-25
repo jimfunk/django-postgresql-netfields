@@ -6,9 +6,15 @@ from netaddr import EUI
 from netaddr.core import AddrFormatError
 
 from netfields.compat import DatabaseWrapper, with_metaclass, text_type
-from netfields.forms import InetAddressFormField, NoPrefixInetAddressFormField, CidrAddressFormField, MACAddressFormField
-from netfields.mac import mac_unix_common
-from netfields.psycopg2_types import Inet, Macaddr
+from netfields.forms import (
+    InetAddressFormField,
+    NoPrefixInetAddressFormField,
+    CidrAddressFormField,
+    MACAddressFormField,
+    MACAddress8FormField
+)
+from netfields.mac import mac_unix_common, mac_eui64
+from netfields.psycopg2_types import Inet, Macaddr, Macaddr8
 
 
 NET_OPERATORS = DatabaseWrapper.operators.copy()
@@ -208,3 +214,49 @@ class MACAddressField(models.Field):
         defaults = {'form_class': MACAddressFormField}
         defaults.update(kwargs)
         return super(MACAddressField, self).formfield(**defaults)
+
+
+class MACAddress8Field(models.Field):
+    """A MAC Address field with 8 bytes"""
+
+    description = "PostgreSQL MACADDR8 field"
+    max_length = 23
+
+    def db_type(self, connection):
+        return "macaddr8"
+
+    def from_db_value(self, value, expression, connection, *args):
+        return self.to_python(value)
+
+    def to_python(self, value):
+        if not value:
+            return value
+
+        try:
+            return EUI(value, dialect=mac_eui64)
+        except AddrFormatError as e:
+            raise ValidationError(e)
+
+    def get_prep_value(self, value):
+        if not value:
+            return None
+
+        return text_type(self.to_python(value))
+
+    def get_db_prep_value(self, value, connection, prepared=False):
+        # Django <= 1.8, ArrayField does not pass model to the base_field, so we have to check for existence
+        model = getattr(self, 'model', None)
+        if model is None or model._meta.get_field(self.name).get_internal_type() == 'ArrayField':
+            is_array_field = True
+        else:
+            is_array_field = False
+
+        if prepared is False and is_array_field is False:
+            return self.get_prep_value(value)
+
+        return Macaddr8(self.get_prep_value(value))
+
+    def formfield(self, **kwargs):
+        defaults = {'form_class': MACAddress8FormField}
+        defaults.update(kwargs)
+        return super(MACAddress8Field, self).formfield(**defaults)

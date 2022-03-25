@@ -11,9 +11,10 @@ from test.models import (
     UniqueInetTestModel,
     UniqueCidrTestModel,
     NoPrefixInetTestModel,
-    MACTestModel
+    MACTestModel,
+    MAC8TestModel
 )
-from netfields.mac import mac_unix_common
+from netfields.mac import mac_eui64, mac_unix_common
 
 
 class InetAddressTestModelForm(ModelForm):
@@ -226,4 +227,74 @@ class TestMacAddressFormField(TestCase):
 
     def test_invalid(self):
         form = MacAddressTestModelForm({'field': 'notvalid'})
+        self.assertFalse(form.is_valid())
+
+
+class MacAddress8TestModelForm(ModelForm):
+    class Meta:
+        model = MAC8TestModel
+        exclude = []
+
+
+class TestMacAddress8FormField(TestCase):
+    def setUp(self):
+        self.mac = EUI('00:aa:2b:c3:dd:44:55:ff', dialect=mac_eui64)
+
+    def test_unix(self):
+        form = MacAddress8TestModelForm({'field': '0:AA:2b:c3:dd:44:55:FF'})
+        self.assertTrue(form.is_valid())
+        self.assertEqual(form.cleaned_data['field'], self.mac)
+
+    def test_unix_common(self):
+        form = MacAddress8TestModelForm({'field': '00:aa:2b:c3:dd:44:55:ff'})
+        self.assertTrue(form.is_valid())
+        self.assertEqual(form.cleaned_data['field'], self.mac)
+
+    def test_eui64(self):
+        form = MacAddress8TestModelForm({'field': '00-AA-2B-C3-DD-44-55-FF'})
+        self.assertTrue(form.is_valid())
+        self.assertEqual(form.cleaned_data['field'], self.mac)
+
+    def test_cisco(self):
+        form = MacAddress8TestModelForm({'field': '00aa.2bc3.dd44.55ff'})
+        self.assertTrue(form.is_valid())
+        self.assertEqual(form.cleaned_data['field'], self.mac)
+
+    def test_16bit_colon(self):
+        form = MacAddress8TestModelForm({'field': '00aa:2bc3:dd44:55ff'})
+        self.assertTrue(form.is_valid())
+        self.assertEqual(form.cleaned_data['field'], self.mac)
+
+    def test_16bit_hyphen(self):
+        form = MacAddress8TestModelForm({'field': '00aa-2bc3-dd44-55ff'})
+        self.assertTrue(form.is_valid())
+        self.assertEqual(form.cleaned_data['field'], self.mac)
+
+    def test_24bit_colon(self):
+        form = MacAddress8TestModelForm({'field': '00aa2b:c3dd4455ff'})
+        self.assertTrue(form.is_valid())
+        self.assertEqual(form.cleaned_data['field'], self.mac)
+
+    def test_24bit_hyphen(self):
+        form = MacAddress8TestModelForm({'field': '00aa2b-c3dd4455ff'})
+        self.assertTrue(form.is_valid())
+        self.assertEqual(form.cleaned_data['field'], self.mac)
+
+    def test_32bit_colon(self):
+        form = MacAddress8TestModelForm({'field': '00aa2bc3:dd4455ff'})
+        self.assertTrue(form.is_valid())
+        self.assertEqual(form.cleaned_data['field'], self.mac)
+
+    def test_32bit_hyphen(self):
+        form = MacAddress8TestModelForm({'field': '00aa2bc3-dd4455ff'})
+        self.assertTrue(form.is_valid())
+        self.assertEqual(form.cleaned_data['field'], self.mac)
+
+    def test_strip(self):
+        form = MacAddress8TestModelForm({'field': ' 00:aa:2b:c3:dd:44:55:ff '})
+        self.assertTrue(form.is_valid())
+        self.assertEqual(form.cleaned_data['field'], self.mac)
+
+    def test_invalid(self):
+        form = MacAddress8TestModelForm({'field': 'notvalid'})
         self.assertFalse(form.is_valid())

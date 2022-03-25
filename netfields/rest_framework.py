@@ -1,12 +1,13 @@
 from __future__ import absolute_import
 
-from ipaddress import ip_interface, ip_network, ip_address
+from ipaddress import ip_address, ip_interface, ip_network
+
 from netaddr import EUI
 from netaddr.core import AddrFormatError
 from rest_framework import serializers
 
 from netfields.compat import text_type
-from netfields.mac import mac_unix_common
+from netfields.mac import mac_unix_common, mac_eui64
 from netfields import fields
 
 
@@ -77,6 +78,25 @@ class MACAddressField(serializers.Field):
             self.fail('invalid')
 
 
+class MACAddress8Field(serializers.Field):
+    default_error_messages = {
+        'invalid': 'Invalid MAC address 8.'
+    }
+
+    def to_representation(self, value):
+        if value is None:
+            return value
+        return text_type(value)
+
+    def to_internal_value(self, data):
+        if data is None:
+            return data
+        try:
+            return EUI(data, dialect=mac_eui64)
+        except (AddrFormatError, TypeError):
+            self.fail('invalid')
+
+
 class NetModelSerializer(serializers.ModelSerializer):
     pass
 
@@ -84,3 +104,4 @@ class NetModelSerializer(serializers.ModelSerializer):
 NetModelSerializer.serializer_field_mapping[fields.InetAddressField] = InetAddressField
 NetModelSerializer.serializer_field_mapping[fields.CidrAddressField] = CidrAddressField
 NetModelSerializer.serializer_field_mapping[fields.MACAddressField] = MACAddressField
+NetModelSerializer.serializer_field_mapping[fields.MACAddress8Field] = MACAddress8Field

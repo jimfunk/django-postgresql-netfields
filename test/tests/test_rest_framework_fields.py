@@ -19,7 +19,6 @@ class FieldsTestCase(unittest.TestCase):
         self.assertEqual(e.exception.detail['ip'],
                          ["Invalid IP address."])
 
-
     def test_validation_cidr_field(self):
 
         class TestSerializer(serializers.Serializer):
@@ -56,6 +55,18 @@ class FieldsTestCase(unittest.TestCase):
                     serializer.is_valid(raise_exception=True)
                 self.assertEqual(e.exception.detail['mac'], ["Invalid MAC address."])
 
+    def test_validation_mac8_field(self):
+
+        class TestSerializer(serializers.Serializer):
+            mac8 = fields.MACAddress8Field()
+
+        for invalid_address in ("de:", {"not": "a mac8"}):
+            with self.subTest(invalid_address=invalid_address):
+                serializer = TestSerializer(data={'mac8': invalid_address})
+                with self.assertRaises(serializers.ValidationError) as e:
+                    serializer.is_valid(raise_exception=True)
+                self.assertEqual(e.exception.detail['mac8'], ["Invalid MAC address 8."])
+
     def test_inet_validation_additional_validators(self):
         def validate(value):
             raise serializers.ValidationError('Invalid.')
@@ -90,6 +101,19 @@ class FieldsTestCase(unittest.TestCase):
             ip = fields.MACAddressField(validators=[validate])
 
         address = '01:23:45:67:89:ab'
+        serializer = TestSerializer(data={'ip': address})
+        with self.assertRaises(serializers.ValidationError) as e:
+            serializer.is_valid(raise_exception=True)
+        self.assertItemsEqual(e.exception.detail['ip'], ['Invalid.'])
+
+    def test_mac8_validation_additional_validators(self):
+        def validate(value):
+            raise serializers.ValidationError('Invalid.')
+
+        class TestSerializer(serializers.Serializer):
+            ip = fields.MACAddress8Field(validators=[validate])
+
+        address = '01:23:45:67:89:ab:bc:dc'
         serializer = TestSerializer(data={'ip': address})
         with self.assertRaises(serializers.ValidationError) as e:
             serializer.is_valid(raise_exception=True)
