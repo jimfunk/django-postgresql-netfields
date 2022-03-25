@@ -17,3 +17,5 @@ MIDDLEWARE_CLASSES = (
 )
 
 SECRET_KEY = "notimportant"
+
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'

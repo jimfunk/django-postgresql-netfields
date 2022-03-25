@@ -740,7 +740,7 @@ class TestMACAddress8FieldArray(TestCase):
     def test_retrieves_eui_type(self):
         instance = MAC8ArrayTestModel(field=['00:aa:2b:c3:dd:44:55:67'])
         instance.save()
-        instance = MACArrayTestModel.objects.get(id=instance.id)
+        instance = MAC8ArrayTestModel.objects.get(id=instance.id)
         self.assertEqual(instance.field, [EUI('00:aa:2b:c3:dd:44:55:67')])
         self.assertIsInstance(instance.field[0], EUI)
 
