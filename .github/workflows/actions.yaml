@@ -1,0 +1,46 @@
+name: django-postgresql-netfields
+
+on:
+  - push
+  - pull_request
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create matrix
+        uses: fabiocaccamo/create-matrix-action@v2
+        id: create_matrix
+        with:
+          matrix: |
+            python-version {2.7}, tox-env {py27-django111}
+            python-version {3.5}, tox-env {py35-django111,py35-django22}
+            python-version {3.6}, tox-env {py36-django111,py36-django22,py36-django30,py36-django31,py36-django32}
+            python-version {3.7}, tox-env {py37-django111,py37-django22,py37-django30,py37-django31,py37-django32}
+            python-version {3.8}, tox-env {py38-django111,py38-django22,py38-django30,py38-django31,py38-django32,py38-django40}
+            python-version {3.9}, tox-env {py38-django111,py38-django22,py38-django30,py38-django31,py38-django32,py38-django40}
+            python-version {3.10}, tox-env {py310-django32,py310-django40}
+    outputs:
+      matrix: ${{ steps.create_matrix.outputs.matrix }}
+  build:
+    runs-on: ubuntu-latest
+    needs: prepare
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{fromJson(needs.prepare.outputs.matrix)}}
+    steps:
+      - uses: actions/checkout@v1
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install dependencies
+        run: |
+          sudo apt install postgresql libpq-dev
+          sudo service postgresql start
+          sudo -u postgres createuser -d runner
+          python -m pip install --upgrade pip
+          python -m pip install tox
+      - name: Test with tox
+        run: tox -e ${{ matrix.tox-env }}
