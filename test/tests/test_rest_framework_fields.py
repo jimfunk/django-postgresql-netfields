@@ -1,8 +1,13 @@
 from __future__ import absolute_import, unicode_literals
 
 from rest_framework import serializers
+import sys
 
-import unittest2 as unittest
+if sys.version_info.major == 2:
+    import unittest2 as unittest
+else:
+    import unittest
+
 from netfields import rest_framework as fields
 
 
@@ -78,7 +83,7 @@ class FieldsTestCase(unittest.TestCase):
         serializer = TestSerializer(data={'ip': address})
         with self.assertRaises(serializers.ValidationError) as e:
             serializer.is_valid(raise_exception=True)
-        self.assertItemsEqual(e.exception.detail['ip'], ['Invalid.'])
+        self.assertEqual(e.exception.detail['ip'], ['Invalid.'])
 
     def test_cidr_validation_additional_validators(self):
         def validate(value):
@@ -91,7 +96,7 @@ class FieldsTestCase(unittest.TestCase):
         serializer = TestSerializer(data={'ip': address})
         with self.assertRaises(serializers.ValidationError) as e:
             serializer.is_valid(raise_exception=True)
-        self.assertItemsEqual(e.exception.detail['ip'], ['Invalid.'])
+        self.assertEqual(e.exception.detail['ip'], ['Invalid.'])
 
     def test_mac_validation_additional_validators(self):
         def validate(value):
@@ -104,7 +109,7 @@ class FieldsTestCase(unittest.TestCase):
         serializer = TestSerializer(data={'ip': address})
         with self.assertRaises(serializers.ValidationError) as e:
             serializer.is_valid(raise_exception=True)
-        self.assertItemsEqual(e.exception.detail['ip'], ['Invalid.'])
+        self.assertEqual(e.exception.detail['ip'], ['Invalid.'])
 
     def test_mac8_validation_additional_validators(self):
         def validate(value):
@@ -117,4 +122,4 @@ class FieldsTestCase(unittest.TestCase):
         serializer = TestSerializer(data={'ip': address})
         with self.assertRaises(serializers.ValidationError) as e:
             serializer.is_valid(raise_exception=True)
-        self.assertItemsEqual(e.exception.detail['ip'], ['Invalid.'])
+        self.assertEqual(e.exception.detail['ip'], ['Invalid.'])
