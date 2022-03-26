@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from distutils.core import setup
-from setuptools import find_packages
 
 import os
 import sys
@@ -33,8 +32,7 @@ setup(
     author=u'James Oakley',
     author_email='jfunk@funktronics.ca',
 
-    packages=find_packages(),
-    include_package_data=True,
+    packages=["netfields"],
     zip_safe=False,
     install_requires=requirements,
 

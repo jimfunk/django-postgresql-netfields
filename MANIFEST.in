@@ -5,3 +5,5 @@ include README.rst
 include requirements.txt
 include manage.py
 include testsettings.py
+include test/*
+include test/tests/*
