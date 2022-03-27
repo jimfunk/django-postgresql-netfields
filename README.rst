@@ -1,20 +1,19 @@
 Django PostgreSQL Netfields
 ===========================
 
-.. image:: https://secure.travis-ci.org/jimfunk/django-postgresql-netfields.png
-
 This project is an attempt at making proper PostgreSQL net related fields for
 Django. In Django pre 1.4 the built in ``IPAddressField`` does not support IPv6
 and uses an inefficient ``HOST()`` cast in all lookups. As of 1.4 you can use
 ``GenericIPAddressField`` for IPv6, but the casting problem remains.
 
-In addition to the basic ``IPAddressField`` replacement a ``CIDR`` and
-a ``MACADDR`` field have been added. This library also provides a manager that
-allows for advanced IP based lookup directly in the ORM.
+In addition to the basic ``IPAddressField`` replacement, ``InetAddressField``,
+a ``CidrAddressField`` a ``MACAddressField``, and a ``MACAddress8Field`` have
+been added. This library also provides a manager that allows for advanced IP
+based lookups directly in the ORM.
 
 In Python, the values of the IP address fields are represented as types from
 the ipaddress_ module. In Python 2.x, a backport_ is used. The MAC address
-field is represented as an EUI type from the netaddr_ module.
+fields are represented as EUI types from the netaddr_ module.
 
 .. _ipaddress: https://docs.python.org/3/library/ipaddress.html
 .. _backport: https://pypi.python.org/pypi/ipaddress/
@@ -23,8 +22,7 @@ field is represented as an EUI type from the netaddr_ module.
 Dependencies
 ------------
 
-Current version of code is targeting Django >= 1.8 support, as this relies
-heavily on ORM internals and supporting multiple versions is especially tricky.
+This module requires ``Django >= 1.11``, ``psycopg2``, and ``netaddr``.
 
 Installation
 ------------
@@ -79,6 +77,19 @@ in network utilities and by network administrators (``00:11:22:aa:bb:cc``).
 
  class Example(models.Model):
      inet = MACAddressField()
+     # ...
+
+``MACAddress8Field`` will store values in PostgreSQL as type ``MACADDR8``. In
+Python, the value will be represented as a ``netaddr.EUI`` object. As with
+``MACAddressField``, the representation is the common one
+(``00:11:22:aa:bb:cc:dd:ee``).
+
+.. code-block:: python
+
+ from netfields import MACAddress8Field, NetManager
+
+ class Example(models.Model):
+     inet = MACAddress8Field()
      # ...
 
 For ``InetAddressField`` and ``CidrAddressField``, ``NetManager`` is required
@@ -185,6 +196,16 @@ Database Functions
 | trunc(``T``)                   | Trunc            | ``T``                | set last 3 bytes to zero                                       |
 +--------------------------------+------------------+----------------------+----------------------------------------------------------------+
 
+**MACAddress8Field Functions**
+
++--------------------------------+------------------+----------------------+----------------------------------------------------------------+
+| Postgres Function              | Django Function  | Return Type          | Description                                                    |
++================================+==================+======================+================================================================+
+| trunc(``T``)                   | Trunc            | ``T``                | set last 5 bytes to zero                                       |
++--------------------------------+------------------+----------------------+----------------------------------------------------------------+
+| macaddr8_set7bit(``T``)        | Macaddr8Set7bit  | ``T``                | set 7th bit to one. Used to generate link-local IPv6 addresses |
++--------------------------------+------------------+----------------------+----------------------------------------------------------------+
+
 Indexes
 '''''''
 
@@ -223,12 +244,6 @@ For earlier versions of Django, a custom migration can be used to install an ind
          ),
          # ...
      ]
-
-Errata
-------
-
-* In Django < 1.9.6 types returned in ArrayFields are strings and not ipaddress types. See
-  https://code.djangoproject.com/ticket/25143
 
 Related Django bugs
 -------------------

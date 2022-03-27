@@ -1,3 +1,8 @@
+- 1.3.0
+  * Added MACAddress8Field for EUI-64 values Benoît Vinot
+  * Fix potential MacAddressField crash in DRF (tfromme)
+  * Tests against newer versions of Python and Django (Benoît Vinot)
+
 - 1.2.4
   * Change InetAddressField form value based on prefix parameter (Travis MacDonald)
 
