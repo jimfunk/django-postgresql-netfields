@@ -188,7 +188,7 @@ class MACAddressField(models.Field):
 
         try:
             return EUI(value, dialect=mac_unix_common)
-        except AddrFormatError as e:
+        except (AddrFormatError, IndexError, TypeError) as e:
             raise ValidationError(e)
 
     def get_prep_value(self, value):
@@ -234,7 +234,7 @@ class MACAddress8Field(models.Field):
 
         try:
             return EUI(value, dialect=mac_eui64)
-        except AddrFormatError as e:
+        except (AddrFormatError, IndexError, TypeError) as e:
             raise ValidationError(e)
 
     def get_prep_value(self, value):

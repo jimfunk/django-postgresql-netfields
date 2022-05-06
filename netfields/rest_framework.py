@@ -74,7 +74,7 @@ class MACAddressField(serializers.Field):
             return data
         try:
             return EUI(data, dialect=mac_unix_common)
-        except (AddrFormatError, TypeError):
+        except (AddrFormatError, IndexError, TypeError):
             self.fail('invalid')
 
 
@@ -93,7 +93,7 @@ class MACAddress8Field(serializers.Field):
             return data
         try:
             return EUI(data, dialect=mac_eui64)
-        except (AddrFormatError, TypeError):
+        except (AddrFormatError, IndexError, TypeError):
             self.fail('invalid')
 
 
