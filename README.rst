@@ -22,7 +22,7 @@ fields are represented as EUI types from the netaddr_ module.
 Dependencies
 ------------
 
-This module requires ``Django >= 1.11``, ``psycopg2``, and ``netaddr``.
+This module requires ``Django >= 1.11``, ``psycopg2`` or ``psycopg``, and ``netaddr``.
 
 Installation
 ------------

@@ -14,7 +14,10 @@ from netfields.forms import (
     MACAddress8FormField
 )
 from netfields.mac import mac_unix_common, mac_eui64
-from netfields.psycopg2_types import Inet, Macaddr, Macaddr8
+try:
+    from netfields.psycopg2_types import Inet, Macaddr, Macaddr8
+except ImportError:
+    from netfields.psycopg3_types import Inet, Macaddr, Macaddr8
 
 
 NET_OPERATORS = DatabaseWrapper.operators.copy()
