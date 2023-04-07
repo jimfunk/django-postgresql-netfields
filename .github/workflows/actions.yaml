@@ -15,10 +15,10 @@ jobs:
           matrix: |
             python-version {2.7}, tox-env {py27-django111}
             python-version {3.7}, tox-env {py37-django111,py37-django22,py37-django30,py37-django31,py37-django32}
-            python-version {3.8}, tox-env {py38-django111,py38-django22,py38-django30,py38-django31,py38-django32,py38-django40}
-            python-version {3.9}, tox-env {py39-django111,py39-django22,py39-django30,py39-django31,py39-django32,py39-django40}
-            python-version {3.10}, tox-env {py310-django32,py310-django40}
-            python-version {3.11}, tox-env {py311-django42,py311-django42-psycopg3}
+            python-version {3.8}, tox-env {py38-django111,py38-django22,py38-django30,py38-django31,py38-django32,py38-django40,py38-django41,py38-django42}
+            python-version {3.9}, tox-env {py39-django111,py39-django22,py39-django30,py39-django31,py39-django32,py39-django40,py39-django41,py39-django42}
+            python-version {3.10}, tox-env {py310-django32,py310-django40,py310-django41,py310-django42}
+            python-version {3.11}, tox-env {py311-django41,py311-django42,py311-django42-psycopg3}
     outputs:
       matrix: ${{ steps.create_matrix.outputs.matrix }}
   build:
