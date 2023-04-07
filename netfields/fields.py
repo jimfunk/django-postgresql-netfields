@@ -5,7 +5,7 @@ from ipaddress import ip_interface, ip_network
 from netaddr import EUI
 from netaddr.core import AddrFormatError
 
-from netfields.compat import DatabaseWrapper, with_metaclass, text_type
+from netfields.compat import DatabaseWrapper, is_psycopg3, with_metaclass, text_type
 from netfields.forms import (
     InetAddressFormField,
     NoPrefixInetAddressFormField,
@@ -14,10 +14,11 @@ from netfields.forms import (
     MACAddress8FormField
 )
 from netfields.mac import mac_unix_common, mac_eui64
-try:
-    from netfields.psycopg2_types import Inet, Macaddr, Macaddr8
-except ImportError:
+
+if is_psycopg3:
     from netfields.psycopg3_types import Inet, Macaddr, Macaddr8
+else:
+    from netfields.psycopg2_types import Inet, Macaddr, Macaddr8
 
 
 NET_OPERATORS = DatabaseWrapper.operators.copy()
