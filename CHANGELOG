@@ -1,3 +1,6 @@
+- 1.3.1
+  * Add support for psycopg v3.x in Django 4.2 and above (Clemens Wolff)
+
 - 1.3.0
   * Added MACAddress8Field for EUI-64 values Benoît Vinot
   * Fix potential MacAddressField crash in DRF (tfromme)
