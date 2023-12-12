@@ -772,3 +772,16 @@ class TestAggregate(TestCase):
         self.assertEqual(network_qs[0].agg_network, [None])
         AggregateTestChildModel.objects.create(parent=parent, network=network, inet=inet)
         self.assertEqual(network_qs[0].agg_network, [network])
+
+
+class TestConstraints(TestCase):
+
+    @skipIf(VERSION < (4, 1), 'Check constraint validation is supported from django 4.1 onwards')
+    def test_check_constraint(self):
+        from test.models import ConstraintModel
+
+        inet = IPv4Interface('10.10.10.20/32')
+        network = IPv4Network('10.10.10.0/24')
+        model = ConstraintModel(inet=inet, network=network)
+        model.full_clean()
+        model.save()
