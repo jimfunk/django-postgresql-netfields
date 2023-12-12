@@ -120,6 +120,9 @@ class _NetAddressField(models.Field):
         return super(_NetAddressField, self).get_db_prep_lookup(
             lookup_type, value, connection=connection, prepared=prepared)
 
+    def get_placeholder(self, value, compiler, connection):
+        return "%s::{}".format(self.db_type(connection))
+
     def formfield(self, **kwargs):
         defaults = {'form_class': self.form_class()}
         defaults.update(kwargs)

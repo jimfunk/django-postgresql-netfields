@@ -1,3 +1,4 @@
+from django import VERSION
 from django.contrib.postgres.fields import ArrayField
 from django.db.models import CASCADE, ForeignKey, Model
 
@@ -117,3 +118,20 @@ class AggregateTestChildModel(Model):
     )
     network = CidrAddressField()
     inet = InetAddressField()
+
+
+if VERSION >= (4, 1):
+    from django.db.models import F, Q, CheckConstraint
+
+
+    class ConstraintModel(Model):
+        network = CidrAddressField()
+        inet = InetAddressField()
+
+        class Meta:
+            constraints = (
+                CheckConstraint(
+                    check=Q(network__net_contains=F('inet')),
+                    name='inet_contained',
+                ),
+            )
