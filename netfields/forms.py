@@ -107,7 +107,7 @@ class MACAddressFormField(forms.Field):
             value = value.strip()
 
         try:
-            return EUI(value, dialect=mac_unix_common)
+            return EUI(value, version=48, dialect=mac_unix_common)
         except (AddrFormatError, IndexError, TypeError):
             raise ValidationError(self.error_messages['invalid'])
 
@@ -136,7 +136,12 @@ class MACAddress8FormField(forms.Field):
             value = value.strip()
 
         try:
-            return EUI(value, dialect=mac_eui64)
+            mac = EUI(value, dialect=mac_eui64)
+            if mac.version == 64:
+                return mac
+            mac = mac.eui64()
+            mac.dialect = mac_eui64
+            return mac
         except (AddrFormatError, IndexError, TypeError):
             raise ValidationError(self.error_messages['invalid'])
 

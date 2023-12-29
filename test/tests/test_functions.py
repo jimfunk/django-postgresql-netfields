@@ -253,15 +253,15 @@ class TestCidrFieldFunctions(TestCase):
 
 class TestMacFieldFunctions(TestCase):
     def setUp(self):
-        MACTestModel.objects.create(field='aa:bb:cc:dd:ee:ff')
+        MACTestModel.objects.create(field='88:bb:cc:dd:ee:ff')
 
     def test_trunc(self):
         qs = MACTestModel.objects.annotate(trunc=Trunc(F('field')))
-        self.assertEqual(qs[0].trunc, EUI('aa:bb:cc:00:00:00'))
+        self.assertEqual(qs[0].trunc, EUI('88:bb:cc:00:00:00'))
 
     def test_macaddr8_to7bit(self):
         qs = MACTestModel.objects.annotate(eui64=Macaddr8Set7bit(F('field')))
-        self.assertEqual(qs[0].eui64, EUI('aa:bb:cc:ff:fe:dd:ee:ff'))
+        self.assertEqual(qs[0].eui64, EUI('8a:bb:cc:ff:fe:dd:ee:ff'))
 
 
 class TestMac8FieldFunctions(TestCase):

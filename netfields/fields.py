@@ -194,7 +194,7 @@ class MACAddressField(models.Field):
             return value
 
         try:
-            return EUI(value, dialect=mac_unix_common)
+            return EUI(value, version=48, dialect=mac_unix_common)
         except (AddrFormatError, IndexError, TypeError) as e:
             raise ValidationError(e)
 
@@ -240,7 +240,12 @@ class MACAddress8Field(models.Field):
             return value
 
         try:
-            return EUI(value, dialect=mac_eui64)
+            mac = EUI(value, dialect=mac_eui64)
+            if mac.version == 64:
+                return mac
+            mac = mac.eui64()
+            mac.dialect = mac_eui64
+            return mac
         except (AddrFormatError, IndexError, TypeError) as e:
             raise ValidationError(e)
 
