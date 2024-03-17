@@ -1,4 +1,3 @@
-from __future__ import unicode_literals
 from ipaddress import ip_address, ip_interface, ip_network
 from netaddr import EUI
 
