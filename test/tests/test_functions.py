@@ -1,4 +1,3 @@
-from __future__ import unicode_literals
 from django import VERSION
 from ipaddress import ip_interface, ip_network
 from netaddr import EUI

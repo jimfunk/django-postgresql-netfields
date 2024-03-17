@@ -1,12 +1,6 @@
-from __future__ import absolute_import, unicode_literals
-
 from rest_framework import serializers
 import sys
-
-if sys.version_info.major == 2:
-    import unittest2 as unittest
-else:
-    import unittest
+import unittest
 
 from netfields import rest_framework as fields
 
