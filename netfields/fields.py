@@ -5,7 +5,7 @@ from ipaddress import ip_interface, ip_network
 from netaddr import EUI
 from netaddr.core import AddrFormatError
 
-from netfields.compat import DatabaseWrapper, is_psycopg3, with_metaclass, text_type
+from netfields.compat import DatabaseWrapper, is_psycopg3
 from netfields.forms import (
     InetAddressFormField,
     NoPrefixInetAddressFormField,
@@ -202,7 +202,7 @@ class MACAddressField(models.Field):
         if not value:
             return None
 
-        return text_type(self.to_python(value))
+        return str(self.to_python(value))
 
     def get_db_prep_value(self, value, connection, prepared=False):
         # Django <= 1.8, ArrayField does not pass model to the base_field so we have to check for existance
@@ -248,7 +248,7 @@ class MACAddress8Field(models.Field):
         if not value:
             return None
 
-        return text_type(self.to_python(value))
+        return str(self.to_python(value))
 
     def get_db_prep_value(self, value, connection, prepared=False):
         # Django <= 1.8, ArrayField does not pass model to the base_field, so we have to check for existence

@@ -4,7 +4,6 @@ from netaddr import EUI, AddrFormatError
 from django import forms
 from django.core.exceptions import ValidationError
 
-from netfields.compat import text_type
 from netfields.mac import mac_unix_common, mac_eui64
 
 
@@ -24,7 +23,7 @@ class InetAddressFormField(forms.Field):
         if isinstance(value, _IPAddressBase):
             return value
 
-        if isinstance(value, text_type):
+        if isinstance(value, str):
             value = value.strip()
 
         try:
@@ -49,7 +48,7 @@ class NoPrefixInetAddressFormField(forms.Field):
         if isinstance(value, _IPAddressBase):
             return value
 
-        if isinstance(value, text_type):
+        if isinstance(value, str):
             value = value.strip()
 
         try:
@@ -75,7 +74,7 @@ class CidrAddressFormField(forms.Field):
         if isinstance(value, _BaseNetwork):
             network = value
 
-        if isinstance(value, text_type):
+        if isinstance(value, str):
             value = value.strip()
 
         try:
@@ -103,7 +102,7 @@ class MACAddressFormField(forms.Field):
         if isinstance(value, EUI):
             return value
 
-        if isinstance(value, text_type):
+        if isinstance(value, str):
             value = value.strip()
 
         try:
@@ -132,7 +131,7 @@ class MACAddress8FormField(forms.Field):
         if isinstance(value, EUI):
             return value
 
-        if isinstance(value, text_type):
+        if isinstance(value, str):
             value = value.strip()
 
         try:

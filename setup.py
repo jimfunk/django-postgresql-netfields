@@ -3,8 +3,6 @@
 from distutils.core import setup
 
 import os
-import sys
-
 
 def get_long_description():
     path = os.path.join(os.path.dirname(__file__), 'README.rst')
@@ -15,11 +13,7 @@ def get_long_description():
 requirements = [
     'netaddr',
     'django>=1.8',
-    'six',
 ]
-
-if sys.version_info.major == 2:
-    requirements.append('ipaddress')
 
 setup(
     name='django-netfields',
@@ -44,6 +38,7 @@ setup(
         'License :: OSI Approved :: BSD License',
         'Operating System :: OS Independent',
         'Programming Language :: Python',
+        'Programming Language :: Python :: 3',
         'Topic :: Utilities',
     ],
 )

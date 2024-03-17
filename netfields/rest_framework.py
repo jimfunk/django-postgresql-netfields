@@ -1,12 +1,9 @@
-from __future__ import absolute_import
-
 from ipaddress import ip_address, ip_interface, ip_network
 
 from netaddr import EUI
 from netaddr.core import AddrFormatError
 from rest_framework import serializers
 
-from netfields.compat import text_type
 from netfields.mac import mac_unix_common, mac_eui64
 from netfields import fields
 
@@ -23,7 +20,7 @@ class InetAddressField(serializers.Field):
     def to_representation(self, value):
         if value is None:
             return value
-        return text_type(value)
+        return str(value)
 
     def to_internal_value(self, data):
         if data is None:
@@ -46,7 +43,7 @@ class CidrAddressField(serializers.Field):
     def to_representation(self, value):
         if value is None:
             return value
-        return text_type(value)
+        return str(value)
 
     def to_internal_value(self, data):
         if data is None:
@@ -67,7 +64,7 @@ class MACAddressField(serializers.Field):
     def to_representation(self, value):
         if value is None:
             return value
-        return text_type(value)
+        return str(value)
 
     def to_internal_value(self, data):
         if data is None:
@@ -86,7 +83,7 @@ class MACAddress8Field(serializers.Field):
     def to_representation(self, value):
         if value is None:
             return value
-        return text_type(value)
+        return str(value)
 
     def to_internal_value(self, data):
         if data is None:
