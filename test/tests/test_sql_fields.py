@@ -676,6 +676,9 @@ class TestInetAddressFieldArray(TestCase):
     def test_save_multiple_items(self):
         InetArrayTestModel(field=['10.1.1.1', '10.1.1.2']).save()
 
+    def test_save_with_null_item(self):
+        InetArrayTestModel(field=['10.1.1.1', None]).save()
+
     def test_retrieves_ipv4_ipinterface_type(self):
         instance = InetArrayTestModel(field=['10.1.1.1/24'])
         instance.save()
@@ -693,6 +696,9 @@ class TestCidrAddressFieldArray(TestCase):
 
     def test_save_multiple_items(self):
         CidrArrayTestModel(field=['10.1.1.0/24', '10.1.2.0/24']).save()
+
+    def test_save_with_null_item(self):
+        CidrArrayTestModel(field=['10.1.1.0/24', None]).save()
 
     def test_retrieves_ipv4_ipnetwork_type(self):
         instance = CidrArrayTestModel(field=['10.1.1.0/24'])
@@ -712,6 +718,9 @@ class TestMACAddressFieldArray(TestCase):
     def test_save_multiple_items(self):
         MACArrayTestModel(field=['00:aa:2b:c3:dd:44', '00:aa:2b:c3:dd:45']).save()
 
+    def test_save_with_null_item(self):
+        MACArrayTestModel(field=['00:aa:2b:c3:dd:44', None]).save()
+
     def test_retrieves_eui_type(self):
         instance = MACArrayTestModel(field=['00:aa:2b:c3:dd:44'])
         instance.save()
@@ -729,6 +738,9 @@ class TestMACAddress8FieldArray(TestCase):
 
     def test_save_multiple_items(self):
         MAC8ArrayTestModel(field=['00:aa:2b:c3:dd:44:55:ff', '00:aa:2b:c3:dd:45:7e:6b']).save()
+
+    def test_save_with_null_item(self):
+        MAC8ArrayTestModel(field=['00:aa:2b:c3:dd:44:55:ff', None]).save()
 
     def test_retrieves_eui_type(self):
         instance = MAC8ArrayTestModel(field=['00:aa:2b:c3:dd:44:55:67'])

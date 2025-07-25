@@ -91,9 +91,10 @@ class _NetAddressField(models.Field):
         return str(self.to_python(value))
 
     def get_db_prep_value(self, value, connection, prepared=False):
-        # Django <= 1.8, ArrayField does not pass model to the base_field so we have to check for existance
-        model = getattr(self, 'model', None)
-        if model is None or model._meta.get_field(self.name).get_internal_type() == 'ArrayField':
+        if value is None:
+            return None
+
+        if self.model._meta.get_field(self.name).get_internal_type() == 'ArrayField':
             is_array_field = True
         else:
             is_array_field = False
@@ -205,9 +206,10 @@ class MACAddressField(models.Field):
         return str(self.to_python(value))
 
     def get_db_prep_value(self, value, connection, prepared=False):
-        # Django <= 1.8, ArrayField does not pass model to the base_field so we have to check for existance
-        model = getattr(self, 'model', None)
-        if model is None or model._meta.get_field(self.name).get_internal_type() == 'ArrayField':
+        if value is None:
+            return None
+
+        if self.model._meta.get_field(self.name).get_internal_type() == 'ArrayField':
             is_array_field = True
         else:
             is_array_field = False
@@ -256,9 +258,10 @@ class MACAddress8Field(models.Field):
         return str(self.to_python(value))
 
     def get_db_prep_value(self, value, connection, prepared=False):
-        # Django <= 1.8, ArrayField does not pass model to the base_field, so we have to check for existence
-        model = getattr(self, 'model', None)
-        if model is None or model._meta.get_field(self.name).get_internal_type() == 'ArrayField':
+        if value is None:
+            return None
+
+        if self.model._meta.get_field(self.name).get_internal_type() == 'ArrayField':
             is_array_field = True
         else:
             is_array_field = False
