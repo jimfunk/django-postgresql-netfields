@@ -432,6 +432,12 @@ class TestInetField(BaseInetFieldTestCase, TestCase):
         instance = self.model.objects.get(field__host='10.1.2.3/27')
         self.assertEqual(str(instance.field), '10.1.2.3/24')
 
+    @skipIf(PYTHON_VERSION < (3, 9), 'Scopes were added in Python 3.9')
+    def test_ipv6_strip_scope(self):
+        instance = self.model.objects.create(field='2001:db8::1%foo/64')
+        instance = self.model.objects.get(pk=instance.pk)
+        self.assertEqual(str(instance.field), '2001:db8::1/64')
+
 
 class TestInetFieldNullable(BaseInetFieldTestCase, TestCase):
     def setUp(self):

@@ -1,7 +1,7 @@
 from django.core.exceptions import ValidationError
 from django.db import models
 
-from ipaddress import ip_interface, ip_network
+from ipaddress import ip_interface, ip_network, IPv6Interface
 from netaddr import EUI
 from netaddr.core import AddrFormatError
 
@@ -158,6 +158,16 @@ class InetAddressField(_NetAddressField):
             else:
                 return value.ip
         return value
+
+    def get_prep_value(self, value):
+        if not value:
+            return None
+
+        value = self.to_python(value)
+        # Strip IPv6 scope identifier if it is present
+        if getattr(value, 'scope_id', None):
+            value = IPv6Interface((value.ip, value.network.prefixlen))
+        return str(value)
 
     def form_class(self):
         if self.store_prefix_length:
