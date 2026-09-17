@@ -5,7 +5,7 @@ from ipaddress import ip_interface, ip_network, IPv6Interface
 from netaddr import EUI
 from netaddr.core import AddrFormatError
 
-from netfields.compat import DatabaseWrapper, is_psycopg3
+from netfields.compat import DatabaseWrapper, is_psycopg3, has_sql_placeholder
 from netfields.forms import (
     InetAddressFormField,
     NoPrefixInetAddressFormField,
@@ -121,8 +121,16 @@ class _NetAddressField(models.Field):
         return super(_NetAddressField, self).get_db_prep_lookup(
             lookup_type, value, connection=connection, prepared=prepared)
 
-    def get_placeholder(self, value, compiler, connection):
-        return "%s::{}".format(self.db_type(connection))
+    if has_sql_placeholder:
+        def get_placeholder_sql(self, value, compiler, connection):
+            db_type = self.db_type(connection)
+            if hasattr(value, "as_sql"):
+                sql, params = compiler.compile(value)
+                return "({})::{}".format(sql, db_type), params
+            return "%s::{}".format(db_type), (value,)
+    else:
+        def get_placeholder(self, value, compiler, connection):
+            return "%s::{}".format(self.db_type(connection))
 
     def formfield(self, **kwargs):
         defaults = {'form_class': self.form_class()}
