@@ -9,3 +9,5 @@ try:
     from django.db.backends.postgresql.base import is_psycopg3
 except ImportError:
     is_psycopg3 = False
+
+has_sql_placeholder = VERSION >= (6,1)
