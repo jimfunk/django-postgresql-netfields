@@ -1,3 +1,6 @@
+- 1.5.0
+  * Add support for Django 6.1 (sevdog)
+
 - 1.4.1
   * Strip scopes on IPv6Interface instances #131
 
